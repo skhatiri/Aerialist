@@ -1,0 +1,57 @@
+- ignore outliers in trajectory averaging
+    - in some cases there are obvious outliers in the parallel runs that influence the average trajectory,
+    hence, the algorithm choices. 
+- ignore trajectory points before arming / take-off
+- ignore trajectory point during bad landings
+- consider the commands send to execution latency in the whole pipeline
+- fix the issues in waiting for k8s jobs to finish
+- auto build in Github
+- break the project in to different modules: 
+    - PX4 testbench
+    - Cloud tester
+    - Flight2Sim
+    - PX4 supervisor
+
+- in sim containers, upload logs to cloud when simulations fail to enable debugging
+- enable continuing an algorithm (after error / rerunning from a given step) from the logged steps in the cloud
+- handle multiple algorithm runs (using same folder if ran at the same time)
+- set drone, env, k8s template all accordingly, not with multiple settings
+- update docker files to enable caching big/resource files
+- update docs 
+- obstacles as list in avoidance.launch
+- re-implement  position, obstacle, trajectory(, command) with shapely 
+- exceptions in avoidance job:
+    - eror shutdonwn of init, sim runing
+        │ init __main__ - INFO - downloading cloud files                                                                                                                      │
+        │ init __main__ - INFO - preparing the experiment environment...Namespace(cloud=True, commands=None, docker=False, drone='ros', env='avoidance', func=<function run_e │
+        │ init px4.simulator - INFO - Avoidance is ready (waiting 5 seconds to wrap up)                                                                                       │
+        │ init px4.drone - INFO - Conected to the drone                                                                                                                       │
+        │ init px4.drone - INFO - uploading mission /tmp/m1.plan                                                                                                              │
+        │ init px4.drone - INFO - starting mission                                                                                                                            │
+        │ init px4.drone - INFO - mission started                                                                                                                             │
+        │ init px4.simulator - INFO - landing detected: starting the timeout                                                                                                  │
+        │ init __main__ - ERROR - program terminated:'NoneType' object is not subscriptable                                                                                   │
+        │ init Traceback (most recent call last):                                                                                                                             │
+        │ init   File "./run.py", line 290, in <module>                                                                                                                       │
+        │ init     args.func(args)                                                                                                                                            │
+        │ init   File "./run.py", line 250, in run_experiment                                                                                                                 │
+        │ init     method()                                                                                                                                                   │
+        │ init   File "/src/drone-experiments/px4/experiment.py", line 82, in replay                                                                                          │
+        │ init     raise (e)                                                                                                                                                  │
+        │ init   File "/src/drone-experiments/px4/experiment.py", line 72, in replay                                                                                          │
+        │ init     self.trajectory = Trajectory.extract_from_log(self.log)                                                                                                    │
+        │ init   File "/src/drone-experiments/px4/trajectory.py", line 323, in extract_from_log                                                                               │
+        │ init     local_position = ulog_helper.extract(log_address, "vehicle_local_position")                                                                                │
+        │ init   File "/src/drone-experiments/utils/ulog_helper.py", line 41, in extract                                                                                      │
+        │ init     csv_add = f"{log_address[:-4]}_{topic}_0.csv"                                                                                                              │
+        │ init TypeError: 'NoneType' object is not subscriptable                                                                                                              │
+        │ init command terminated with exit code 1  
+    - eror shutdonwn of init, sim runing
+        │ init __main__ - INFO - downloading cloud files                                                                                                                      │
+        │ init __main__ - INFO - preparing the experiment environment...Namespace(cloud=True, commands=None, docker=False, drone='ros', env='avoidance', func=<function run_e │
+        │ init px4.simulator - INFO - Avoidance is ready (waiting 5 seconds to wrap up)                                                                                       │
+        │ init command terminated with exit code 124  
+        
+- setup better file sharing than Nextcloud
+- disable trajectories upload while testing locally with k8s
+- averaging when drones are lagging (slower than usual decisions in avoidance)

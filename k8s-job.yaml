@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-experiment
+  labels:
+    {}
+spec:
+  selector:
+    matchLabels:
+  template:
+    metadata:
+      labels:
+        {}
+    spec:
+      containers:
+        - imagePullPolicy: Always
+          name: container-0
+          __active: true
+          image: skhatiri/drone-experiments
+          stdin: true
+          stdinOnce: false
+          command:
+            - /bin/bash
+            - -c
+            - "$(COMMAND)" 
+          tty: true
+          env:
+            - name: WEBDAV_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: host        
+            - name: WEBDAV_USER
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: user           
+            - name: WEBDAV_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: pass
+            - name: COMMAND
+              value: "./run.py --help"          
+          resources:
+
+            requests:
+              cpu: 750m
+              memory: 300Mi
+            limits:
+              cpu: 750m
+              memory: 300Mi
+            requests: {}
+      affinity:
+      imagePullSecrets:
+        - name: dockerhub
+      initContainers:
+      restartPolicy: Never
+  completions: 1
+  suspend: false
+  replicas: 1
+#  activeDeadlineSeconds: int
+  backoffLimit: 5
+  completionMode: NonIndexed
+#  manualSelector: boolean
+  parallelism: 1
+  ttlSecondsAfterFinished: 60
+__clone: true

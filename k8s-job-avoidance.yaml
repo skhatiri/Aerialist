@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-experiment
+  labels:
+    {}
+spec:
+  selector:
+    matchLabels:
+  template:
+    metadata:
+      labels:
+        {}
+    spec:
+      containers:
+        - imagePullPolicy: Always
+          name: init
+          __active: true
+          image: skhatiri/drone-experiments:server
+          stdin: true
+          stdinOnce: false
+          command:
+            - /bin/bash 
+            - -c 
+            - /bin/sleep 5 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
+          env:
+            - name: COMMAND
+              value: "./run.py --help"
+          tty: true
+          resources:
+            limits:
+              cpu: 100m
+              memory: 250Mi
+            requests: {}
+        - imagePullPolicy: Always
+          name: sim
+          __active: true
+          image: skhatiri/drone-experiments
+          stdin: true
+          stdinOnce: true
+          command: 
+          tty: true
+          env:
+            - name: WEBDAV_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: host        
+            - name: WEBDAV_USER
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: user           
+            - name: WEBDAV_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: pass          
+          resources:
+            requests:
+              cpu: 5000m
+              memory: 1000Mi
+            limits:
+              cpu: 5000m
+              memory: 2000Mi
+      affinity:
+      imagePullSecrets:
+        - name: dockerhub
+      initContainers:
+      restartPolicy: Never
+      activeDeadlineSeconds: 600
+  completions: 1
+  suspend: false
+  replicas: 1
+  # activeDeadlineSeconds: 1000
+  backoffLimit: 5
+  completionMode: NonIndexed
+#  manualSelector: boolean
+  parallelism: 1
+  ttlSecondsAfterFinished: 60
+__clone: true

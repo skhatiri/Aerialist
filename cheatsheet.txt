@@ -1,0 +1,85 @@
+#docker
+docker run -it --privileged \
+--env=LOCAL_USER_ID="$(id -u)" \
+-v ~/src/px4:/src/PX4-Autopilot/:rw \
+-v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+-e DISPLAY=:0 \
+-p 14570:14570/udp \
+--name=mycontainer px4io/px4-dev-ros-melodic bash
+
+
+docker kill $(docker ps -q)
+yq '.spec.template.spec.containers[0].command=["./run.py", "--log","resources/logs/t0.ulg","--env", "gazebo", "--drone", "sim", "experiment","replay"] | .spec.completions=3 | .spec.parallelism=3' k8s-job.yaml | kubectl apply -f - --validate=false
+yq '.metadata.name += "-1647426048" .spec.template.spec.containers[0].command = ["./run.py", "--log", "exp1/t0.ulg", "--cloud", "--output", "exp1/", "--drone", "sim", "--env", "gazebo", "--speed", "1.0", "--headless", "experiment", "replay"] | .spec.completions=3 | .spec.parallelism=3' k8s-job.yaml 
+kubectl wait --for=condition=complete job/drone-experiment
+
+./run.py --log resources/logs/t0.ulg --env gazebo --drone sim experiment replay
+./run.py --log resources/logs/m0.ulg --mission resources/logs/m0.plan --env avoidance --drone ros experiment replay
+
+
+#PX4-Avoidance
+source ~/catkin_ws/devel/setup.bash 
+DONT_RUN=1 make -C ~/src/px4/ px4_sitl_default gazebo
+. ~/src/px4/Tools/setup_gazebo.bash ~/src/px4 ~/src/px4/build/px4_sitl_default
+export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:~/src/px4
+echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:~/catkin_ws/src/avoidance/avoidance/sim/models:~/catkin_ws/src/avoidance/avoidance/sim/worlds" >> ~/.bashrc
+roslaunch resources/simulation/collision_prevention.launch gui:=true rviz:=true world_file_name:=collision_prevention
+#roslaunch local_planner local_planner_stereo.launch
+
+# In another terminal
+rosrun mavros mavsys mode -c OFFBOARD
+rosrun mavros mavsafety arm
+
+#In another terminal
+source ~/catkin_ws/devel/setup.bash
+rosrun image_view stereo_view stereo:=/stereo image:=image_rect_color
+#OR 
+rosrun topic_tools transform /stereo/disparity /stereo/disparity_image sensor_msgs/Image 'm.image' 
+
+
+venv/bin/python3 run.py --drone ros --env avoidance --log resources/logs/ta0.ulg experiment replay
+venv/bin/python3 run.py --drone none --env avoidance experiment none
+venv/bin/python3 run.py --drone ros --env avoidance --log resources/logs/ta0.ulg --obst 15 0 2.5 1 10 5  experiment replay
+sudo venv/bin/python3 run.py --obst 15 0 2.5 1 10 5 --drone ros --mission resources/logs/m0.plan --log resources/logs/m0.ulg --env avoidance  experiment replay
+#px4 SITL
+make -C ~/src/px4/ px4_sitl jmavsim
+make px4_sitl gazebo_iris_opt_flow
+make px4_sitl_default gazebo_plane_cam
+
+
+# take_off log:'/home/sajad/px4/PX4-Autopilot/build/px4_sitl_default/tmp/rootfs/log/2021-08-13/07_43_31.ulg'
+# log1 = '/home/sajad/px4/PX4-Autopilot/build/px4_sitl_default/logs/2021-07-22/11_56_25.ulg'
+
+
+#crazyradio
+source ~/px4/crazyflie-lib-python/venv/bin/activate
+python ~/px4/crazyflie-lib-python/examples/cfbridge.py
+
+#manual_mode.py
+python3 px4/manual_mode.py --drone sim --tests s0 --projection 1
+
+#LOGGING CF
+python3 ~/src/px4/Tools/mavlink_ulog_streaming.py 127.0.0.1:14550 -o ~/px4/aerialist/px4/logs/
+
+#replay
+export replay= ~/px4/aerialist/px4/logs/
+make px4_sitl_default
+
+# PX4-Avoindance
+cd ~/src/px4
+export QT_X11_NO_MITSHM=1
+make px4_sitl_default gazebo
+
+. ~/src/px4/Tools/setup_gazebo.bash ~/src/px4 ~/src/px4/build/px4_sitl_default
+
+echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:~/catkin_ws/src/avoidance/avoidance/sim/models:~/catkin_ws/src/avoidance/avoidance/sim/worlds" >> ~/.bashrc
+source ~/catkin_ws/devel/setup.bash
+export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:~/src/px4
+
+roslaunch local_planner local_planner_stereo.launch
+
+
+#debug
+#ROS_PACKAGE_PATH, GAZEBO_MODEL_PATH, GAZEBO_PLUGIN_PATH and LD_LIBRARY_PATH
+rosrun tf view_frames
+rostopic echo /tf

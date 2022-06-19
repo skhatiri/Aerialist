@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: avoid-2
+  labels:
+    {}
+
+spec:
+  containers:
+    - imagePullPolicy: Always
+      name: sim
+      __active: true
+      image: skhatiri/drone-experiments
+      stdin: true
+      stdinOnce: true
+      command: 
+      tty: true
+      env:
+        - name: WEBDAV_HOST
+          valueFrom:
+            secretKeyRef:
+              name: webdav
+              key: host        
+        - name: WEBDAV_USER
+          valueFrom:
+            secretKeyRef:
+              name: webdav
+              key: user           
+        - name: WEBDAV_PASS
+          valueFrom:
+            secretKeyRef:
+              name: webdav
+              key: pass          
+      resources:
+        requests:
+          cpu: 1000m
+          memory: 1000Mi
+        limits:
+          cpu: 7000m
+          memory: 1500Mi
+        requests: {}
+    - imagePullPolicy: Always
+      name: init
+      __active: true
+      image: skhatiri/drone-experiments:server
+      stdin: true
+      stdinOnce: false
+      command:
+        - /bin/bash 
+        - -c 
+        - /bin/sleep 5 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
+      env:
+        - name: COMMAND
+          value: "timeout 600 ./run.py --obst 15 0 2.5 1 10 5 --cloud --mission resources/logs/m0.plan --params resources/simulation/params_avoidance.csv --output ASE2022/obst/ --drone ros --env avoidance --headless experiment replay"
+      tty: true
+      resources:
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        requests: {}
+  affinity:
+  imagePullSecrets:
+    - name: dockerhub
+  initContainers:
+  restartPolicy: Never
