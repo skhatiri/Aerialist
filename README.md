@@ -1,11 +1,7 @@
-# Drone Experiment toolkit
+# AERIALIST (UAV Test Bench)
 
 The reposotory contains tools to do experiments on drone platforms,
 specifically it supports [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot) running on both actual drones (currently Crazyflie 2.1 tested) and in SITL mode leveraging simulators (currently Gazebo and JMavSim tested)
-
-## Packages
-
-### px4/
 
 The package simplifies the conection to drones, as well as sending commands, extracting data from logs, replaying recorded flights from logs, etc., using the [Experiment](px4/experiment.py) interface.
 
