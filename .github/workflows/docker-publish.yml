@@ -16,5 +16,5 @@ jobs:
           username: skhatiri
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: skhatiri/Aerialist
+          repository: skhatiri/aerialist
           tag_with_sha: true
