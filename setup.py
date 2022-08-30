@@ -15,6 +15,7 @@ setuptools.setup(
     project_urls={"Bug Tracker": "https://github.com/skhatiri/Aerialist/issues"},
     license="GNU GPLv3",
     packages=setuptools.find_packages(),
+    include_package_data=True,
     install_requires=[
         "similaritymeasures",
         "matplotlib",
