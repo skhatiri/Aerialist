@@ -1,1 +1,1 @@
-include aerialist/resources/*
+recursive-include aerialist/resources *
