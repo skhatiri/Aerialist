@@ -1,5 +1,6 @@
 tmp/
 logs/
+aerialist/logs/
 .env
 #k8s-config.yaml
 venv/
