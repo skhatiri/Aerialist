@@ -7,9 +7,9 @@ import os
 import threading
 from enum import Enum
 from decouple import config
-from px4.obstacle import Obstacle
-from utils import ulog_helper
 import logging
+from .obstacle import Obstacle
+from . import ulog_helper
 
 logger = logging.getLogger(__name__)
 

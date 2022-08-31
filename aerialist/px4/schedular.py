@@ -1,8 +1,8 @@
 import sched, time
 from typing import List
-from px4.command import Command, FlightMode
-from px4.drone import Drone
 import logging
+from .command import Command, FlightMode
+from .drone import Drone
 
 logger = logging.getLogger(__name__)
 

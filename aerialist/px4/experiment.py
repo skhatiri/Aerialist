@@ -1,12 +1,11 @@
 from typing import List
 from decouple import config
-from px4.drone import Drone, MavAddress
-from px4.command import Command
-from px4.obstacle import Obstacle
-from px4.position import Position
-from px4.schedular import Schedular
-from px4.simulator import Simulator, Environment
-from px4.trajectory import Trajectory
+from .drone import Drone, MavAddress
+from .command import Command
+from .obstacle import Obstacle
+from .schedular import Schedular
+from .simulator import Simulator, Environment
+from .trajectory import Trajectory
 
 
 class Experiment(object):

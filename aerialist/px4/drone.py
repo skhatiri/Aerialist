@@ -1,11 +1,10 @@
 import logging
 import time
-from mavsdk import System, action, asyncio, mission, mission_raw
-from px4.command import Command, FlightMode, DefaultCommands
+from mavsdk import System, action, asyncio
 import keyboard
 from enum import Enum
 from decouple import config
-from datetime import datetime
+from .command import Command, FlightMode, DefaultCommands
 
 logger = logging.getLogger(__name__)
 

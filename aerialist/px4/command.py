@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from enum import Enum
 from typing import List
-from utils import ulog_helper
 import ruptures as rpt
+from . import ulog_helper
 
 
 class FlightMode(Enum):

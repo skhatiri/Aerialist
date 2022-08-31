@@ -1,14 +1,9 @@
 from __future__ import annotations
 from typing import List
 from shapely.geometry import box, LineString, Point
-
-# from typing import List, Tuple
 from decouple import config
-from px4.position import Position
-
-# from px4.trajectory import Trajectory
-# from utils import ulog_helper, timeserie_helper
 import logging
+from .position import Position
 
 logger = logging.getLogger(__name__)
 

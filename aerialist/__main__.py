@@ -8,7 +8,7 @@ from decouple import config
 from px4.k8s_experiment import K8sExperiment
 from px4.experiment import Experiment
 from px4.docker_experiment import DockerExperiment
-from utils import ulog_helper
+from px4 import ulog_helper
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +234,7 @@ def main():
     except Exception as e:
         logger.exception("program terminated:" + str(e), exc_info=True)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

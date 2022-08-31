@@ -2,15 +2,14 @@ import os.path as path
 from datetime import datetime
 from statistics import median
 import logging
-from px4.command import Command
 import subprocess
 from typing import List
 from decouple import config
 import asyncio
-from px4.experiment import Experiment
-from px4.obstacle import Obstacle
-from px4.position import Position
-from px4.trajectory import Trajectory
+from .command import Command
+from .experiment import Experiment
+from .obstacle import Obstacle
+from .trajectory import Trajectory
 
 logger = logging.getLogger(__name__)
 
