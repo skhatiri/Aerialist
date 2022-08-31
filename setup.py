@@ -29,5 +29,5 @@ setuptools.setup(
         "ruptures",
         "shapely",
     ],
-    entry_points={"console_scripts": ["aerialist=aerialist"]},
+    entry_points={"console_scripts": ["aerialist=aerialist.__main__:main"]},
 )

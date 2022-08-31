@@ -224,7 +224,7 @@ def config_loggers():
     main.addHandler(f_handler)
 
 
-if __name__ == "__main__":
+def main():
     try:
         config_loggers()
         args = arg_parse()
@@ -234,3 +234,6 @@ if __name__ == "__main__":
     except Exception as e:
         logger.exception("program terminated:" + str(e), exc_info=True)
         sys.exit(1)
+
+if __name__ == "__main__":
+    main()
