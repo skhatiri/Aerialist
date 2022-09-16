@@ -165,6 +165,7 @@ def run_experiment(args):
         drone_config, simulation_config, test_config, assertion_config, runner_config
     )
 
+    logger.info(f"setting up the test environment...")
     if args.agent == "local":
         agent = LocalAgent(test)
     if args.agent == "docker":
@@ -172,8 +173,10 @@ def run_experiment(args):
     if args.agent == "k8s":
         agent = K8sAgent
 
+    logger.info(f"running the test...")
     test_log = agent.run(test)
-    logger.debug(f"running the test...")
+
+    logger.info(f"test finished...")
     logger.info(f"LOG:{test_log}")
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)
@@ -199,17 +202,20 @@ def config_loggers():
     f_handler.setFormatter(f_format)
     px4 = logging.getLogger("px4")
     main = logging.getLogger("__main__")
+    entry = logging.getLogger("entry")
     px4.addHandler(c_handler)
     main.addHandler(c_handler)
+    entry.addHandler(c_handler)
     px4.addHandler(f_handler)
     main.addHandler(f_handler)
+    entry.addHandler(f_handler)
 
 
 def main():
     try:
         config_loggers()
         args = arg_parse()
-        logger.info(f"preparing the experiment environment...{args}")
+        logger.info(f"preparing the test ...{args}")
         run_experiment(args)
         # args.func(args)
 
