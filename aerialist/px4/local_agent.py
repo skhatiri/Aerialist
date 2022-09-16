@@ -1,3 +1,4 @@
+from unittest import result
 from .test_agent import TestAgent
 from .drone import Drone
 from .simulator import Simulator
@@ -23,7 +24,7 @@ class LocalAgent(TestAgent):
             log = self.simulator.get_log()
             self.results.append(DroneTestResult(log, AssertionConfig.TRAJECTORY))
             self.Plot()
-            return log
+            return self.results[-1]
         except Exception as e:
             self.simulator.kill()
             raise (e)

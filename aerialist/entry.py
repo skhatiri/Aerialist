@@ -42,7 +42,7 @@ def arg_parse():
     parser.add_argument(
         "--drone",
         default=config("DRONE", default="sitl"),
-        choices=["sitl", "cf", "ros"],
+        # choices=["sitl", "cf", "ros"],
         help="type of the drone to conect to",
     )
     parser.add_argument(
@@ -165,19 +165,19 @@ def run_experiment(args):
         drone_config, simulation_config, test_config, assertion_config, runner_config
     )
 
-    logger.info(f"setting up the test environment...")
+    logger.info("setting up the test environment...")
     if args.agent == "local":
         agent = LocalAgent(test)
     if args.agent == "docker":
-        agent = DockerAgent
+        agent = DockerAgent(test)
     if args.agent == "k8s":
-        agent = K8sAgent
+        agent = K8sAgent(test)
 
-    logger.info(f"running the test...")
-    test_log = agent.run(test)
+    logger.info("running the test...")
+    test_result = agent.run(test)
 
-    logger.info(f"test finished...")
-    logger.info(f"LOG:{test_log}")
+    logger.info("test finished...")
+    logger.info(f"LOG:{test_result.log_file}")
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)
     #     print(f"LOG:{exp.log}")

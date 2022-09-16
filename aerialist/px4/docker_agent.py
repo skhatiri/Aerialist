@@ -1,16 +1,11 @@
+from copy import deepcopy
 import os.path as path
-from datetime import datetime
-from statistics import median
 import logging
 import subprocess
-from typing import List
 from decouple import config
 import asyncio
-from .drone_test import DroneTest
+from .drone_test import DroneTest, DroneTestResult
 from .test_agent import TestAgent
-from .command import Command
-from .obstacle import Obstacle
-from .trajectory import Trajectory
 
 logger = logging.getLogger(__name__)
 
@@ -18,33 +13,13 @@ logger = logging.getLogger(__name__)
 class DockerAgent(TestAgent):
 
     # CMD should be updated if the interface in run.py changes
-    CMD = "timeout {timeout} ./run.py {optionals}--drone {drone} --env {sim} --speed {speed} --headless experiment replay"
+    CMD = "timeout {timeout} python3 aerialist {optionals} --drone {drone} --simulator {sim} --speed {speed} --headless"
     DOCKER_CMD = "docker exec -it {id} "
-    DOCKER_IMG = config("DOCKER_IMG", default="drone-experiments")
+    DOCKER_IMG = config("DOCKER_IMG", default="aerialist")
     COPY_DIR = config("LOGS_COPY_DIR", "results/logs/")
 
-    def __init__(
-        self,
-        config: DroneTest
-        # drone: str = config("DRONE", default="sim"),
-        # env: str = config("SIMULATOR", default="gazebo"),
-        # headless: bool = True,
-        # speed: float = config("SPEED", default=1, cast=int),
-        # log: str = None,
-        # is_jmavsim=False,
-        # params_csv=None,
-        # obstacles: List[float] = None,
-        # mission_file: str = None,
-    ) -> None:
+    def __init__(self, config: DroneTest) -> None:
         super().__init__(config)
-        # self.simulator = env
-        # self.drone = drone
-        # self.speed = speed
-        # self.original_log = log
-        # self.params_csv = params_csv
-        # self.mission = mission_file
-        # self.obstacles = obstacles
-        # self.original_trajectory = None
         create_cmd = subprocess.run(
             f"docker run -td {self.DOCKER_IMG}", shell=True, capture_output=True
         )
@@ -57,21 +32,18 @@ class DockerAgent(TestAgent):
             if create_cmd.stderr:
                 logger.error(create_cmd.stderr.decode("ascii"))
 
-        self.load_commands()
-        if self.original_log is not None and self.original_log.endswith(".ulg"):
-            self.original_trajectory = Trajectory.extract_from_log(
-                self.original_log, is_jmavsim=is_jmavsim
-            )
+        self.docker_config = self.import_config()
         self.docker_cmd = self.DOCKER_CMD.format(
             id=self.container_id
         ) + self.format_command(
-            self.drone,
-            self.simulator,
-            self.speed,
-            self.docker_log,
-            self.docker_params,
-            self.obstacles,
-            self.docker_mission,
+            self.docker_config.drone.port,
+            self.docker_config.simulation.simulator,
+            self.docker_config.simulation.speed,
+            self.docker_config.assertion.log_file,
+            self.docker_config.test.commands_file,
+            self.docker_config.drone.params_file,
+            self.docker_config.simulation.obstacles,
+            self.docker_config.drone.mission_file,
         )
 
     @classmethod
@@ -81,6 +53,7 @@ class DockerAgent(TestAgent):
         sim,
         speed,
         log,
+        commands,
         params_csv,
         obstacles,
         mission,
@@ -104,6 +77,9 @@ class DockerAgent(TestAgent):
             optionals += f"--mission '{mission}' "
         if log is not None:
             optionals += f"--log '{log}' "
+        if commands is not None:
+            optionals += f"--commands '{commands}' "
+
         if cloud:
             optionals += "--cloud "
             if output_path:
@@ -118,7 +94,7 @@ class DockerAgent(TestAgent):
         )
         return cmd
 
-    def replay(self):
+    def run(self, config: DroneTest):
         logger.debug(self.docker_cmd)
         replay_cmd = subprocess.run(self.docker_cmd, shell=True, capture_output=True)
         self.process_output(
@@ -127,8 +103,10 @@ class DockerAgent(TestAgent):
             replay_cmd.stderr.decode("ascii"),
             True,
         )
+        self.Plot()
+        return self.results[-1]
 
-    async def replay_async(self):
+    async def run_async(self):
 
         logger.debug(self.docker_cmd)
         replay_cmd = await asyncio.create_subprocess_shell(
@@ -144,15 +122,16 @@ class DockerAgent(TestAgent):
 
     def process_output(self, returncode, stdout, stderr, print_logs=False):
         try:
-            self.docker_log = stdout[stdout.find("LOG:") + 4 :].split()[0]
-            self.export_file(self.docker_log, self.log)
-            self.trajectory = Trajectory.extract_from_log(self.log)
-            if hasattr(self, "original_trajectory"):
-                self.trajectory.plot(
-                    self.original_trajectory,
-                    obstacles=self.obstacles,
-                )
+            docker_log = stdout[stdout.find("LOG:") + 4 :].split()[0]
+            if self.config.test.commands_file is not None:
+                log_add = f"{self.COPY_DIR}{path.basename(self.config.test.commands_file)[:-4]}_{self.container_id[:12]}.ulg"
+            elif self.config.drone.mission_file is not None:
+                log_add = f"{self.COPY_DIR}{path.basename(self.config.drone.mission_file)[:-5]}_{self.container_id[:12]}.ulg"
+            else:
+                log_add = f"{self.COPY_DIR}{self.container_id[:12]}.ulg"
 
+            self.export_file(docker_log, log_add)
+            self.results.append(DroneTestResult(log_add))
             if print_logs:
                 if stdout:
                     logger.debug(stdout)
@@ -166,118 +145,132 @@ class DockerAgent(TestAgent):
 
         subprocess.run(f"docker kill {self.container_id}", shell=True)
 
-    def load_commands(self):
-        self.docker_log = None
-        self.docker_mission = None
-        self.docker_params = None
-        if self.config.assertion.log is not None:
-            self.import_file(self.config.assertion.log, "/io/")
-            self.docker_log = f"/io/{path.basename(self.config.assertion.log)}"
-            self.log = f"{self.COPY_DIR}{path.basename(self.original_log)[:-4]}_{self.container_id[:12]}.ulg"
+    def import_config(self):
+        docker_config = deepcopy(self.config)
 
-        if self.mission is not None:
-            self.import_file(self.mission, "/io/")
-            self.docker_mission = f"/io/{path.basename(self.mission)}"
-            self.log = f"{self.COPY_DIR}{path.basename(self.mission)[:-5]}_{self.container_id[:12]}.ulg"
-
-        if self.params_csv is not None:
-            self.import_file(self.params_csv, "/io/")
-            self.docker_params = f"/io/{path.basename(self.params_csv)}"
-
-    def run(self, commands: List[Command]):
-        self.original_log = (
-            f'{self.COPY_DIR}{datetime.now().strftime("%m-%d %H:%M:%S")}.csv'
-        )
-        Command.save_csv(commands, self.original_log)
-        self.load_commands()
-        self.replay()
-
-    def manual(self):
-        pass
-
-    @classmethod
-    def replay_parallel(
-        cls,
-        runs: int = 1,
-        drone: str = config("DRONE", default="sim"),
-        env: str = config("SIMULATOR", default="gazebo"),
-        headless: bool = True,
-        speed: float = config("SPEED", default=1, cast=int),
-        log: str = None,
-        is_jmavsim=False,
-        params_csv=None,
-        obstacles: List[float] = None,
-        mission_file: str = None,
-    ):
-        experiments: List[DockerExperiment] = []
-        for i in range(runs):
-            experiments.append(
-                DockerExperiment(
-                    drone,
-                    env,
-                    headless,
-                    speed,
-                    log,
-                    is_jmavsim,
-                    params_csv,
-                    obstacles,
-                    mission_file,
+        # Drone Config
+        if self.config.drone is not None:
+            if self.config.drone.mission_file is not None:
+                self.import_file(self.config.drone.mission_file, "/io/")
+                docker_config.drone.mission_file = (
+                    f"/io/{path.basename(self.config.drone.mission_file)}"
                 )
-            )
 
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(
-            asyncio.gather(*[e.replay_async() for e in experiments])
-        )
-        return [e for e in experiments if hasattr(e, "trajectory")]
+            if self.config.drone.params_file is not None:
+                self.import_file(self.config.drone.params_file, "/io/")
+                docker_config.drone.params_file = (
+                    f"/io/{path.basename(self.config.drone.params_file)}"
+                )
 
-    @classmethod
-    def replay_multiple(
-        cls,
-        runs: int = 1,
-        drone: str = config("DRONE", default="sim"),
-        env: str = config("SIMULATOR", default="gazebo"),
-        headless: bool = True,
-        speed: float = config("SPEED", default=1, cast=int),
-        log: str = None,
-        is_jmavsim=False,
-        params_csv=None,
-        obstacles: List[float] = None,
-        mission_file: str = None,
-    ):
+        # Test Config
+        if self.config.test is not None:
+            if self.config.test.commands_file is not None:
+                self.import_file(self.config.test.commands_file, "/io/")
+                docker_config.test.commands_file = (
+                    f"/io/{path.basename(self.config.test.commands_file)}"
+                )
 
-        experiments = cls.replay_parallel(
-            runs,
-            drone,
-            env,
-            headless,
-            speed,
-            log,
-            is_jmavsim,
-            params_csv,
-            obstacles,
-            mission_file,
-        )
-        logger.info(f"{len(experiments)} evalations completed")
-        obst = None
-        if obstacles != None:
-            obst = Obstacle.from_coordinates_multiple(obstacles)
+        # Assertion Config
+        if self.config.assertion is not None:
+            if self.config.assertion.log_file is not None:
+                self.import_file(self.config.assertion.log_file, "/io/")
+                docker_config.assertion.log_file = (
+                    f"/io/{path.basename(self.config.assertion.log_file)}"
+                )
 
-        Trajectory.plot_multiple(
-            [e.trajectory for e in experiments],
-            experiments[0].original_trajectory,
-            distance=None
-            if experiments[0].original_log is None
-            else median(
-                [
-                    e.trajectory.distance(experiments[0].original_trajectory)
-                    for e in experiments
-                ]
-            ),
-            obstacles=None
-            if obstacles is None
-            else Obstacle.from_coordinates_multiple(obstacles),
-        )
+        return docker_config
+
+    # def run(self, commands: List[Command]):
+    #     self.original_log = (
+    #         f'{self.COPY_DIR}{datetime.now().strftime("%m-%d %H:%M:%S")}.csv'
+    #     )
+    #     Command.save_csv(commands, self.original_log)
+    #     self.load_commands()
+    #     self.replay()
+
+    # @classmethod
+    # def replay_parallel(
+    #     cls,
+    #     runs: int = 1,
+    #     drone: str = config("DRONE", default="sim"),
+    #     env: str = config("SIMULATOR", default="gazebo"),
+    #     headless: bool = True,
+    #     speed: float = config("SPEED", default=1, cast=int),
+    #     log: str = None,
+    #     is_jmavsim=False,
+    #     params_csv=None,
+    #     obstacles: List[float] = None,
+    #     mission_file: str = None,
+    # ):
+    #     experiments: List[DockerExperiment] = []
+    #     for i in range(runs):
+    #         experiments.append(
+    #             DockerExperiment(
+    #                 drone,
+    #                 env,
+    #                 headless,
+    #                 speed,
+    #                 log,
+    #                 is_jmavsim,
+    #                 params_csv,
+    #                 obstacles,
+    #                 mission_file,
+    #             )
+    #         )
+
+    #     loop = asyncio.get_event_loop()
+    #     loop.run_until_complete(
+    #         asyncio.gather(*[e.replay_async() for e in experiments])
+    #     )
+    #     return [e for e in experiments if hasattr(e, "trajectory")]
+
+    # @classmethod
+    # def replay_multiple(
+    #     cls,
+    #     runs: int = 1,
+    #     drone: str = config("DRONE", default="sim"),
+    #     env: str = config("SIMULATOR", default="gazebo"),
+    #     headless: bool = True,
+    #     speed: float = config("SPEED", default=1, cast=int),
+    #     log: str = None,
+    #     is_jmavsim=False,
+    #     params_csv=None,
+    #     obstacles: List[float] = None,
+    #     mission_file: str = None,
+    # ):
+
+    #     experiments = cls.replay_parallel(
+    #         runs,
+    #         drone,
+    #         env,
+    #         headless,
+    #         speed,
+    #         log,
+    #         is_jmavsim,
+    #         params_csv,
+    #         obstacles,
+    #         mission_file,
+    #     )
+    #     logger.info(f"{len(experiments)} evalations completed")
+    #     obst = None
+    #     if obstacles != None:
+    #         obst = Obstacle.from_coordinates_multiple(obstacles)
+
+    #     Trajectory.plot_multiple(
+    #         [e.trajectory for e in experiments],
+    #         experiments[0].original_trajectory,
+    #         distance=None
+    #         if experiments[0].original_log is None
+    #         else median(
+    #             [
+    #                 e.trajectory.distance(experiments[0].original_trajectory)
+    #                 for e in experiments
+    #             ]
+    #         ),
+    #         obstacles=None
+    #         if obstacles is None
+    #         else Obstacle.from_coordinates_multiple(obstacles),
+    #     )
 
     def import_file(self, src, dest):
         subprocess.run(

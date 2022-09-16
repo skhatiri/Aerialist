@@ -36,6 +36,8 @@ class DroneConfig:
         if isinstance(port, int):
             self.port = port
         else:
+            if port.isdigit():
+                self.port = int(port)
             if port == "sitl" or port == "sim":
                 self.port = self.SITL_PORT
             if port == "ros" or port == "avoidance":
@@ -45,10 +47,18 @@ class DroneConfig:
 
         if isinstance(params, str):
             # params file path
+            self.params_file = params
             self.params = Command.extract_params_from_csv(params)
+
         else:
+            self.params_file = None
             self.params = params
-        self.mission = mission
+
+        if isinstance(mission, str):
+            self.mission_file = mission
+        else:
+            self.mission_file = None
+            self.mission = mission
 
 
 class SimulationConfig:
@@ -88,8 +98,11 @@ class TestConfig:
 
         if isinstance(commands, str):
             # commands file path
+            self.commands_file = commands
             self.commands = Command.extract(commands)
+
         else:
+            self.commands_file = None
             self.commands = commands
 
         self.speed = speed
@@ -100,14 +113,14 @@ class AssertionConfig:
 
     def __init__(
         self,
-        log: str = None,
+        log_file: str = None,
         variable: str = TRAJECTORY,
         expectation=None,
     ) -> None:
-        self.log = log
+        self.log_file = log_file
         if expectation is None:
             if variable == self.TRAJECTORY:
-                self.expectation = Trajectory.extract(log)
+                self.expectation = Trajectory.extract(log_file)
             else:
                 self.expectation = None
 
@@ -122,13 +135,13 @@ class RunnerConfig:
 class DroneTestResult:
     def __init__(
         self,
-        log: str = None,
+        log_file: str = None,
         variable: str = AssertionConfig.TRAJECTORY,
         record=None,
     ) -> None:
-        self.log = log
+        self.log_file = log_file
         if record is None:
             if variable == AssertionConfig.TRAJECTORY:
-                self.record = Trajectory.extract(log)
+                self.record = Trajectory.extract(log_file)
             else:
                 self.record = None

@@ -9,10 +9,10 @@ class TestAgent(object):
         self.config = config
         self.results: List[DroneTestResult] = []
 
-    def Run(self, config: DroneTest):
+    def Run(self, config: DroneTest) -> DroneTestResult:
         pass
 
-    def Plot(self):
+    def Plot(self) -> None:
         if self.results is not None and len(self.results) >= 1:
             Trajectory.plot_multiple(
                 [r.record for r in self.results],
