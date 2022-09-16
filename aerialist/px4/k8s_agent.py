@@ -5,14 +5,14 @@ import logging
 import subprocess
 from typing import List
 from decouple import config
-from .docker_experiment import DockerExperiment
+from .test_agent import TestAgent
 from .trajectory import Trajectory
 from . import ulog_helper
 
 logger = logging.getLogger(__name__)
 
 
-class K8sExperiment(DockerExperiment):
+class K8sAgent(TestAgent):
 
     KUBE_CMD = 'yq \'.metadata.name += "-{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
     WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)

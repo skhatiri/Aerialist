@@ -6,15 +6,16 @@ import subprocess
 from typing import List
 from decouple import config
 import asyncio
+from .drone_test import DroneTest
+from .test_agent import TestAgent
 from .command import Command
-from .experiment import Experiment
 from .obstacle import Obstacle
 from .trajectory import Trajectory
 
 logger = logging.getLogger(__name__)
 
 
-class DockerExperiment(Experiment):
+class DockerAgent(TestAgent):
 
     # CMD should be updated if the interface in run.py changes
     CMD = "timeout {timeout} ./run.py {optionals}--drone {drone} --env {sim} --speed {speed} --headless experiment replay"
@@ -24,25 +25,26 @@ class DockerExperiment(Experiment):
 
     def __init__(
         self,
-        drone: str = config("DRONE", default="sim"),
-        env: str = config("SIMULATOR", default="gazebo"),
-        headless: bool = True,
-        speed: float = config("SPEED", default=1, cast=int),
-        log: str = None,
-        is_jmavsim=False,
-        params_csv=None,
-        obstacles: List[float] = None,
-        mission_file: str = None,
+        config: DroneTest
+        # drone: str = config("DRONE", default="sim"),
+        # env: str = config("SIMULATOR", default="gazebo"),
+        # headless: bool = True,
+        # speed: float = config("SPEED", default=1, cast=int),
+        # log: str = None,
+        # is_jmavsim=False,
+        # params_csv=None,
+        # obstacles: List[float] = None,
+        # mission_file: str = None,
     ) -> None:
-
-        self.simulator = env
-        self.drone = drone
-        self.speed = speed
-        self.original_log = log
-        self.params_csv = params_csv
-        self.mission = mission_file
-        self.obstacles = obstacles
-        self.original_trajectory = None
+        super().__init__(config)
+        # self.simulator = env
+        # self.drone = drone
+        # self.speed = speed
+        # self.original_log = log
+        # self.params_csv = params_csv
+        # self.mission = mission_file
+        # self.obstacles = obstacles
+        # self.original_trajectory = None
         create_cmd = subprocess.run(
             f"docker run -td {self.DOCKER_IMG}", shell=True, capture_output=True
         )
@@ -168,9 +170,9 @@ class DockerExperiment(Experiment):
         self.docker_log = None
         self.docker_mission = None
         self.docker_params = None
-        if self.original_log is not None:
-            self.import_file(self.original_log, "/io/")
-            self.docker_log = f"/io/{path.basename(self.original_log)}"
+        if self.config.assertion.log is not None:
+            self.import_file(self.config.assertion.log, "/io/")
+            self.docker_log = f"/io/{path.basename(self.config.assertion.log)}"
             self.log = f"{self.COPY_DIR}{path.basename(self.original_log)[:-4]}_{self.container_id[:12]}.ulg"
 
         if self.mission is not None:

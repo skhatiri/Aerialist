@@ -1,0 +1,28 @@
+drone_test:
+  drone:
+    port: 14540
+    params:
+      CP_DIST: 1
+      POS_MOD: 2.5
+    mission:
+      from_file: mission.plan
+  
+  simulation:
+    simulator: gazebo  
+    speed: 1
+    headless: true
+    obstacles:
+      - shape: box
+        size: [1,1,1]
+        position: [0,0,0]
+
+  runner:
+    engine: k8s
+    count: 5 
+
+  test:
+    commands:
+      from_file: commands.csv
+    expectation:
+      from_file: original_log.ulg
+

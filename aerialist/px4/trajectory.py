@@ -53,24 +53,6 @@ class Trajectory(object):
         data_frame.to_csv(address, index=False)
 
     @classmethod
-    def extract_from_csv(cls, address: str) -> Trajectory:
-        """extracts and returns trajectory from the saved log"""
-        positions = []
-
-        pos_csv = pd.read_csv(address)
-        for row in pos_csv.itertuples():
-            positions.append(
-                Position(
-                    row.x,
-                    row.y,
-                    row.z,
-                    row.r,
-                    row.timestamp,
-                )
-            )
-        return Trajectory(positions)
-
-    @classmethod
     def plot_multiple(
         cls,
         trajectories: List[Trajectory],
@@ -246,6 +228,7 @@ class Trajectory(object):
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
         if save:
             filename = file_prefix + ulog_helper.time_filename()
+            os.makedirs(cls.DIR, exist_ok=True)
             fig.savefig(f"{cls.DIR}{filename}.png")
             plt.close(fig)
             if cls.WEBDAV_DIR is not None:
@@ -327,6 +310,33 @@ class Trajectory(object):
         points = self.to_data_frame()[:, 1:3]
         line = LineString(points)
         return line
+
+    @classmethod
+    def extract(cls, address: str) -> Trajectory:
+        """extracts and returns trajectory from the file"""
+        if address.endswith(".csv"):
+            return cls.extract_from_csv(address)
+        if address.endswith(".ulg"):
+            return cls.extract_from_log(address)
+        return None
+
+    @classmethod
+    def extract_from_csv(cls, address: str) -> Trajectory:
+        """extracts and returns trajectory from the saved log"""
+        positions = []
+
+        pos_csv = pd.read_csv(address)
+        for row in pos_csv.itertuples():
+            positions.append(
+                Position(
+                    row.x,
+                    row.y,
+                    row.z,
+                    row.r,
+                    row.timestamp,
+                )
+            )
+        return Trajectory(positions)
 
     @classmethod
     def extract_from_log(

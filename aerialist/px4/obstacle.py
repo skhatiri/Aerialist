@@ -10,11 +10,13 @@ logger = logging.getLogger(__name__)
 
 class Obstacle(object):
     DIR = config("RESULTS_DIR")
+    BOX = "box"
 
     def __init__(
         self,
         p1: Position,
         p2: Position,
+        shape: str = BOX,
         # positions: List[Position],
     ) -> None:
         super().__init__()
