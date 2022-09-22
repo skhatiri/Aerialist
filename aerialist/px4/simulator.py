@@ -6,7 +6,7 @@ import os
 import threading
 from decouple import config
 import logging
-from . import ulog_helper
+from . import file_helper
 from .drone_test import SimulationConfig
 
 logger = logging.getLogger(__name__)
@@ -159,9 +159,9 @@ class Simulator(object):
                     self.kill()
                     logger.debug(f"logging finished: {self.log_file}")
                     if self.COPY_DIR is not None:
-                        copy_path = ulog_helper.copy(
+                        copy_path = file_helper.copy(
                             self.log_file,
-                            self.COPY_DIR + ulog_helper.time_filename(True) + ".ulg",
+                            self.COPY_DIR + file_helper.time_filename(True) + ".ulg",
                         )
                         if copy_path is not None:
                             self.log_file = os.path.abspath(copy_path)

@@ -46,9 +46,8 @@ class DockerAgent(TestAgent):
             self.docker_config.drone.mission_file,
         )
 
-    @classmethod
     def format_command(
-        cls,
+        self,
         drone,
         sim,
         speed,
@@ -57,7 +56,6 @@ class DockerAgent(TestAgent):
         params_csv,
         obstacles,
         mission,
-        cloud=False,
         output_path=None,
     ):
         optionals = ""
@@ -80,12 +78,10 @@ class DockerAgent(TestAgent):
         if commands is not None:
             optionals += f"--commands '{commands}' "
 
-        if cloud:
-            optionals += "--cloud "
-            if output_path:
-                optionals += f"--output '{output_path}' "
+        if output_path:
+            optionals += f"--output '{output_path}' "
 
-        cmd = cls.CMD.format(
+        cmd = self.CMD.format(
             optionals=optionals,
             drone=drone,
             sim=sim,
@@ -107,7 +103,6 @@ class DockerAgent(TestAgent):
         return self.results[-1]
 
     async def run_async(self):
-
         logger.debug(self.docker_cmd)
         replay_cmd = await asyncio.create_subprocess_shell(
             self.docker_cmd,
@@ -179,6 +174,18 @@ class DockerAgent(TestAgent):
                 )
 
         return docker_config
+
+    def import_file(self, src, dest):
+        subprocess.run(
+            f"docker cp '{src}' {self.container_id}:'{dest}'",
+            shell=True,
+        )
+
+    def export_file(self, src, dest):
+        subprocess.run(
+            f"docker cp {self.container_id}:'{src}' '{dest}'",
+            shell=True,
+        )
 
     # def run(self, commands: List[Command]):
     #     self.original_log = (
@@ -271,15 +278,3 @@ class DockerAgent(TestAgent):
     #         if obstacles is None
     #         else Obstacle.from_coordinates_multiple(obstacles),
     #     )
-
-    def import_file(self, src, dest):
-        subprocess.run(
-            f"docker cp '{src}' {self.container_id}:'{dest}'",
-            shell=True,
-        )
-
-    def export_file(self, src, dest):
-        subprocess.run(
-            f"docker cp {self.container_id}:'{src}' '{dest}'",
-            shell=True,
-        )

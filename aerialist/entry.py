@@ -10,7 +10,7 @@ try:
     from .px4.k8s_agent import K8sAgent
     from .px4.local_agent import LocalAgent
     from .px4.docker_agent import DockerAgent
-    from .px4 import ulog_helper
+    from .px4 import file_helper
     from .px4.drone_test import (
         AssertionConfig,
         DroneConfig,
@@ -23,7 +23,7 @@ except:
     from px4.k8s_agent import K8sAgent
     from px4.local_agent import LocalAgent
     from px4.docker_agent import DockerAgent
-    from px4 import ulog_helper
+    from px4 import file_helper
     from px4.drone_test import (
         AssertionConfig,
         DroneConfig,
@@ -57,11 +57,7 @@ def arg_parse():
         default=config("HEADLESS", default=False, cast=bool),
         help="whether to run the simulator headless",
     )
-    parser.add_argument(
-        "--cloud",
-        action="store_true",
-        help="whether to read and write files to the cloud",
-    )
+
     parser.add_argument(
         "--speed",
         default=config("SPEED", default=1, cast=float),
@@ -76,14 +72,14 @@ def arg_parse():
     #     help="wait # seconds before starting the process",
     # )
 
-    parser.add_argument("-l", "--log", default=None, help="input log file address")
+    parser.add_argument("--log", default=None, help="input log file address")
     parser.add_argument("--commands", default=None, help="input commands file address")
     parser.add_argument(
         "--trajectory", default=None, help="expected trajectory file address"
     )
     parser.add_argument("--mission", default=None, help="input mission file address")
     parser.add_argument("--params", default=None, help="params file address")
-    parser.add_argument("--output", default=None, help="cloud output path to copy logs")
+    parser.add_argument("--path", default=None, help="cloud output path to copy logs")
     # parser.add_argument(
     #     "--jmavsim",
     #     action="store_true",
@@ -118,31 +114,12 @@ def arg_parse():
         help="obstacle poisition and size to put in simulation environment: [x1,y1,z1,x2,y2,z2] in order",
         default=[],
     )
-    # sub_parsers = parser.add_subparsers(help="sub-command help")
-    # exp_parser = sub_parsers.add_parser(
-    #     "experiment", help="run specific experiments on the drone"
-    # )
-    # exp_parser.add_argument("method", help="method to run")
     parser.set_defaults(func=run_experiment)
 
     args = parser.parse_args()
     # if args.sleep > 0:
     #     time.sleep(args.sleep)
-
-    if args.cloud:
-        handle_cloud_files(args)
     return args
-
-
-def handle_cloud_files(args):
-    logger.info("downloading cloud files")
-    folder = config("WEBDAV_DL_FLD")
-    if args.log:
-        args.log = ulog_helper.download(args.log, folder)
-    if args.mission:
-        args.mission = ulog_helper.download(args.mission, folder)
-    if args.params:
-        args.params = ulog_helper.download(args.params, folder)
 
 
 def run_experiment(args):
@@ -160,7 +137,7 @@ def run_experiment(args):
     )
     test_config = TestConfig(args.commands, args.speed)
     assertion_config = AssertionConfig(args.log)
-    runner_config = RunnerConfig(args.agent, args.n, args.output)
+    runner_config = RunnerConfig(args.agent, args.n, args.path)
     test = DroneTest(
         drone_config, simulation_config, test_config, assertion_config, runner_config
     )

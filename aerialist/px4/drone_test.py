@@ -3,6 +3,7 @@ from typing import List
 from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
+from . import file_helper
 
 
 class DroneTest:
@@ -48,14 +49,17 @@ class DroneConfig:
         if isinstance(params, str):
             # params file path
             self.params_file = params
-            self.params = Command.extract_params_from_csv(params)
+
+            self.params = Command.extract_params_from_csv(
+                file_helper.get_local_file(params)
+            )
 
         else:
             self.params_file = None
             self.params = params
 
         if isinstance(mission, str):
-            self.mission_file = mission
+            self.mission_file = file_helper.get_local_file(mission)
         else:
             self.mission_file = None
             self.mission = mission
@@ -97,9 +101,9 @@ class TestConfig:
     ) -> None:
 
         if isinstance(commands, str):
-            # commands file path
             self.commands_file = commands
-            self.commands = Command.extract(commands)
+            # commands file path
+            self.commands = Command.extract(file_helper.get_local_file(commands))
 
         else:
             self.commands_file = None
@@ -118,18 +122,20 @@ class AssertionConfig:
         expectation=None,
     ) -> None:
         self.log_file = log_file
-        if expectation is None:
+        self.expectation = expectation
+        if expectation is None and isinstance(log_file, str):
             if variable == self.TRAJECTORY:
-                self.expectation = Trajectory.extract(log_file)
-            else:
-                self.expectation = None
+                self.expectation = Trajectory.extract(
+                    file_helper.get_local_file(log_file)
+                )
 
 
 class RunnerConfig:
-    def __init__(self, agent, count=1, path=None) -> None:
+    def __init__(self, agent, count=1, path=None, job_id=None) -> None:
         self.agent = agent
         self.count = count
         self.path = path
+        self.job_id = job_id
 
 
 class DroneTestResult:
@@ -142,6 +148,6 @@ class DroneTestResult:
         self.log_file = log_file
         if record is None:
             if variable == AssertionConfig.TRAJECTORY:
-                self.record = Trajectory.extract(log_file)
+                self.record = Trajectory.extract(file_helper.get_local_file(log_file))
             else:
                 self.record = None

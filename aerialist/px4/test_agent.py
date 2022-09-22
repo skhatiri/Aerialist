@@ -16,7 +16,9 @@ class TestAgent(object):
         if self.results is not None and len(self.results) >= 1:
             Trajectory.plot_multiple(
                 [r.record for r in self.results],
-                self.config.assertion.expectation,
+                goal=self.config.assertion.expectation
+                if self.config.assertion is not None
+                else None,
                 distance=None
                 if self.config.assertion.expectation is None
                 else median(

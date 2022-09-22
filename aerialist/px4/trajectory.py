@@ -12,7 +12,7 @@ from shapely.geometry import LineString
 from decouple import config
 from .obstacle import Obstacle
 from .position import Position
-from . import ulog_helper, timeserie_helper
+from . import file_helper, timeserie_helper
 
 
 class Trajectory(object):
@@ -227,12 +227,12 @@ class Trajectory(object):
 
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
         if save:
-            filename = file_prefix + ulog_helper.time_filename()
+            filename = file_prefix + file_helper.time_filename()
             os.makedirs(cls.DIR, exist_ok=True)
             fig.savefig(f"{cls.DIR}{filename}.png")
             plt.close(fig)
             if cls.WEBDAV_DIR is not None:
-                ulog_helper.upload(f"{cls.DIR}{filename}.png", cls.WEBDAV_DIR)
+                file_helper.upload(f"{cls.DIR}{filename}.png", cls.WEBDAV_DIR)
 
         else:
             plt.ion()
@@ -351,7 +351,7 @@ class Trajectory(object):
 
         # global position
         if cls.USE_GPS:
-            global_position = ulog_helper.extract(
+            global_position = file_helper.extract(
                 log_address, "vehicle_global_position"
             )
             global_position = global_position[["timestamp", "lat", "lon", "alt"]]
@@ -367,7 +367,7 @@ class Trajectory(object):
 
         # local position
         else:
-            local_position = ulog_helper.extract(log_address, "vehicle_local_position")
+            local_position = file_helper.extract(log_address, "vehicle_local_position")
             local_position = local_position[["timestamp", "x", "y", "z", "heading"]]
             for row in local_position.itertuples():
                 positions.append(
@@ -390,7 +390,7 @@ class Trajectory(object):
             in_auto_modes = True
             filtered_positions = []
             period_start = None
-            commander_state = ulog_helper.extract(log_address, "commander_state")
+            commander_state = file_helper.extract(log_address, "commander_state")
             for row in commander_state.itertuples():
                 # if row.main_state_changes == 0:
                 #     # skip invalid states before the first state change
@@ -439,7 +439,7 @@ class Trajectory(object):
 
     @classmethod
     def extract_CP_active_periods(cls, log_address):
-        collision_constraints = ulog_helper.extract(
+        collision_constraints = file_helper.extract(
             log_address, "collision_constraints"
         )
         if collision_constraints is None:

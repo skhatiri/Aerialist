@@ -9,3 +9,4 @@ statsmodels
 webdavclient3
 ruptures
 shapely
+validators

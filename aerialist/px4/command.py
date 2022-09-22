@@ -5,7 +5,7 @@ import pandas as pd
 from enum import Enum
 from typing import List
 import ruptures as rpt
-from . import ulog_helper
+from . import file_helper
 
 
 class FlightMode(Enum):
@@ -151,7 +151,7 @@ class Command(object):
     def extract_from_log(cls, address: str) -> List[Command]:
         """extracts and returns RC commands from the input log"""
 
-        manual_contorl = ulog_helper.extract(address, "manual_control_setpoint")
+        manual_contorl = file_helper.extract(address, "manual_control_setpoint")
 
         commands = []
 
@@ -160,7 +160,7 @@ class Command(object):
             commands.append(cls(row.timestamp, row.x, row.y, row.z, row.r))
 
         # arm/disarm
-        actuator_armed = ulog_helper.extract(address, "actuator_armed")
+        actuator_armed = file_helper.extract(address, "actuator_armed")
         arm_state = 0
         for row in actuator_armed.itertuples():
             if row.armed == arm_state:
@@ -173,7 +173,7 @@ class Command(object):
                     commands.append(cls(row.timestamp, mode=FlightMode.Disarm))
 
         # flight modes
-        commander_state = ulog_helper.extract(address, "commander_state")
+        commander_state = file_helper.extract(address, "commander_state")
         mode = -1
         for row in commander_state.itertuples():
             if row.main_state_changes == 0:

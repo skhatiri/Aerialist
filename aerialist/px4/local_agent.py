@@ -1,4 +1,4 @@
-from unittest import result
+from . import file_helper
 from .test_agent import TestAgent
 from .drone import Drone
 from .simulator import Simulator
@@ -22,6 +22,8 @@ class LocalAgent(TestAgent):
         try:
             self.drone.run_scheduled()
             log = self.simulator.get_log()
+            if self.config.runner is not None and self.config.runner.path is not None:
+                file_helper.upload(log, self.config.runner.path)
             self.results.append(DroneTestResult(log, AssertionConfig.TRAJECTORY))
             self.Plot()
             return self.results[-1]

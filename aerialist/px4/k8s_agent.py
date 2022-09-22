@@ -1,109 +1,45 @@
 import asyncio
+from copy import deepcopy
 import os
 import os.path as path
 import logging
 import subprocess
-from typing import List
 from decouple import config
-from .test_agent import TestAgent
-from .trajectory import Trajectory
-from . import ulog_helper
+from .docker_agent import DockerAgent
+from .drone_test import DroneTest, DroneTestResult
+from . import file_helper
 
 logger = logging.getLogger(__name__)
 
 
-class K8sAgent(TestAgent):
+class K8sAgent(DockerAgent):
 
     KUBE_CMD = 'yq \'.metadata.name += "-{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
     WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
 
-    def __init__(
-        self,
-        drone: str = config("DRONE", default="sim"),
-        env: str = config("SIMULATOR", default="gazebo"),
-        headless: bool = True,
-        speed: float = config("SPEED", default=1, cast=int),
-        log: str = None,
-        is_jmavsim=False,
-        params_csv=None,
-        obstacles: List[float] = None,
-        mission_file: str = None,
-        experiment_log: str = None,
-    ) -> None:
+    def __init__(self, config: DroneTest) -> None:
+        super.__init__(config)
+        self.k8s_config = self.import_config()
 
-        self.simulator = env
-        self.drone = drone
-        self.speed = speed
-        self.headless = headless
-        self.original_log = log
-        self.params_csv = params_csv
-        self.mission = mission_file
-        self.obstacles = obstacles
-        self.log = experiment_log
-        self.original_trajectory = None
-        if self.original_log is not None and self.original_log.endswith(".ulg"):
-            self.original_trajectory = Trajectory.extract_from_log(
-                self.original_log, is_jmavsim=is_jmavsim
-            )
-        if self.log:
-            self.trajectory = Trajectory.extract_from_log(
-                self.log,
-            )
-
-    def replay(self):
-        pass
-
-    async def replay_async(self):
-        pass
-
-    def load_commands(self):
-        pass
-
-    @classmethod
-    def replay_parallel(
-        cls,
-        runs: int = 1,
-        drone: str = config("DRONE", default="sim"),
-        env: str = config("SIMULATOR", default="gazebo"),
-        headless: bool = True,
-        speed: float = config("SPEED", default=1, cast=int),
-        log: str = None,
-        is_jmavsim=False,
-        params_csv=None,
-        obstacles: List[float] = None,
-        mission_file: str = None,
-        job_prefix: str = "",
-    ):
-        job_id = job_prefix + ulog_helper.time_filename()
-        cloud_folder = f"{cls.WEBDAV_DIR}{job_id}/"
-        ulog_helper.create_dir(cloud_folder)
-        logger.info(f"uploading cloud files to {cloud_folder}")
-        cloud_log = ulog_helper.upload(log, cloud_folder) if log else None
-        cloud_mission_file = (
-            ulog_helper.upload(mission_file, cloud_folder) if mission_file else None
-        )
-        cloud_params_csv = (
-            ulog_helper.upload(params_csv, cloud_folder) if params_csv else None
-        )
-        logger.info(f"files uploaded")
-
-        cmd = cls.format_command(
-            drone,
-            env,
-            speed,
-            cloud_log,
-            cloud_params_csv,
-            obstacles,
-            cloud_mission_file,
+    def run(self, config: DroneTest):
+        cmd = self.format_command(
+            self.k8s_config.drone.port,
+            self.k8s_config.simulation.simulator,
+            self.k8s_config.simulation.speed,
+            self.k8s_config.assertion.log_file,
+            self.k8s_config.test.commands_file,
+            self.k8s_config.drone.params_file,
+            self.k8s_config.simulation.obstacles,
+            self.k8s_config.drone.mission_file,
             True,
-            cloud_folder,
+            self.k8s_config.runner.path,
         )
 
         logger.debug("docker command:" + cmd)
-        kube_cmd = cls.KUBE_CMD.format(
-            name=job_id,
+        kube_cmd = self.KUBE_CMD.format(
+            name=self.config.runner.job_id,
             command=cmd,
-            runs=runs,
+            runs=self.config.runner.count,
             template=config("KUBE_TEMPLATE"),
         )
         logger.debug("k8s command:" + kube_cmd)
@@ -112,37 +48,27 @@ class K8sAgent(TestAgent):
         if kube_prc.returncode == 0:
             logger.info("waiting for k8s job to finish ...")
             loop = asyncio.get_event_loop()
-            succes = loop.run_until_complete(cls.wait_success(job_id))
+            succes = loop.run_until_complete(
+                self.wait_success(self.config.runner.job_id)
+            )
             logger.info("k8s job finished")
-            local_folder = f'{config("WEBDAV_DL_FLD")}{job_id}/'
+            local_folder = f'{config("WEBDAV_DL_FLD")}{self.config.runner.job_id}/'
             os.mkdir(local_folder)
             logger.info(f"downloading simulation logs to {local_folder}")
-            ulog_helper.download_dir(cloud_folder, local_folder)
+            file_helper.download_dir(self.k8s_config.runner.path, local_folder)
             logger.debug("files downloaded")
 
-            experiments: List[K8sExperiment] = []
-            for exp_log in os.listdir(local_folder):
-                if exp_log.endswith(".ulg") and (
-                    log is None or path.basename(exp_log) != path.basename(log)
+            for test_log in os.listdir(local_folder):
+                if test_log.endswith(".ulg") and (
+                    self.config.assertion.log_file is None
+                    or path.basename(test_log)
+                    != path.basename(self.config.assertion.log_file)
                 ):
-                    experiments.append(
-                        K8sExperiment(
-                            drone,
-                            env,
-                            headless,
-                            speed,
-                            log,
-                            is_jmavsim,
-                            params_csv,
-                            obstacles,
-                            mission_file,
-                            local_folder + exp_log,
-                        )
-                    )
-            if len(experiments) == 0:
-                logger.error(f"k8s job {job_id} failed")
-                raise Exception(f"k8s job {job_id} failed")
-            return experiments
+                    self.results.append(DroneTestResult(local_folder + test_log))
+            if len(self.results) == 0:
+                logger.error(f"k8s job {self.config.runner.job_id} failed")
+                raise Exception(f"k8s job {self.config.runner.job_id} failed")
+            return self.results
 
         else:
             logger.error(f"k8s process failed with code {kube_prc.returncode}")
@@ -152,8 +78,45 @@ class K8sAgent(TestAgent):
                 logger.error(kube_prc.stderr.decode("ascii"))
             raise Exception(f"k8s process failed with code {kube_prc.returncode}")
 
-    @classmethod
-    async def wait_success(cls, job_id):
+    async def run_async(self):
+        pass
+
+    def import_config(self):
+        k8s_config = deepcopy(self.config)
+        self.config.runner.job_id  # += file_helper.time_filename()
+        # cloud_folder = f"{self.WEBDAV_DIR}{self.config.runner.job_id}/"
+        # k8s_config.runner.path = cloud_folder
+        cloud_folder = self.config.runner.path
+
+        # Drone Config
+        if self.config.drone is not None:
+            if self.config.drone.mission_file is not None:
+                k8s_config.drone.mission_file = file_helper.upload(
+                    self.config.drone.mission_file, cloud_folder
+                )
+
+            if self.config.drone.params_file is not None:
+                k8s_config.drone.params_file = file_helper.upload(
+                    self.config.drone.params_file, cloud_folder
+                )
+
+        # Test Config
+        if self.config.test is not None:
+            if self.config.test.commands_file is not None:
+                k8s_config.test.commands_file = file_helper.upload(
+                    self.config.test.commands_file, cloud_folder
+                )
+
+        # Assertion Config
+        if self.config.assertion is not None:
+            if self.config.assertion.log_file is not None:
+                k8s_config.assertion.log_file = file_helper.upload(
+                    self.config.assertion.log_file, cloud_folder
+                )
+        logger.info(f"files uploaded")
+        return k8s_config
+
+    async def wait_success(self, job_id):
         completed = await asyncio.create_subprocess_shell(
             f"kubectl wait --for=condition=complete  --timeout=1000s job.batch/{config('KUBE_JOB_NAME')}-{job_id}"
         )

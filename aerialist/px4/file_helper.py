@@ -11,10 +11,21 @@ from webdav3.client import Client
 import webdav3.exceptions
 from os import path
 import os
+import validators
 
 logger = logging.getLogger(__name__)
 MAX_WEBDAV_RETRIES = 5
 RETRIES = 0
+
+
+def get_local_file(str):
+    if validators.url(str):
+        local_add = download(str, config("WEBDAV_DL_FLD"))
+        return local_add
+    elif path.exists(str):
+        return str
+    else:
+        raise Exception("path does not exist")
 
 
 def init_webdav():
@@ -73,11 +84,14 @@ def time_filename(add_host=False):
     return name
 
 
-def upload(src_file, dest_path) -> str:
+def upload(src_file: str, dest_path: str) -> str:
     global RETRIES
-    dest_path += path.basename(src_file)
+    cloud_path = dest_path
+    if validators.url(dest_path):
+        cloud_path = dest_path.replace(config("WEBDAV_ROOT"), "")
+    cloud_path += path.basename(src_file)
     try:
-        webdav_client.upload_file(dest_path, src_file)
+        webdav_client.upload_file(cloud_path, src_file)
         RETRIES = 0
     except webdav3.exceptions.NoConnection as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")
@@ -88,14 +102,17 @@ def upload(src_file, dest_path) -> str:
             return upload(src_file, dest_path)
         else:
             raise (e)
-    return dest_path
+    return cloud_path
 
 
-def download(src_file, dest_path) -> str:
+def download(src_file: str, dest_path: str) -> str:
     global RETRIES
-    dest_path += path.basename(src_file)
+    cloud_path = src_file
+    if validators.url(src_file):
+        cloud_path = src_file.replace(config("WEBDAV_ROOT"), "")
+    dest_path += path.basename(cloud_path)
     try:
-        webdav_client.download_file(src_file, dest_path)
+        webdav_client.download_file(cloud_path, dest_path)
         RETRIES = 0
     except webdav3.exceptions.NoConnection as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")
