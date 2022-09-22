@@ -25,8 +25,8 @@ class LocalAgent(TestAgent):
             if self.config.runner is not None and self.config.runner.path is not None:
                 file_helper.upload(log, self.config.runner.path)
             self.results.append(DroneTestResult(log, AssertionConfig.TRAJECTORY))
-            self.Plot()
-            return self.results[-1]
+            # self.Plot()
+            return self.results
         except Exception as e:
             self.simulator.kill()
             raise (e)

@@ -16,9 +16,11 @@ class K8sAgent(DockerAgent):
 
     KUBE_CMD = 'yq \'.metadata.name += "-{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
     WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
+    WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
+    KUBE_TEMPLATE = config("KUBE_TEMPLATE")
 
     def __init__(self, config: DroneTest) -> None:
-        super.__init__(config)
+        super().__init__(config)
         self.k8s_config = self.import_config()
 
     def run(self, config: DroneTest):
@@ -31,7 +33,6 @@ class K8sAgent(DockerAgent):
             self.k8s_config.drone.params_file,
             self.k8s_config.simulation.obstacles,
             self.k8s_config.drone.mission_file,
-            True,
             self.k8s_config.runner.path,
         )
 
@@ -40,7 +41,7 @@ class K8sAgent(DockerAgent):
             name=self.config.runner.job_id,
             command=cmd,
             runs=self.config.runner.count,
-            template=config("KUBE_TEMPLATE"),
+            template=self.KUBE_TEMPLATE,
         )
         logger.debug("k8s command:" + kube_cmd)
         logger.info("creating k8s job")
@@ -52,7 +53,7 @@ class K8sAgent(DockerAgent):
                 self.wait_success(self.config.runner.job_id)
             )
             logger.info("k8s job finished")
-            local_folder = f'{config("WEBDAV_DL_FLD")}{self.config.runner.job_id}/'
+            local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.runner.job_id}/"
             os.mkdir(local_folder)
             logger.info(f"downloading simulation logs to {local_folder}")
             file_helper.download_dir(self.k8s_config.runner.path, local_folder)
@@ -68,7 +69,7 @@ class K8sAgent(DockerAgent):
             if len(self.results) == 0:
                 logger.error(f"k8s job {self.config.runner.job_id} failed")
                 raise Exception(f"k8s job {self.config.runner.job_id} failed")
-            return self.results
+            return self.results[0]
 
         else:
             logger.error(f"k8s process failed with code {kube_prc.returncode}")

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from statistics import median
 from typing import List
 from .command import Command
 from .obstacle import Obstacle
@@ -151,3 +152,17 @@ class DroneTestResult:
                 self.record = Trajectory.extract(file_helper.get_local_file(log_file))
             else:
                 self.record = None
+
+
+def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:
+    if results is not None and len(results) >= 1:
+        Trajectory.plot_multiple(
+            [r.record for r in results],
+            goal=test.assertion.expectation if test.assertion is not None else None,
+            distance=None
+            if test.assertion.expectation is None
+            else median(
+                [r.record.distance(test.assertion.expectation) for r in results]
+            ),
+            obstacles=test.simulation.obstacles,
+        )

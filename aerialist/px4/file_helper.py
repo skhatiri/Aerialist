@@ -20,7 +20,7 @@ RETRIES = 0
 
 def get_local_file(str):
     if validators.url(str):
-        local_add = download(str, config("WEBDAV_DL_FLD"))
+        local_add = download(str, config("WEBDAV_DL_FLD", default="/tmp/"))
         return local_add
     elif path.exists(str):
         return str
@@ -86,10 +86,10 @@ def time_filename(add_host=False):
 
 def upload(src_file: str, dest_path: str) -> str:
     global RETRIES
+    dest_path += path.basename(src_file)
     cloud_path = dest_path
     if validators.url(dest_path):
         cloud_path = dest_path.replace(config("WEBDAV_ROOT"), "")
-    cloud_path += path.basename(src_file)
     try:
         webdav_client.upload_file(cloud_path, src_file)
         RETRIES = 0
@@ -102,7 +102,7 @@ def upload(src_file: str, dest_path: str) -> str:
             return upload(src_file, dest_path)
         else:
             raise (e)
-    return cloud_path
+    return dest_path
 
 
 def download(src_file: str, dest_path: str) -> str:
@@ -128,8 +128,11 @@ def download(src_file: str, dest_path: str) -> str:
 
 def download_dir(src_path, dest_path) -> str:
     global RETRIES
+    cloud_path = src_path
+    if validators.url(src_path):
+        cloud_path = src_path.replace(config("WEBDAV_ROOT"), "")
     try:
-        webdav_client.download_directory(src_path, dest_path)
+        webdav_client.download_directory(cloud_path, dest_path)
         RETRIES = 0
     except webdav3.exceptions.NoConnection as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")
@@ -145,9 +148,12 @@ def download_dir(src_path, dest_path) -> str:
 
 def create_dir(path):
     global RETRIES
+    cloud_path = path
+    if validators.url(path):
+        cloud_path = path.replace(config("WEBDAV_ROOT"), "")
     try:
-        if not webdav_client.check(path):
-            webdav_client.mkdir(path)
+        if not webdav_client.check(cloud_path):
+            webdav_client.mkdir(cloud_path)
         RETRIES = 0
     except webdav3.exceptions.NoConnection as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")

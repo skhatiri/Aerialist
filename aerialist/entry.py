@@ -3,7 +3,6 @@ from argparse import ArgumentParser
 import logging
 import os
 import sys
-import time
 from decouple import config
 
 try:
@@ -18,6 +17,7 @@ try:
         SimulationConfig,
         TestConfig,
         RunnerConfig,
+        Plot,
     )
 except:
     from px4.k8s_agent import K8sAgent
@@ -31,6 +31,7 @@ except:
         SimulationConfig,
         TestConfig,
         RunnerConfig,
+        Plot,
     )
 
 
@@ -80,6 +81,7 @@ def arg_parse():
     parser.add_argument("--mission", default=None, help="input mission file address")
     parser.add_argument("--params", default=None, help="params file address")
     parser.add_argument("--path", default=None, help="cloud output path to copy logs")
+    parser.add_argument("--id", default=None, help="k8s job id")
     # parser.add_argument(
     #     "--jmavsim",
     #     action="store_true",
@@ -137,7 +139,7 @@ def run_experiment(args):
     )
     test_config = TestConfig(args.commands, args.speed)
     assertion_config = AssertionConfig(args.log)
-    runner_config = RunnerConfig(args.agent, args.n, args.path)
+    runner_config = RunnerConfig(args.agent, args.n, args.path, args.id)
     test = DroneTest(
         drone_config, simulation_config, test_config, assertion_config, runner_config
     )
@@ -151,10 +153,11 @@ def run_experiment(args):
         agent = K8sAgent(test)
 
     logger.info("running the test...")
-    test_result = agent.run(test)
+    test_results = agent.run(test)
 
     logger.info("test finished...")
-    logger.info(f"LOG:{test_result.log_file}")
+    logger.info(f"LOG:{test_results[0].log_file}")
+    Plot(test, test_results)
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)
     #     print(f"LOG:{exp.log}")

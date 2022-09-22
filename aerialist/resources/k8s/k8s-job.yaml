@@ -16,7 +16,7 @@ spec:
         - imagePullPolicy: Always
           name: container-0
           __active: true
-          image: skhatiri/drone-experiments
+          image: skhatiri/drone-experiments:aerialist
           stdin: true
           stdinOnce: false
           command:
@@ -30,6 +30,11 @@ spec:
                 secretKeyRef:
                   name: webdav
                   key: host        
+            - name: WEBDAV_ROOT
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: root        
             - name: WEBDAV_USER
               valueFrom:
                 secretKeyRef:

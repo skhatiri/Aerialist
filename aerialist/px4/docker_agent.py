@@ -79,7 +79,7 @@ class DockerAgent(TestAgent):
             optionals += f"--commands '{commands}' "
 
         if output_path:
-            optionals += f"--output '{output_path}' "
+            optionals += f"--path '{output_path}' "
 
         cmd = self.CMD.format(
             optionals=optionals,
@@ -99,8 +99,8 @@ class DockerAgent(TestAgent):
             replay_cmd.stderr.decode("ascii"),
             True,
         )
-        self.Plot()
-        return self.results[-1]
+        # self.Plot()
+        return self.results
 
     async def run_async(self):
         logger.debug(self.docker_cmd)
