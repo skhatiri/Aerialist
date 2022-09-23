@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Obstacle(object):
-    DIR = config("RESULTS_DIR")
+    DIR = config("RESULTS_DIR", default="results/")
     BOX = "box"
 
     def __init__(

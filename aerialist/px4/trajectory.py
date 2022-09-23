@@ -16,7 +16,7 @@ from . import file_helper, timeserie_helper
 
 
 class Trajectory(object):
-    DIR = config("RESULTS_DIR")
+    DIR = config("RESULTS_DIR", default="results/")
     WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
     USE_GPS = config("USE_GPS", default=False, cast=bool)
     USE_K8S = config("USE_K8S", default=False, cast=bool)

@@ -17,8 +17,12 @@ class K8sAgent(DockerAgent):
     KUBE_CMD = 'yq \'.metadata.name += "-{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
     WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
     WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
-    DEFAULT_KUBE_TEMPLATE = config("KUBE_TEMPLATE")
-    ROS_KUBE_TEMPLATE = config("ROS_KUBE_TEMPLATE")
+    DEFAULT_KUBE_TEMPLATE = config(
+        "KUBE_TEMPLATE", default="aerialist/resources/k8s/k8s-job.yaml"
+    )
+    ROS_KUBE_TEMPLATE = config(
+        "ROS_KUBE_TEMPLATE", default="aerialist/resources/k8s/k8s-job-avoidance.yaml"
+    )
 
     def __init__(self, config: DroneTest) -> None:
         super().__init__(config)

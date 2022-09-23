@@ -9,7 +9,6 @@ try:
     from .px4.k8s_agent import K8sAgent
     from .px4.local_agent import LocalAgent
     from .px4.docker_agent import DockerAgent
-    from .px4 import file_helper
     from .px4.drone_test import (
         AssertionConfig,
         DroneConfig,
@@ -23,7 +22,6 @@ except:
     from px4.k8s_agent import K8sAgent
     from px4.local_agent import LocalAgent
     from px4.docker_agent import DockerAgent
-    from px4 import file_helper
     from px4.drone_test import (
         AssertionConfig,
         DroneConfig,
