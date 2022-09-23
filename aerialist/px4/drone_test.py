@@ -94,21 +94,19 @@ class SimulationConfig:
         world: str = "default",
         speed=1,
         headless=True,
-        obstacles=[],
+        obstacles=None,
     ) -> None:
         self.simulator = simulator
         self.world = world
         self.speed = speed
         self.headless = headless
-
+        self.obstacles = obstacles
         if (
             obstacles is not None
             and len(obstacles) > 0
             and not isinstance(obstacles[0], Obstacle)
         ):
             self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
-        else:
-            self.obstacles = obstacles
 
 
 class TestConfig:

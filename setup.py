@@ -32,6 +32,8 @@ setuptools.setup(
         "validators",
         "pyyaml",
         "munch",
+        "rospkg",
+        "defusedxml",
     ],
     entry_points={"console_scripts": ["aerialist=aerialist.entry:main"]},
 )

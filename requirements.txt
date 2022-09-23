@@ -12,3 +12,5 @@ shapely
 validators
 pyyaml
 munch
+rospkg
+defusedxml

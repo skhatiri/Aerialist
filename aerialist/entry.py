@@ -105,14 +105,14 @@ def arg_parse():
     )
 
     parser.add_argument(
-        "--obst",
+        "--obstacle",
         nargs=6,
         type=float,
         help="obstacle poisition and size to put in simulation environment: [x1,y1,z1,x2,y2,z2] in order",
         default=[],
     )
     parser.add_argument(
-        "--obst2",
+        "--obstacle2",
         nargs=6,
         type=float,
         help="obstacle poisition and size to put in simulation environment: [x1,y1,z1,x2,y2,z2] in order",
@@ -131,26 +131,36 @@ def run_experiment(args):
         test = DroneTest.from_yaml(args.test)
     else:
         drone_config = DroneConfig(
-            args.drone,
-            args.params,
-            args.mission,
+            port=args.drone,
+            params_file=args.params,
+            mission_file=args.mission,
         )
         simulation_config = SimulationConfig(
-            args.simulator,
-            "default",
-            args.speed,
-            args.headless,
-            args.obst + args.obst2,
+            simulator=args.simulator,
+            world="default",
+            speed=args.speed,
+            headless=args.headless,
+            obstacles=args.obstacle + args.obstacle2,
         )
-        test_config = TestConfig(args.commands, args.speed)
-        assertion_config = AssertionConfig(args.log)
-        agent_config = AgentConfig(args.agent, args.n, args.path, args.id)
+        test_config = TestConfig(
+            commands_file=args.commands,
+            speed=args.speed,
+        )
+        assertion_config = AssertionConfig(
+            log_file=args.log,
+        )
+        agent_config = AgentConfig(
+            engine=args.agent,
+            count=args.n,
+            path=args.path,
+            id=args.id,
+        )
         test = DroneTest(
-            drone_config,
-            simulation_config,
-            test_config,
-            assertion_config,
-            agent_config,
+            drone=drone_config,
+            simulation=simulation_config,
+            test=test_config,
+            assertion=assertion_config,
+            agent=agent_config,
         )
     logger.info("setting up the test environment...")
     logger.info(str(test))

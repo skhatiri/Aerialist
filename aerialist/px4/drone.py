@@ -11,12 +11,6 @@ from .drone_test import DroneConfig, TestConfig
 logger = logging.getLogger(__name__)
 
 
-class MavAddress(Enum):
-    CF = 14550
-    SIM = 14540
-    ROS = 14541
-
-
 class Drone(object):
     """sets up and maintains the conection to the drone"""
 
@@ -46,7 +40,6 @@ class Drone(object):
         timeoffset = 0
         if offset_sync:
             timeoffset = min([c.timestamp for c in test.commands])
-
         for c in test.commands:
             # add delay to the first start position/altitude control commands
             # they are actually logged before their actual commands are sent
