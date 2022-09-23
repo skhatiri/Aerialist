@@ -22,8 +22,8 @@ class LocalAgent(TestAgent):
         try:
             self.drone.run_scheduled()
             log = self.simulator.get_log()
-            if self.config.runner is not None and self.config.runner.path is not None:
-                file_helper.upload(log, self.config.runner.path)
+            if self.config.agent is not None and self.config.agent.path is not None:
+                file_helper.upload(log, self.config.agent.path)
             self.results.append(DroneTestResult(log, AssertionConfig.TRAJECTORY))
             # self.Plot()
             return self.results

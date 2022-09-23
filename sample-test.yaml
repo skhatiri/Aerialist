@@ -1,32 +1,30 @@
-drone_test:
-  drone:
-    port: 14540
-    params:
-      CP_DIST: 1
-      POS_MOD: 2.5
-    mission: mission.plan
-  
-  simulation:
-    simulator: gazebo  
-    speed: 1
-    headless: true
-    obstacles:
-      - shape: box
-        size: [1,1,1]
-        position: [0,0,0]
+drone:
+  port: 14540
+  params:
+    CP_DIST: 1
+    POS_MOD: 2.5
+  mission_file: aerialist/resources/logs/m0.plan
 
-  runner:
-    engine: k8s
-    count: 5
-    path: https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/
-    id: test1 
+simulation:
+  simulator: gazebo  
+  speed: 1
+  headless: true
+  # obstacles:
+  #   - shape: box
+  #     size: [1,1,1]
+  #     position: [0,0,0]
 
-  test:
-    commands: commands.csv
-    speed: 1
+test:
+  commands_file: aerialist/resources/logs/t0.ulg
+  speed: 1
 
-  assertion:
-    log_file: original_log.ulg
-    variable: trajectory
+assertion:
+  log_file: aerialist/resources/logs/t0.ulg
+  variable: trajectory
 
+agent:
+  engine: k8s
+  count: 5
+  path: https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/
+  id: test1 
 

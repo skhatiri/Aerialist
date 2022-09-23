@@ -16,7 +16,7 @@ try:
         DroneTest,
         SimulationConfig,
         TestConfig,
-        RunnerConfig,
+        AgentConfig,
         Plot,
     )
 except:
@@ -30,7 +30,7 @@ except:
         DroneTest,
         SimulationConfig,
         TestConfig,
-        RunnerConfig,
+        AgentConfig,
         Plot,
     )
 
@@ -40,6 +40,8 @@ logger = logging.getLogger(__name__)
 
 def arg_parse():
     parser = ArgumentParser(description="Test Execution on Drones")
+    parser.add_argument("--test", default=None, help="test description yaml file")
+
     parser.add_argument(
         "--drone",
         default=config("DRONE", default="sitl"),
@@ -92,7 +94,7 @@ def arg_parse():
         "--agent",
         default=config("AGENT", default="local"),
         choices=["local", "docker", "k8s"],
-        help="the simulator environment to run",
+        help="where to run the tests",
     )
 
     parser.add_argument(
@@ -125,31 +127,38 @@ def arg_parse():
 
 
 def run_experiment(args):
-    drone_config = DroneConfig(
-        args.drone,
-        args.params,
-        args.mission,
-    )
-    simulation_config = SimulationConfig(
-        args.simulator,
-        "default",
-        args.speed,
-        args.headless,
-        args.obst + args.obst2,
-    )
-    test_config = TestConfig(args.commands, args.speed)
-    assertion_config = AssertionConfig(args.log)
-    runner_config = RunnerConfig(args.agent, args.n, args.path, args.id)
-    test = DroneTest(
-        drone_config, simulation_config, test_config, assertion_config, runner_config
-    )
-
+    if args.test is not None:
+        test = DroneTest.from_yaml(args.test)
+    else:
+        drone_config = DroneConfig(
+            args.drone,
+            args.params,
+            args.mission,
+        )
+        simulation_config = SimulationConfig(
+            args.simulator,
+            "default",
+            args.speed,
+            args.headless,
+            args.obst + args.obst2,
+        )
+        test_config = TestConfig(args.commands, args.speed)
+        assertion_config = AssertionConfig(args.log)
+        agent_config = AgentConfig(args.agent, args.n, args.path, args.id)
+        test = DroneTest(
+            drone_config,
+            simulation_config,
+            test_config,
+            assertion_config,
+            agent_config,
+        )
     logger.info("setting up the test environment...")
-    if args.agent == "local":
+    logger.info(str(test))
+    if test.agent.engine == AgentConfig.LOCAL:
         agent = LocalAgent(test)
-    if args.agent == "docker":
+    if test.agent.engine == AgentConfig.DOCKER:
         agent = DockerAgent(test)
-    if args.agent == "k8s":
+    if test.agent.engine == AgentConfig.K8S:
         agent = K8sAgent(test)
 
     logger.info("running the test...")

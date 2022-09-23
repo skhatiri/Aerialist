@@ -36,7 +36,7 @@ class TestLocalAgent(unittest.TestCase):
         drone_config = DroneConfig(
             port=DroneConfig.SITL_PORT,
             params={},
-            mission=None,
+            mission_file=None,
         )
         test_config = TestConfig(commands="aerialist/resources/logs/t0.ulg")
         drone = Drone(drone_config)
@@ -50,7 +50,7 @@ class TestLocalAgent(unittest.TestCase):
         drone_config = DroneConfig(
             port=DroneConfig.SITL_PORT,
             params={},
-            mission=None,
+            mission_file=None,
         )
         test_config = TestConfig("aerialist/resources/logs/t0.ulg")
         assertion_config = AssertionConfig(

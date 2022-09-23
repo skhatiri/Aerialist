@@ -1,6 +1,8 @@
 from __future__ import annotations
 from statistics import median
 from typing import List
+import munch
+import yaml
 from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
@@ -14,13 +16,35 @@ class DroneTest:
         simulation: SimulationConfig = None,
         test: TestConfig = None,
         assertion: AssertionConfig = None,
-        runner: RunnerConfig = None,
+        agent: AgentConfig = None,
     ) -> None:
         self.drone = drone
         self.simulation = simulation
         self.test = test
         self.assertion = assertion
-        self.runner = runner
+        self.agent = agent
+
+    @classmethod
+    def from_yaml(cls, address):
+        with open(address) as file:
+            data_dict = munch.DefaultMunch.fromYAML(file, None)
+        config = cls()
+        if data_dict.drone is not None:
+            config.drone = DroneConfig(**data_dict.drone)
+        if data_dict.simulation is not None:
+            config.simulation = SimulationConfig(**data_dict.simulation)
+        if data_dict.test is not None:
+            config.test = TestConfig(**data_dict.test)
+        if data_dict.assertion is not None:
+            config.assertion = AssertionConfig(**data_dict.assertion)
+        if data_dict.agent is not None:
+            config.agent = AgentConfig(**data_dict.agent)
+        return config
+
+    def to_yaml(self, address):
+        with open(address, "w") as file:
+            yaml.dump(self, file)
+        return address
 
 
 class DroneConfig:
@@ -31,8 +55,9 @@ class DroneConfig:
     def __init__(
         self,
         port: int | str = SITL_PORT,
-        params: dict | str = None,
-        mission=None,
+        params: dict = None,
+        params_file: str = None,
+        mission_file=None,
     ) -> None:
 
         if isinstance(port, int):
@@ -46,24 +71,16 @@ class DroneConfig:
                 self.port = self.ROS_PORT
             if port == "cf" or port == "hw":
                 self.port = self.CF_PORT
-
-        if isinstance(params, str):
-            # params file path
-            self.params_file = params
-
+        self.params = params
+        self.params_file = params_file
+        if params is None and params_file is not None:
             self.params = Command.extract_params_from_csv(
-                file_helper.get_local_file(params)
+                file_helper.get_local_file(params_file)
             )
 
-        else:
-            self.params_file = None
-            self.params = params
-
-        if isinstance(mission, str):
-            self.mission_file = file_helper.get_local_file(mission)
-        else:
-            self.mission_file = None
-            self.mission = mission
+        self.mission_file = mission_file
+        if mission_file is not None:
+            self.mission_file = file_helper.get_local_file(mission_file)
 
 
 class SimulationConfig:
@@ -97,20 +114,16 @@ class SimulationConfig:
 class TestConfig:
     def __init__(
         self,
-        commands: List | str = None,
+        commands: List[Command] = None,
+        commands_file: str = None,
         speed: float = 1,
     ) -> None:
 
-        if isinstance(commands, str):
-            self.commands_file = commands
-            # commands file path
-            self.commands = Command.extract(file_helper.get_local_file(commands))
-
-        else:
-            self.commands_file = None
-            self.commands = commands
-
         self.speed = speed
+        self.commands = commands
+        self.commands_file = commands_file
+        if commands is None and commands_file is not None:
+            self.commands = Command.extract(file_helper.get_local_file(commands_file))
 
 
 class AssertionConfig:
@@ -124,16 +137,27 @@ class AssertionConfig:
     ) -> None:
         self.log_file = log_file
         self.expectation = expectation
-        if expectation is None and isinstance(log_file, str):
+        self.variable = variable
+        if expectation is None and log_file is not None:
             if variable == self.TRAJECTORY:
                 self.expectation = Trajectory.extract(
                     file_helper.get_local_file(log_file)
                 )
 
 
-class RunnerConfig:
-    def __init__(self, agent, count=1, path=None, id=None) -> None:
-        self.agent = agent
+class AgentConfig:
+    K8S = "k8s"
+    DOCKER = "docker"
+    LOCAL = "local"
+
+    def __init__(
+        self,
+        engine: str,
+        count: int = 1,
+        path: str = None,
+        id: str = None,
+    ) -> None:
+        self.engine = engine
         self.count = count
         self.path = path
         self.id = id
@@ -147,11 +171,11 @@ class DroneTestResult:
         record=None,
     ) -> None:
         self.log_file = log_file
-        if record is None:
+        self.record = record
+        self.variable = variable
+        if record is None and log_file is not None:
             if variable == AssertionConfig.TRAJECTORY:
                 self.record = Trajectory.extract(file_helper.get_local_file(log_file))
-            else:
-                self.record = None
 
 
 def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:

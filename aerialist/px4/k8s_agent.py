@@ -34,14 +34,14 @@ class K8sAgent(DockerAgent):
             self.k8s_config.drone.params_file,
             self.k8s_config.simulation.obstacles,
             self.k8s_config.drone.mission_file,
-            self.k8s_config.runner.path,
+            self.k8s_config.agent.path,
         )
 
         logger.debug("docker command:" + cmd)
         kube_cmd = self.KUBE_CMD.format(
-            name=self.config.runner.id,
+            name=self.config.agent.id,
             command=cmd,
-            runs=self.config.runner.count,
+            runs=self.config.agent.count,
             template=self.ROS_KUBE_TEMPLATE
             if self.config.simulation.simulator == SimulationConfig.ROS
             else self.DEFAULT_KUBE_TEMPLATE,
@@ -52,12 +52,12 @@ class K8sAgent(DockerAgent):
         if kube_prc.returncode == 0:
             logger.info("waiting for k8s job to finish ...")
             loop = asyncio.get_event_loop()
-            succes = loop.run_until_complete(self.wait_success(self.config.runner.id))
+            succes = loop.run_until_complete(self.wait_success(self.config.agent.id))
             logger.info("k8s job finished")
-            local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.runner.id}/"
+            local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.agent.id}/"
             os.mkdir(local_folder)
             logger.info(f"downloading simulation logs to {local_folder}")
-            file_helper.download_dir(self.k8s_config.runner.path, local_folder)
+            file_helper.download_dir(self.k8s_config.agent.path, local_folder)
             logger.debug("files downloaded")
 
             for test_log in os.listdir(local_folder):
@@ -68,8 +68,8 @@ class K8sAgent(DockerAgent):
                 ):
                     self.results.append(DroneTestResult(local_folder + test_log))
             if len(self.results) == 0:
-                logger.error(f"k8s job {self.config.runner.id} failed")
-                raise Exception(f"k8s job {self.config.runner.id} failed")
+                logger.error(f"k8s job {self.config.agent.id} failed")
+                raise Exception(f"k8s job {self.config.agent.id} failed")
             return self.results[0]
 
         else:
@@ -85,10 +85,10 @@ class K8sAgent(DockerAgent):
 
     def import_config(self):
         k8s_config = deepcopy(self.config)
-        self.config.runner.id  # += file_helper.time_filename()
+        self.config.agent.id  # += file_helper.time_filename()
         # cloud_folder = f"{self.WEBDAV_DIR}{self.config.runner.job_id}/"
         # k8s_config.runner.path = cloud_folder
-        cloud_folder = self.config.runner.path
+        cloud_folder = self.config.agent.path
 
         # Drone Config
         if self.config.drone is not None:

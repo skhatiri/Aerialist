@@ -29,6 +29,9 @@ setuptools.setup(
         "webdavclient3",
         "ruptures",
         "shapely",
+        "validators",
+        "pyyaml",
+        "munch",
     ],
     entry_points={"console_scripts": ["aerialist=aerialist.entry:main"]},
 )

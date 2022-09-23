@@ -10,3 +10,5 @@ webdavclient3
 ruptures
 shapely
 validators
+pyyaml
+munch

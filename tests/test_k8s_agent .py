@@ -5,7 +5,7 @@ from aerialist.px4.drone_test import (
     AssertionConfig,
     DroneConfig,
     DroneTest,
-    RunnerConfig,
+    AgentConfig,
     SimulationConfig,
     TestConfig,
 )
@@ -30,14 +30,14 @@ class TestK8sAgent(unittest.TestCase):
         drone_config = DroneConfig(
             port=DroneConfig.SITL_PORT,
             params={},
-            mission=None,
+            mission_file=None,
         )
         test_config = TestConfig("aerialist/resources/logs/t0.ulg")
         assertion_config = AssertionConfig(
             "aerialist/resources/logs/t0.ulg", variable=AssertionConfig.TRAJECTORY
         )
-        runner = RunnerConfig(
-            agent="k8s",
+        runner = AgentConfig(
+            engine="k8s",
             count=2,
             path="https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/",
         )
@@ -54,7 +54,7 @@ class TestK8sAgent(unittest.TestCase):
         drone_config = DroneConfig(
             port=DroneConfig.SITL_PORT,
             params={},
-            mission=None,
+            mission_file=None,
         )
         test_config = TestConfig(
             "https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/t0.ulg"
@@ -63,8 +63,8 @@ class TestK8sAgent(unittest.TestCase):
             "https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/t0.ulg",
             variable=AssertionConfig.TRAJECTORY,
         )
-        runner = RunnerConfig(
-            agent="local",
+        runner = AgentConfig(
+            engine="local",
             count=1,
             path="https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/",
         )
