@@ -6,7 +6,7 @@ import logging
 import subprocess
 from decouple import config
 from .docker_agent import DockerAgent
-from .drone_test import DroneTest, DroneTestResult
+from .drone_test import DroneTest, DroneTestResult, SimulationConfig
 from . import file_helper
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,8 @@ class K8sAgent(DockerAgent):
     KUBE_CMD = 'yq \'.metadata.name += "-{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
     WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
     WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
-    KUBE_TEMPLATE = config("KUBE_TEMPLATE")
+    DEFAULT_KUBE_TEMPLATE = config("KUBE_TEMPLATE")
+    ROS_KUBE_TEMPLATE = config("ROS_KUBE_TEMPLATE")
 
     def __init__(self, config: DroneTest) -> None:
         super().__init__(config)
@@ -38,10 +39,12 @@ class K8sAgent(DockerAgent):
 
         logger.debug("docker command:" + cmd)
         kube_cmd = self.KUBE_CMD.format(
-            name=self.config.runner.job_id,
+            name=self.config.runner.id,
             command=cmd,
             runs=self.config.runner.count,
-            template=self.KUBE_TEMPLATE,
+            template=self.ROS_KUBE_TEMPLATE
+            if self.config.simulation.simulator == SimulationConfig.ROS
+            else self.DEFAULT_KUBE_TEMPLATE,
         )
         logger.debug("k8s command:" + kube_cmd)
         logger.info("creating k8s job")
@@ -49,11 +52,9 @@ class K8sAgent(DockerAgent):
         if kube_prc.returncode == 0:
             logger.info("waiting for k8s job to finish ...")
             loop = asyncio.get_event_loop()
-            succes = loop.run_until_complete(
-                self.wait_success(self.config.runner.job_id)
-            )
+            succes = loop.run_until_complete(self.wait_success(self.config.runner.id))
             logger.info("k8s job finished")
-            local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.runner.job_id}/"
+            local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.runner.id}/"
             os.mkdir(local_folder)
             logger.info(f"downloading simulation logs to {local_folder}")
             file_helper.download_dir(self.k8s_config.runner.path, local_folder)
@@ -67,8 +68,8 @@ class K8sAgent(DockerAgent):
                 ):
                     self.results.append(DroneTestResult(local_folder + test_log))
             if len(self.results) == 0:
-                logger.error(f"k8s job {self.config.runner.job_id} failed")
-                raise Exception(f"k8s job {self.config.runner.job_id} failed")
+                logger.error(f"k8s job {self.config.runner.id} failed")
+                raise Exception(f"k8s job {self.config.runner.id} failed")
             return self.results[0]
 
         else:
@@ -84,7 +85,7 @@ class K8sAgent(DockerAgent):
 
     def import_config(self):
         k8s_config = deepcopy(self.config)
-        self.config.runner.job_id  # += file_helper.time_filename()
+        self.config.runner.id  # += file_helper.time_filename()
         # cloud_folder = f"{self.WEBDAV_DIR}{self.config.runner.job_id}/"
         # k8s_config.runner.path = cloud_folder
         cloud_folder = self.config.runner.path

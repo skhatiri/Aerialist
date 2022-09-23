@@ -25,7 +25,7 @@ spec:
             - /bin/sleep 5 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
           env:
             - name: COMMAND
-              value: "./run.py --help"
+              value: "python3 aerialist --help"
           tty: true
           resources:
             limits:
@@ -35,7 +35,7 @@ spec:
         - imagePullPolicy: Always
           name: sim
           __active: true
-          image: skhatiri/drone-experiments
+          image: skhatiri/drone-experiments:aerialist
           stdin: true
           stdinOnce: true
           command: 
@@ -46,6 +46,11 @@ spec:
                 secretKeyRef:
                   name: webdav
                   key: host        
+            - name: WEBDAV_ROOT
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: root               
             - name: WEBDAV_USER
               valueFrom:
                 secretKeyRef:

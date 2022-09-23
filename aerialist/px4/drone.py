@@ -36,8 +36,8 @@ class Drone(object):
         if self.config.params != None:
             self.set_params(self.config.params)
 
-        if self.config.mission != None:
-            self.upload_mission(self.config.mission)
+        if self.config.mission_file != None:
+            self.upload_mission(self.config.mission_file)
 
     def schedule_test(self, test: TestConfig, offset_sync=False) -> None:
         """sets an schedular object with input control commands to be replayed accurately"""
@@ -79,9 +79,9 @@ class Drone(object):
         self.scheduler.run()
 
     def start_mission(self):
-        loop = asyncio.get_event_loop()
         logger.info("starting mission")
         try:
+            loop = asyncio.get_event_loop()
             loop.run_until_complete(self.drone.action.arm())
             loop.run_until_complete(self.drone.mission_raw.start_mission())
             logger.info("mission started")

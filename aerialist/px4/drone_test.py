@@ -132,11 +132,11 @@ class AssertionConfig:
 
 
 class RunnerConfig:
-    def __init__(self, agent, count=1, path=None, job_id=None) -> None:
+    def __init__(self, agent, count=1, path=None, id=None) -> None:
         self.agent = agent
         self.count = count
         self.path = path
-        self.job_id = job_id
+        self.id = id
 
 
 class DroneTestResult:

@@ -114,7 +114,7 @@ class Simulator(object):
                 return_code = self.sim_process.poll()
                 if return_code is not None:
                     # if return_code != 0:
-                    logger.critical("in Simulation process: RETURN CODE:", return_code)
+                    logger.critical(f"in Simulation process: RETURN CODE:{return_code}")
                     for error in self.sim_process.stdout.readlines():
                         logger.critical(error.strip())
                     logger.critical(output)
@@ -172,7 +172,7 @@ class Simulator(object):
                 if return_code is not None:
                     if return_code != 0:
                         logger.critical(
-                            "in Simulation process: RETURN CODE:", return_code
+                            f"in Simulation process: RETURN CODE:{return_code}"
                         )
                         for error in self.sim_process.stdout.readlines():
                             logger.critical(error.strip())

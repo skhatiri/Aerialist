@@ -4,8 +4,7 @@ drone_test:
     params:
       CP_DIST: 1
       POS_MOD: 2.5
-    mission:
-      from_file: mission.plan
+    mission: mission.plan
   
   simulation:
     simulator: gazebo  
@@ -18,11 +17,16 @@ drone_test:
 
   runner:
     engine: k8s
-    count: 5 
+    count: 5
+    path: https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/
+    id: test1 
 
   test:
-    commands:
-      from_file: commands.csv
-    expectation:
-      from_file: original_log.ulg
+    commands: commands.csv
+    speed: 1
+
+  assertion:
+    log_file: original_log.ulg
+    variable: trajectory
+
 

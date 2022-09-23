@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class DockerAgent(TestAgent):
 
-    # CMD should be updated if the interface in run.py changes
+    # CMD should be updated if the interface in entry.py changes
     CMD = "timeout {timeout} python3 aerialist {optionals} --drone {drone} --simulator {sim} --speed {speed} --headless"
     DOCKER_CMD = "docker exec -it {id} "
     DOCKER_IMG = config("DOCKER_IMG", default="aerialist")
