@@ -163,7 +163,7 @@ def run_experiment(args):
             agent=agent_config,
         )
     logger.info("setting up the test environment...")
-    logger.info(str(test))
+    # logger.info(str(test))
     if test.agent.engine == AgentConfig.LOCAL:
         agent = LocalAgent(test)
     if test.agent.engine == AgentConfig.DOCKER:
