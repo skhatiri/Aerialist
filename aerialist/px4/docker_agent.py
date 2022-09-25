@@ -2,9 +2,11 @@ from copy import deepcopy
 import os.path as path
 import logging
 import subprocess
+from typing import List
 from decouple import config
 import asyncio
 
+from .obstacle import Obstacle
 from . import file_helper
 from .command import Command
 from .drone_test import DroneTest, DroneTestResult
@@ -57,7 +59,7 @@ class DockerAgent(TestAgent):
         log,
         commands,
         params_csv,
-        obstacles,
+        obstacles: List[Obstacle],
         mission,
         output_path=None,
     ):
@@ -66,14 +68,14 @@ class DockerAgent(TestAgent):
             optionals += f"--params '{params_csv}' "
         if obstacles != None and len(obstacles) >= 1:
             obs = ""
-            for o in obstacles[0:6]:
-                obs += str(o) + " "
-            optionals += f"--obst {obs}"
-        if obstacles != None and len(obstacles) >= 7:
+            for p in obstacles[0].to_params():
+                obs += str(p) + " "
+            optionals += f"--obstacle {obs}"
+        if obstacles != None and len(obstacles) >= 2:
             obs2 = ""
-            for o in obstacles[6:12]:
-                obs2 += str(o) + " "
-            optionals += f"--obst2 {obs2}"
+            for p in obstacles[1].to_params():
+                obs2 += str(p) + " "
+            optionals += f"--obstacle2 {obs2}"
         if mission is not None:
             optionals += f"--mission '{mission}' "
         if log is not None:

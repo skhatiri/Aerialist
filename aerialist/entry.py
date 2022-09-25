@@ -160,8 +160,16 @@ def run_experiment(args):
             assertion=assertion_config,
             agent=agent_config,
         )
+    test_results = execute_test(test)
+    logger.info(f"LOG:{test_results[0].log_file}")
+    Plot(test, test_results)
+    # if args.cloud:
+    #         exp.log = ulog_helper.upload(exp.log, args.output)
+    #     print(f"LOG:{exp.log}")
+
+
+def execute_test(test: DroneTest):
     logger.info("setting up the test environment...")
-    # logger.info(str(test))
     if test.agent.engine == AgentConfig.LOCAL:
         agent = LocalAgent(test)
     if test.agent.engine == AgentConfig.DOCKER:
@@ -173,11 +181,7 @@ def run_experiment(args):
     test_results = agent.run(test)
 
     logger.info("test finished...")
-    logger.info(f"LOG:{test_results[0].log_file}")
-    Plot(test, test_results)
-    # if args.cloud:
-    #         exp.log = ulog_helper.upload(exp.log, args.output)
-    #     print(f"LOG:{exp.log}")
+    return test_results
 
 
 def config_loggers():
