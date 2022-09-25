@@ -4,6 +4,9 @@ import logging
 import subprocess
 from decouple import config
 import asyncio
+
+from . import file_helper
+from .command import Command
 from .drone_test import DroneTest, DroneTestResult
 from .test_agent import TestAgent
 
@@ -158,6 +161,16 @@ class DockerAgent(TestAgent):
 
         # Test Config
         if self.config.test is not None:
+            if (
+                self.config.test.commands is not None
+                and self.config.test.commands_file is None
+            ):
+                self.config.test.commands_file = (
+                    f"/tmp/{file_helper.time_filename()}.csv"
+                )
+                Command.save_csv(
+                    self.config.test.commands, self.config.test.commands_file
+                )
             if self.config.test.commands_file is not None:
                 self.import_file(self.config.test.commands_file, "/io/")
                 docker_config.test.commands_file = (

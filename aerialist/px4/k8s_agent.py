@@ -4,7 +4,10 @@ import os
 import os.path as path
 import logging
 import subprocess
+from typing import List
 from decouple import config
+
+from .command import Command
 from .docker_agent import DockerAgent
 from .drone_test import DroneTest, DroneTestResult, SimulationConfig
 from . import file_helper
@@ -15,7 +18,6 @@ logger = logging.getLogger(__name__)
 class K8sAgent(DockerAgent):
 
     KUBE_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
-    WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
     WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
     DEFAULT_KUBE_TEMPLATE = config(
         "KUBE_TEMPLATE", default="aerialist/resources/k8s/k8s-job.yaml"
@@ -25,7 +27,8 @@ class K8sAgent(DockerAgent):
     )
 
     def __init__(self, config: DroneTest) -> None:
-        super().__init__(config)
+        self.config = config
+        self.results: List[DroneTestResult] = []
         self.k8s_config = self.import_config()
 
     def run(self, config: DroneTest):
@@ -89,7 +92,8 @@ class K8sAgent(DockerAgent):
 
     def import_config(self):
         k8s_config = deepcopy(self.config)
-        self.config.agent.id  # += file_helper.time_filename()
+        if self.config.agent.id == None or self.config.agent.id == "":
+            self.config.agent.id = file_helper.time_filename()
         # cloud_folder = f"{self.WEBDAV_DIR}{self.config.runner.job_id}/"
         # k8s_config.runner.path = cloud_folder
         cloud_folder = self.config.agent.path
@@ -100,7 +104,6 @@ class K8sAgent(DockerAgent):
                 k8s_config.drone.mission_file = file_helper.upload(
                     self.config.drone.mission_file, cloud_folder
                 )
-
             if self.config.drone.params_file is not None:
                 k8s_config.drone.params_file = file_helper.upload(
                     self.config.drone.params_file, cloud_folder
@@ -108,6 +111,16 @@ class K8sAgent(DockerAgent):
 
         # Test Config
         if self.config.test is not None:
+            if (
+                self.config.test.commands is not None
+                and self.config.test.commands_file is None
+            ):
+                self.config.test.commands_file = (
+                    f"/tmp/{file_helper.time_filename()}.csv"
+                )
+                Command.save_csv(
+                    self.config.test.commands, self.config.test.commands_file
+                )
             if self.config.test.commands_file is not None:
                 k8s_config.test.commands_file = file_helper.upload(
                     self.config.test.commands_file, cloud_folder
