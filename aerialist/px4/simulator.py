@@ -19,9 +19,10 @@ class Simulator(object):
     PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
     ROS_LOG_DIR = config("ROS_HOME")
     GAZEBO_GUI_AVOIDANCE = True
-    AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="boxes1")
+    AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
-        "AVOIDANCE_LAUNCH", default="resources/simulation/collision_prevention.launch"
+        "AVOIDANCE_LAUNCH",
+        default="aerialist/resources/simulation/collision_prevention.launch",
     )
     COPY_DIR = config("LOGS_COPY_DIR", None)
     LAND_TIMEOUT = 20

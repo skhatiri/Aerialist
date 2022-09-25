@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class K8sAgent(DockerAgent):
 
-    KUBE_CMD = 'yq \'.metadata.name += "-{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
+    KUBE_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
     WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
     WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
     DEFAULT_KUBE_TEMPLATE = config(
@@ -74,7 +74,7 @@ class K8sAgent(DockerAgent):
             if len(self.results) == 0:
                 logger.error(f"k8s job {self.config.agent.id} failed")
                 raise Exception(f"k8s job {self.config.agent.id} failed")
-            return self.results[0]
+            return self.results
 
         else:
             logger.error(f"k8s process failed with code {kube_prc.returncode}")
@@ -124,10 +124,10 @@ class K8sAgent(DockerAgent):
 
     async def wait_success(self, job_id):
         completed = await asyncio.create_subprocess_shell(
-            f"kubectl wait --for=condition=complete  --timeout=1000s job.batch/{config('KUBE_JOB_NAME')}-{job_id}"
+            f"kubectl wait --for=condition=complete  --timeout=1000s job.batch/{job_id}"
         )
         failed = await asyncio.create_subprocess_shell(
-            f"kubectl wait --for=condition=failed  --timeout=1000s job.batch/{config('KUBE_JOB_NAME')}-{job_id}"
+            f"kubectl wait --for=condition=failed  --timeout=1000s job.batch/{job_id}"
         )
         await asyncio.wait(
             [completed.communicate(), failed.communicate()],

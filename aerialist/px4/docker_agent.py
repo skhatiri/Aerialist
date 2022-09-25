@@ -99,7 +99,6 @@ class DockerAgent(TestAgent):
             replay_cmd.stderr.decode("ascii"),
             True,
         )
-        # self.Plot()
         return self.results
 
     async def run_async(self):
