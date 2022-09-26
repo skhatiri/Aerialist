@@ -10,6 +10,7 @@ from . import file_helper
 
 
 class DroneTest:
+    # CMD should be updated if the interface in entry.py changes
     def __init__(
         self,
         drone: DroneConfig = None,
@@ -45,6 +46,57 @@ class DroneTest:
         with open(address, "w") as file:
             yaml.dump(self, file)
         return address
+
+    def cmd_params(self):
+        # CMD should be updated if the interface in entry.py changes
+        params = ""
+        if self.drone is not None:
+            if self.drone.port is not None:
+                params += f"--drone {self.drone.port} "
+            if self.drone.params_file is not None:
+                params += f"--params '{self.drone.params_file}' "
+            if self.drone.mission_file is not None:
+                params += f"--mission '{self.drone.mission_file}' "
+        if self.simulation is not None:
+            if self.simulation.simulator is not None:
+                params += f"--simulator {self.simulation.simulator} "
+            if self.simulation.speed is not None:
+                params += f"--speed {self.simulation.speed} "
+            if self.simulation.headless:
+                params += f"--headless "
+            if (
+                self.simulation.obstacles is not None
+                and len(self.simulation.obstacles) >= 1
+            ):
+                params += "--obstacle "
+                for p in self.simulation.obstacles[0].to_params():
+                    params += f"{p} "
+            if (
+                self.simulation.obstacles is not None
+                and len(self.simulation.obstacles) >= 2
+            ):
+                params += "--obstacle2 "
+                for p in self.simulation.obstacles[1].to_params():
+                    params += f"{p} "
+
+        if self.test is not None:
+            if self.test.commands_file is not None:
+                params += f"--commands '{self.test.commands_file}' "
+
+        if self.assertion is not None:
+            if self.assertion.log_file is not None:
+                params += f"--log '{self.assertion.log_file}' "
+        if self.agent is not None:
+            if self.agent.engine is not None:
+                params += f"--agent {self.agent.engine} "
+            if self.agent.path is not None:
+                params += f"--path '{self.agent.path}' "
+            if self.agent.count is not None:
+                params += f"-n {self.agent.count} "
+            if self.agent.id is not None:
+                params += f"--id {self.agent.id} "
+
+        return params
 
 
 class DroneConfig:

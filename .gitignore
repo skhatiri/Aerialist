@@ -1,6 +1,5 @@
-aerialist/tmp/
-aerialist/logs/
 logs/
+tmp/**
 .env
 k8s-config.yaml
 venv/
@@ -39,7 +38,6 @@ languageServer.*/**
 bin/**
 obj/**
 .pytest_cache
-tmp/**
 .python-version
 .vs/
 .vscode/

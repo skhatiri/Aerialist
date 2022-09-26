@@ -9,7 +9,7 @@ from decouple import config
 
 from .command import Command
 from .docker_agent import DockerAgent
-from .drone_test import DroneTest, DroneTestResult, SimulationConfig
+from .drone_test import AgentConfig, DroneTest, DroneTestResult, SimulationConfig
 from . import file_helper
 
 logger = logging.getLogger(__name__)
@@ -32,17 +32,7 @@ class K8sAgent(DockerAgent):
         self.k8s_config = self.import_config()
 
     def run(self, config: DroneTest):
-        cmd = self.format_command(
-            self.k8s_config.drone.port,
-            self.k8s_config.simulation.simulator,
-            self.k8s_config.simulation.speed,
-            self.k8s_config.assertion.log_file,
-            self.k8s_config.test.commands_file,
-            self.k8s_config.drone.params_file,
-            self.k8s_config.simulation.obstacles,
-            self.k8s_config.drone.mission_file,
-            self.k8s_config.agent.path,
-        )
+        cmd = self.format_command(self.k8s_config)
 
         logger.debug("docker command:" + cmd)
         kube_cmd = self.KUBE_CMD.format(
@@ -132,6 +122,10 @@ class K8sAgent(DockerAgent):
                 k8s_config.assertion.log_file = file_helper.upload(
                     self.config.assertion.log_file, cloud_folder
                 )
+        if k8s_config.agent is not None:
+            k8s_config.agent.engine = AgentConfig.LOCAL
+            k8s_config.agent.count = 1
+
         logger.info(f"files uploaded")
         return k8s_config
 

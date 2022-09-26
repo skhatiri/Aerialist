@@ -66,7 +66,7 @@ class TestK8sAgent(unittest.TestCase):
         runner = AgentConfig(
             engine="local",
             count=1,
-            path="https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/",
+            path="https://filer.cloudlab.zhaw.ch/remote.php/webdav/tests/",
         )
         test = DroneTest(
             drone_config, simulation_config, test_config, assertion_config, runner

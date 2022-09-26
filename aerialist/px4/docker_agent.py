@@ -2,14 +2,11 @@ from copy import deepcopy
 import os.path as path
 import logging
 import subprocess
-from typing import List
 from decouple import config
 import asyncio
-
-from .obstacle import Obstacle
 from . import file_helper
 from .command import Command
-from .drone_test import DroneTest, DroneTestResult
+from .drone_test import AgentConfig, DroneTest, DroneTestResult
 from .test_agent import TestAgent
 
 logger = logging.getLogger(__name__)
@@ -17,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 class DockerAgent(TestAgent):
 
-    # CMD should be updated if the interface in entry.py changes
-    CMD = "timeout {timeout} python3 aerialist {optionals} --agent local --drone {drone} --simulator {sim} --speed {speed} --headless"
+    CMD = "timeout {timeout} python3 aerialist {params}"
     DOCKER_CMD = "docker exec -it {id} "
     DOCKER_IMG = config("DOCKER_IMG", default="aerialist")
     COPY_DIR = config("LOGS_COPY_DIR", "results/logs/")
+    DOCKER_TIMEOUT = config("DOCKER_TIMEOUT", default=180, cast=int)
 
     def __init__(self, config: DroneTest) -> None:
         super().__init__(config)
@@ -40,58 +37,16 @@ class DockerAgent(TestAgent):
         self.docker_config = self.import_config()
         self.docker_cmd = self.DOCKER_CMD.format(
             id=self.container_id
-        ) + self.format_command(
-            self.docker_config.drone.port,
-            self.docker_config.simulation.simulator,
-            self.docker_config.simulation.speed,
-            self.docker_config.assertion.log_file,
-            self.docker_config.test.commands_file,
-            self.docker_config.drone.params_file,
-            self.docker_config.simulation.obstacles,
-            self.docker_config.drone.mission_file,
-        )
+        ) + self.format_command(self.docker_config)
 
     def format_command(
         self,
-        drone,
-        sim,
-        speed,
-        log,
-        commands,
-        params_csv,
-        obstacles: List[Obstacle],
-        mission,
-        output_path=None,
+        config: DroneTest,
     ):
-        optionals = ""
-        if params_csv is not None:
-            optionals += f"--params '{params_csv}' "
-        if obstacles != None and len(obstacles) >= 1:
-            obs = ""
-            for p in obstacles[0].to_params():
-                obs += str(p) + " "
-            optionals += f"--obstacle {obs}"
-        if obstacles != None and len(obstacles) >= 2:
-            obs2 = ""
-            for p in obstacles[1].to_params():
-                obs2 += str(p) + " "
-            optionals += f"--obstacle2 {obs2}"
-        if mission is not None:
-            optionals += f"--mission '{mission}' "
-        if log is not None:
-            optionals += f"--log '{log}' "
-        if commands is not None:
-            optionals += f"--commands '{commands}' "
-
-        if output_path:
-            optionals += f"--path '{output_path}' "
-
+        params = config.cmd_params()
         cmd = self.CMD.format(
-            optionals=optionals,
-            drone=drone,
-            sim=sim,
-            speed=speed,
-            timeout=config("DOCKER_TIMEOUT", default=180, cast=int),
+            params=params,
+            timeout=self.DOCKER_TIMEOUT,
         )
         return cmd
 
@@ -186,6 +141,10 @@ class DockerAgent(TestAgent):
                 docker_config.assertion.log_file = (
                     f"/io/{path.basename(self.config.assertion.log_file)}"
                 )
+
+        if docker_config.agent is not None:
+            docker_config.agent.engine = AgentConfig.LOCAL
+            docker_config.agent.count = 1
 
         return docker_config
 
