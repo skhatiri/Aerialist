@@ -52,7 +52,7 @@ class K8sAgent(DockerAgent):
             succes = loop.run_until_complete(self.wait_success(self.config.agent.id))
             logger.info("k8s job finished")
             local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.agent.id}/"
-            os.mkdir(local_folder)
+            os.makedirs(local_folder, exist_ok=True)
             logger.info(f"downloading simulation logs to {local_folder}")
             file_helper.download_dir(self.k8s_config.agent.path, local_folder)
             logger.debug("files downloaded")
@@ -85,9 +85,8 @@ class K8sAgent(DockerAgent):
         k8s_config = deepcopy(self.config)
         if self.config.agent.id == None or self.config.agent.id == "":
             self.config.agent.id = file_helper.time_filename()
-        # cloud_folder = f"{self.WEBDAV_DIR}{self.config.runner.job_id}/"
-        # k8s_config.runner.path = cloud_folder
         cloud_folder = self.config.agent.path
+        file_helper.create_dir(cloud_folder)
 
         # Drone Config
         if self.config.drone is not None:

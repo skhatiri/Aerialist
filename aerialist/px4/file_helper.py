@@ -18,12 +18,12 @@ MAX_WEBDAV_RETRIES = 5
 RETRIES = 0
 
 
-def get_local_file(str):
-    if validators.url(str):
-        local_add = download(str, config("WEBDAV_DL_FLD", default="/tmp/"))
+def get_local_file(file_path: str):
+    if validators.url(file_path):
+        local_add = download(file_path, config("WEBDAV_DL_FLD", default="/tmp/"))
         return local_add
-    elif path.exists(str):
-        return str
+    elif path.exists(file_path):
+        return file_path
     else:
         raise Exception("path does not exist")
 
@@ -60,7 +60,7 @@ def extract(log_address: str, topic: str, use_cache=True) -> DataFrame:
         return None
 
 
-def copy(src_file, dest_file) -> bool:
+def copy(src_file: str, dest_file: str) -> bool:
     try:
         path = shutil.copy2(src_file, dest_file)
         logger.debug("File copied successfully.")
@@ -126,7 +126,7 @@ def download(src_file: str, dest_path: str) -> str:
     return dest_path
 
 
-def download_dir(src_path, dest_path) -> str:
+def download_dir(src_path: str, dest_path: str) -> str:
     global RETRIES
     cloud_path = src_path
     if validators.url(src_path):
@@ -146,7 +146,7 @@ def download_dir(src_path, dest_path) -> str:
     return dest_path
 
 
-def create_dir(path):
+def create_dir(path: str):
     global RETRIES
     cloud_path = path
     if validators.url(path):
