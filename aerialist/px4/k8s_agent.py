@@ -59,9 +59,10 @@ class K8sAgent(DockerAgent):
 
             for test_log in os.listdir(local_folder):
                 if test_log.endswith(".ulg") and (
-                    self.config.assertion.log_file is None
+                    self.config.test is None
+                    or self.config.test.commands_file is None
                     or path.basename(test_log)
-                    != path.basename(self.config.assertion.log_file)
+                    != path.basename(self.config.test.commands_file)
                 ):
                     self.results.append(DroneTestResult(local_folder + test_log))
             if len(self.results) == 0:

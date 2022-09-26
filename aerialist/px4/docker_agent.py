@@ -43,7 +43,9 @@ class DockerAgent(TestAgent):
         self,
         config: DroneTest,
     ):
-        params = config.cmd_params()
+        params = DroneTest(
+            config.drone, config.simulation, config.test, None, config.agent
+        ).cmd_params()
         cmd = self.CMD.format(
             params=params,
             timeout=self.DOCKER_TIMEOUT,
