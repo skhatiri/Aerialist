@@ -1,0 +1,3 @@
+import entry
+
+entry.main()

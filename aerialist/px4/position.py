@@ -16,16 +16,19 @@ class Position(object):
     ) -> None:
         super().__init__()
         self.timestamp = timestamp
-        if not is_jmavsim:
-            self.x = x
-            self.y = y
-            self.z = z
-        else:
-            self.x = -y
-            self.y = x
-            self.z = z
-
+        self.x = x
+        self.y = y
+        self.z = z
         self.r = r
+
+        if is_jmavsim:
+            self.convert_jmavsim()
+
+    def convert_jmavsim(self):
+        jmav_x = self.x
+        jmav_y = self.y
+        self.x = -jmav_y
+        self.y = jmav_x
 
     def get_position_in_relative_distance(self, distance: float):
         delta_x = distance * math.cos(self.r)

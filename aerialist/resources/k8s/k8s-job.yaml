@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: batch-experiment
+  name: batch-test
   labels:
     {}
 spec:
@@ -14,31 +14,15 @@ spec:
     spec:
       containers:
         - imagePullPolicy: Always
-          name: init
+          name: container-0
           __active: true
-          image: skhatiri/drone-experiments:server
+          image: skhatiri/drone-experiments:aerialist
           stdin: true
           stdinOnce: false
           command:
-            - /bin/bash 
-            - -c 
-            - /bin/sleep 5 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
-          env:
-            - name: COMMAND
-              value: "./run.py --help"
-          tty: true
-          resources:
-            limits:
-              cpu: 100m
-              memory: 250Mi
-            requests: {}
-        - imagePullPolicy: Always
-          name: sim
-          __active: true
-          image: skhatiri/drone-experiments
-          stdin: true
-          stdinOnce: true
-          command: 
+            - /bin/bash
+            - -c
+            - "$(COMMAND)" 
           tty: true
           env:
             - name: WEBDAV_HOST
@@ -46,6 +30,11 @@ spec:
                 secretKeyRef:
                   name: webdav
                   key: host        
+            - name: WEBDAV_ROOT
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: root        
             - name: WEBDAV_USER
               valueFrom:
                 secretKeyRef:
@@ -55,24 +44,27 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: webdav
-                  key: pass          
+                  key: pass
+            - name: COMMAND
+              value: "./run.py --help"          
           resources:
+
             requests:
-              cpu: 5000m
-              memory: 1000Mi
+              cpu: 750m
+              memory: 300Mi
             limits:
-              cpu: 5000m
-              memory: 2000Mi
+              cpu: 750m
+              memory: 300Mi
+            requests: {}
       affinity:
       imagePullSecrets:
         - name: dockerhub
       initContainers:
       restartPolicy: Never
-      activeDeadlineSeconds: 600
   completions: 1
   suspend: false
   replicas: 1
-  # activeDeadlineSeconds: 1000
+#  activeDeadlineSeconds: int
   backoffLimit: 5
   completionMode: NonIndexed
 #  manualSelector: boolean

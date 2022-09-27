@@ -1,23 +1,15 @@
 from __future__ import annotations
 import time
-from typing import List
 import subprocess
 import signal
 import os
 import threading
-from enum import Enum
 from decouple import config
-from px4.obstacle import Obstacle
-from utils import ulog_helper
 import logging
+from . import file_helper
+from .drone_test import SimulationConfig
 
 logger = logging.getLogger(__name__)
-
-
-class Environment(Enum):
-    GAZEBO = 1
-    JMAVSIM = 2
-    AVOIDANCE = 3
 
 
 class Simulator(object):
@@ -27,33 +19,31 @@ class Simulator(object):
     PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
     ROS_LOG_DIR = config("ROS_HOME")
     GAZEBO_GUI_AVOIDANCE = True
-    AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="boxes1")
+    AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
-        "AVOIDANCE_LAUNCH", default="resources/simulation/collision_prevention.launch"
+        "AVOIDANCE_LAUNCH",
+        default="aerialist/resources/simulation/collision_prevention.launch",
     )
     COPY_DIR = config("LOGS_COPY_DIR", None)
     LAND_TIMEOUT = 20
 
-    def __init__(
-        self,
-        env: Environment = Environment.GAZEBO,
-        headless: bool = False,
-        speed: float = 1,
-        obstacles: List[Obstacle] = None,
-    ) -> None:
+    def __init__(self, config: SimulationConfig) -> None:
         super().__init__()
+        self.config = config
+
         sim_command = ""
-        self.env = env
-        self.obstacles = obstacles
         self.log_file = None
-        if env == Environment.GAZEBO or env == Environment.JMAVSIM:
+        if (
+            self.config.simulator == SimulationConfig.GAZEBO
+            or self.config.simulator == SimulationConfig.JMAVSIM
+        ):
             self.log_dir = self.PX4_LOG_DIR
-            if headless:
+            if self.config.headless:
                 sim_command += f"HEADLESS=1 "
-            if speed != 1:
-                sim_command += f"PX4_SIM_SPEED_FACTOR={speed} "
-            sim_command += f"make -C {self.PX4_DIR} px4_sitl {env.name.lower()}"
-        elif env == Environment.AVOIDANCE:
+            if self.config.speed != 1:
+                sim_command += f"PX4_SIM_SPEED_FACTOR={self.config.speed} "
+            sim_command += f"make -C {self.PX4_DIR} px4_sitl {self.config.simulator}"
+        elif self.config.simulator == SimulationConfig.ROS:
             self.log_dir = self.ROS_LOG_DIR
             sim_command = f"source {self.CATKIN_DIR}devel/setup.bash; "
             sim_command += (
@@ -68,11 +58,11 @@ class Simulator(object):
                 'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
                 + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(not headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} "
-            if obstacles != None and len(obstacles) > 0:
-                sim_command += f"obst:=true obst_x:={obstacles[0].center().y} obst_y:={obstacles[0].center().x} obst_z:={obstacles[0].center().z} obst_l:={obstacles[0].size().y} obst_w:={obstacles[0].size().x} obst_h:={obstacles[0].size().z} "
-                if len(obstacles) > 1:
-                    sim_command += f"obst2:=true obst2_x:={obstacles[1].center().y} obst2_y:={obstacles[1].center().x} obst2_z:={obstacles[1].center().z} obst2_l:={obstacles[1].size().y} obst2_w:={obstacles[1].size().x} obst2_h:={obstacles[1].size().z} "
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} "
+            if self.config.obstacles != None and len(self.config.obstacles) > 0:
+                sim_command += f"obst:=true obst_x:={self.config.obstacles[0].center().y} obst_y:={self.config.obstacles[0].center().x} obst_z:={self.config.obstacles[0].center().z} obst_l:={self.config.obstacles[0].size().y} obst_w:={self.config.obstacles[0].size().x} obst_h:={self.config.obstacles[0].size().z} "
+                if len(self.config.obstacles) > 1:
+                    sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].center().y} obst2_y:={self.config.obstacles[1].center().x} obst2_z:={self.config.obstacles[1].center().z} obst2_l:={self.config.obstacles[1].size().y} obst2_w:={self.config.obstacles[1].size().x} obst2_h:={self.config.obstacles[1].size().z} "
 
         logger.debug("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
@@ -86,9 +76,10 @@ class Simulator(object):
         )
 
         if self.start():
+            logger.debug("simulator started")
             self.bkgnd = threading.Thread(target=self.sim_thread)
             self.bkgnd.start()
-            self.bkgnd
+            # self.bkgnd
         else:
             raise (Exception("Simulator could not start"))
 
@@ -109,12 +100,12 @@ class Simulator(object):
                     )
                     logger.debug(f"logging started: {self.log_file}")
                     if (
-                        self.env == Environment.JMAVSIM
-                        or self.env == Environment.GAZEBO
+                        self.config.simulator == SimulationConfig.GAZEBO
+                        or self.config.simulator == SimulationConfig.JMAVSIM
                     ):
                         return True
 
-                if self.env == Environment.AVOIDANCE and output.endswith(
+                if self.config.simulator == SimulationConfig.ROS and output.endswith(
                     "INFO  [tone_alarm] home set"
                 ):
                     logger.info("Avoidance is ready (waiting 5 seconds to wrap up)")
@@ -124,7 +115,7 @@ class Simulator(object):
                 return_code = self.sim_process.poll()
                 if return_code is not None:
                     # if return_code != 0:
-                    logger.critical("in Simulation process: RETURN CODE:", return_code)
+                    logger.critical(f"in Simulation process: RETURN CODE:{return_code}")
                     for error in self.sim_process.stdout.readlines():
                         logger.critical(error.strip())
                     logger.critical(output)
@@ -169,9 +160,9 @@ class Simulator(object):
                     self.kill()
                     logger.debug(f"logging finished: {self.log_file}")
                     if self.COPY_DIR is not None:
-                        copy_path = ulog_helper.copy(
+                        copy_path = file_helper.copy(
                             self.log_file,
-                            self.COPY_DIR + ulog_helper.time_filename(True) + ".ulg",
+                            self.COPY_DIR + file_helper.time_filename(True) + ".ulg",
                         )
                         if copy_path is not None:
                             self.log_file = os.path.abspath(copy_path)
@@ -182,7 +173,7 @@ class Simulator(object):
                 if return_code is not None:
                     if return_code != 0:
                         logger.critical(
-                            "in Simulation process: RETURN CODE:", return_code
+                            f"in Simulation process: RETURN CODE:{return_code}"
                         )
                         for error in self.sim_process.stdout.readlines():
                             logger.critical(error.strip())

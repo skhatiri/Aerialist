@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from enum import Enum
 from typing import List
-from utils import ulog_helper
 import ruptures as rpt
+from . import file_helper
 
 
 class FlightMode(Enum):
@@ -73,25 +73,6 @@ class Command(object):
             return self
 
     @classmethod
-    def extract_from_csv(cls, address: str) -> List[Command]:
-        """extracts and returns RC commands from the saved log"""
-        commands = []
-
-        commands_csv = pd.read_csv(address)
-        for row in commands_csv.itertuples():
-            commands.append(
-                cls(
-                    row.timestamp,
-                    row.x,
-                    row.y,
-                    row.z,
-                    row.r,
-                    FlightMode(row.mode),
-                )
-            )
-        return commands
-
-    @classmethod
     def extract_segments(cls, commands: List[Command]) -> List[List[Command]]:
         data = np.array([[c.x, c.y, c.z, c.r] for c in commands])
         alg = rpt.Pelt(model="rbf").fit(data)
@@ -140,10 +121,37 @@ class Command(object):
         )
 
     @classmethod
-    def extract_from_log(cls, log_address: str) -> List[Command]:
+    def extract(cls, address: str) -> List[Command]:
+        if address.endswith(".csv"):
+            return cls.extract_from_csv(address)
+        if address.endswith(".ulg"):
+            return cls.extract_from_log(address)
+        return None
+
+    @classmethod
+    def extract_from_csv(cls, address: str) -> List[Command]:
+        """extracts and returns RC commands from the saved log"""
+        commands = []
+
+        commands_csv = pd.read_csv(address)
+        for row in commands_csv.itertuples():
+            commands.append(
+                cls(
+                    row.timestamp,
+                    row.x,
+                    row.y,
+                    row.z,
+                    row.r,
+                    FlightMode(row.mode),
+                )
+            )
+        return commands
+
+    @classmethod
+    def extract_from_log(cls, address: str) -> List[Command]:
         """extracts and returns RC commands from the input log"""
 
-        manual_contorl = ulog_helper.extract(log_address, "manual_control_setpoint")
+        manual_contorl = file_helper.extract(address, "manual_control_setpoint")
 
         commands = []
 
@@ -152,7 +160,7 @@ class Command(object):
             commands.append(cls(row.timestamp, row.x, row.y, row.z, row.r))
 
         # arm/disarm
-        actuator_armed = ulog_helper.extract(log_address, "actuator_armed")
+        actuator_armed = file_helper.extract(address, "actuator_armed")
         arm_state = 0
         for row in actuator_armed.itertuples():
             if row.armed == arm_state:
@@ -165,7 +173,7 @@ class Command(object):
                     commands.append(cls(row.timestamp, mode=FlightMode.Disarm))
 
         # flight modes
-        commander_state = ulog_helper.extract(log_address, "commander_state")
+        commander_state = file_helper.extract(address, "commander_state")
         mode = -1
         for row in commander_state.itertuples():
             if row.main_state_changes == 0:

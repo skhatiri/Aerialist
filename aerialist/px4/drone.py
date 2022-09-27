@@ -1,19 +1,14 @@
 import logging
 import time
-from mavsdk import System, action, asyncio, mission, mission_raw
-from px4.command import Command, FlightMode, DefaultCommands
+import sched
+from mavsdk import System, action, asyncio
 import keyboard
 from enum import Enum
 from decouple import config
-from datetime import datetime
+from .command import Command, FlightMode, DefaultCommands
+from .drone_test import DroneConfig, TestConfig
 
 logger = logging.getLogger(__name__)
-
-
-class MavAddress(Enum):
-    CF = 14550
-    SIM = 14540
-    ROS = 14541
 
 
 class Drone(object):
@@ -22,29 +17,69 @@ class Drone(object):
     SETPOINT_PERIOD = 0.2
     DEFAULT_PARAMS = config("PARAMS", default=None)
 
-    def __init__(
-        self, mav_address: MavAddress, params: dict = None, mission_file: str = None
-    ) -> None:
+    def __init__(self, config: DroneConfig) -> None:
         super().__init__()
-        self.address = f"udp://:{mav_address.value}"
+        self.config = config
+        self.address = f"udp://:{self.config.port}"
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect_async(self.address))
 
         if self.DEFAULT_PARAMS != None:
             default_params = Command.extract_params_from_csv(self.DEFAULT_PARAMS)
             self.set_params(default_params)
-        if params != None:
-            self.set_params(params)
+        if self.config.params != None:
+            self.set_params(self.config.params)
 
-        if mission_file != None:
-            self.upload_mission(mission_file)
+        if self.config.mission_file != None:
+            self.upload_mission(self.config.mission_file)
+
+    def schedule_test(self, test: TestConfig, offset_sync=False) -> None:
+        """sets an schedular object with input control commands to be replayed accurately"""
+        self.scheduler = sched.scheduler(time.time, time.sleep)
+        armed = False
+        timeoffset = 0
+        if offset_sync:
+            timeoffset = min([c.timestamp for c in test.commands])
+        for c in test.commands:
+            # add delay to the first start position/altitude control commands
+            # they are actually logged before their actual commands are sent
+            # the current added delay corresponds to the script for manual flight in drone.py
+            if c.mode == FlightMode.Arm:
+                armed = True
+            if not armed and (
+                c.mode == FlightMode.Altitude or c.mode == FlightMode.Position
+            ):
+                self.scheduler.enter(
+                    float(c.timestamp - timeoffset) / (1000000 * test.speed)
+                    + 6 * self.SETPOINT_PERIOD,
+                    1,
+                    self.run,
+                    (c,),
+                )
+
+            else:
+                self.scheduler.enter(
+                    float(c.timestamp - timeoffset) / (1000000 * test.speed),
+                    1,
+                    self.run,
+                    (c,),
+                )
+
+    def run_scheduled(self) -> None:
+        logger.info(
+            f"**SCHEDULER STARTED** running {len(self.scheduler.queue)} commands "
+        )
+        self.scheduler.run()
 
     def start_mission(self):
         loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.start_mission_async())
+
+    async def start_mission_async(self):
         logger.info("starting mission")
         try:
-            loop.run_until_complete(self.drone.action.arm())
-            loop.run_until_complete(self.drone.mission_raw.start_mission())
+            await self.drone.action.arm()
+            await self.drone.mission_raw.start_mission()
             logger.info("mission started")
             return
         except Exception as e:
@@ -93,6 +128,8 @@ class Drone(object):
                 await self.drone.action.takeoff()
             elif command.mode == FlightMode.Land:
                 await self.drone.action.land()
+            elif command.mode == FlightMode.Mission:
+                await self.start_mission_async()
             elif command.mode == FlightMode.Hold:
                 await self.drone.action.hold()
             elif (
@@ -134,6 +171,7 @@ class Drone(object):
                 break
         logger.info("Conected to the drone")
 
+    ###################### manual control
     def manual(self):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.manual_async())

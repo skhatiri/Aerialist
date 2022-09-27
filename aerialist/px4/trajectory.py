@@ -1,25 +1,24 @@
 from __future__ import annotations
 import math
 import os
-from typing import List, Tuple
+from typing import List
 import numpy as np
 import pandas as pd
 import similaritymeasures
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from decouple import config
-from px4.obstacle import Obstacle
-from utils import ulog_helper, timeserie_helper
-from px4.position import Position
 import ruptures as rpt
 from shapely.geometry import LineString
+from decouple import config
+from .obstacle import Obstacle
+from .position import Position
+from . import file_helper, timeserie_helper
 
 
 class Trajectory(object):
-    DIR = config("RESULTS_DIR")
+    DIR = config("RESULTS_DIR", default="results/")
     WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
     USE_GPS = config("USE_GPS", default=False, cast=bool)
-    USE_K8S = config("USE_K8S", default=False, cast=bool)
     IGNORE_AUTO_MODES = False
     REMOVE_OFFSET = True
     PLOT_TESTS_XYZ = config("PLOT_TESTS_XYZ", default=True, cast=bool)
@@ -51,24 +50,6 @@ class Trajectory(object):
         """saves trajectory to file"""
         data_frame = pd.DataFrame.from_records([p.to_dict() for p in self.positions])
         data_frame.to_csv(address, index=False)
-
-    @classmethod
-    def extract_from_csv(cls, address: str) -> Trajectory:
-        """extracts and returns trajectory from the saved log"""
-        positions = []
-
-        pos_csv = pd.read_csv(address)
-        for row in pos_csv.itertuples():
-            positions.append(
-                Position(
-                    row.x,
-                    row.y,
-                    row.z,
-                    row.r,
-                    row.timestamp,
-                )
-            )
-        return Trajectory(positions)
 
     @classmethod
     def plot_multiple(
@@ -245,11 +226,12 @@ class Trajectory(object):
 
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
         if save:
-            filename = file_prefix + ulog_helper.time_filename()
+            filename = file_prefix + file_helper.time_filename()
+            os.makedirs(cls.DIR, exist_ok=True)
             fig.savefig(f"{cls.DIR}{filename}.png")
             plt.close(fig)
             if cls.WEBDAV_DIR is not None:
-                ulog_helper.upload(f"{cls.DIR}{filename}.png", cls.WEBDAV_DIR)
+                file_helper.upload(f"{cls.DIR}{filename}.png", cls.WEBDAV_DIR)
 
         else:
             plt.ion()
@@ -329,6 +311,33 @@ class Trajectory(object):
         return line
 
     @classmethod
+    def extract(cls, address: str) -> Trajectory:
+        """extracts and returns trajectory from the file"""
+        if address.endswith(".csv"):
+            return cls.extract_from_csv(address)
+        if address.endswith(".ulg"):
+            return cls.extract_from_log(address)
+        return None
+
+    @classmethod
+    def extract_from_csv(cls, address: str) -> Trajectory:
+        """extracts and returns trajectory from the saved log"""
+        positions = []
+
+        pos_csv = pd.read_csv(address)
+        for row in pos_csv.itertuples():
+            positions.append(
+                Position(
+                    row.x,
+                    row.y,
+                    row.z,
+                    row.r,
+                    row.timestamp,
+                )
+            )
+        return Trajectory(positions)
+
+    @classmethod
     def extract_from_log(
         cls,
         log_address: str,
@@ -341,7 +350,7 @@ class Trajectory(object):
 
         # global position
         if cls.USE_GPS:
-            global_position = ulog_helper.extract(
+            global_position = file_helper.extract(
                 log_address, "vehicle_global_position"
             )
             global_position = global_position[["timestamp", "lat", "lon", "alt"]]
@@ -357,7 +366,7 @@ class Trajectory(object):
 
         # local position
         else:
-            local_position = ulog_helper.extract(log_address, "vehicle_local_position")
+            local_position = file_helper.extract(log_address, "vehicle_local_position")
             local_position = local_position[["timestamp", "x", "y", "z", "heading"]]
             for row in local_position.itertuples():
                 positions.append(
@@ -380,7 +389,7 @@ class Trajectory(object):
             in_auto_modes = True
             filtered_positions = []
             period_start = None
-            commander_state = ulog_helper.extract(log_address, "commander_state")
+            commander_state = file_helper.extract(log_address, "commander_state")
             for row in commander_state.itertuples():
                 # if row.main_state_changes == 0:
                 #     # skip invalid states before the first state change
@@ -429,7 +438,7 @@ class Trajectory(object):
 
     @classmethod
     def extract_CP_active_periods(cls, log_address):
-        collision_constraints = ulog_helper.extract(
+        collision_constraints = file_helper.extract(
             log_address, "collision_constraints"
         )
         if collision_constraints is None:

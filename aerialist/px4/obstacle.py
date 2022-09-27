@@ -1,25 +1,22 @@
 from __future__ import annotations
 from typing import List
 from shapely.geometry import box, LineString, Point
-
-# from typing import List, Tuple
 from decouple import config
-from px4.position import Position
-
-# from px4.trajectory import Trajectory
-# from utils import ulog_helper, timeserie_helper
 import logging
+from .position import Position
 
 logger = logging.getLogger(__name__)
 
 
 class Obstacle(object):
-    DIR = config("RESULTS_DIR")
+    DIR = config("RESULTS_DIR", default="results/")
+    BOX = "box"
 
     def __init__(
         self,
         p1: Position,
         p2: Position,
+        shape: str = BOX,
         # positions: List[Position],
     ) -> None:
         super().__init__()
