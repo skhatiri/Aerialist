@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="aerialist",
-    version="0.0.97",
+    version="0.0.98",
     author="Sajad Khatiri",
     author_email="s.khatiri@gmail.com",
     description="UAV Test Bench",

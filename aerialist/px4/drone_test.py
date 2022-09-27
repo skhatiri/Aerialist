@@ -146,13 +146,13 @@ class SimulationConfig:
         world: str = "default",
         speed=1,
         headless=True,
-        obstacles=None,
+        obstacles: List[Obstacle] | List[float] = None,
     ) -> None:
         self.simulator = simulator
         self.world = world
         self.speed = speed
         self.headless = headless
-        self.obstacles = obstacles
+        self.obstacles: List[Obstacle] = obstacles
         if (
             obstacles is not None
             and len(obstacles) > 0

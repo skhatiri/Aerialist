@@ -162,14 +162,6 @@ class DockerAgent(TestAgent):
             shell=True,
         )
 
-    # def run(self, commands: List[Command]):
-    #     self.original_log = (
-    #         f'{self.COPY_DIR}{datetime.now().strftime("%m-%d %H:%M:%S")}.csv'
-    #     )
-    #     Command.save_csv(commands, self.original_log)
-    #     self.load_commands()
-    #     self.replay()
-
     # @classmethod
     # def replay_parallel(
     #     cls,
@@ -205,51 +197,3 @@ class DockerAgent(TestAgent):
     #         asyncio.gather(*[e.replay_async() for e in experiments])
     #     )
     #     return [e for e in experiments if hasattr(e, "trajectory")]
-
-    # @classmethod
-    # def replay_multiple(
-    #     cls,
-    #     runs: int = 1,
-    #     drone: str = config("DRONE", default="sim"),
-    #     env: str = config("SIMULATOR", default="gazebo"),
-    #     headless: bool = True,
-    #     speed: float = config("SPEED", default=1, cast=int),
-    #     log: str = None,
-    #     is_jmavsim=False,
-    #     params_csv=None,
-    #     obstacles: List[float] = None,
-    #     mission_file: str = None,
-    # ):
-
-    #     experiments = cls.replay_parallel(
-    #         runs,
-    #         drone,
-    #         env,
-    #         headless,
-    #         speed,
-    #         log,
-    #         is_jmavsim,
-    #         params_csv,
-    #         obstacles,
-    #         mission_file,
-    #     )
-    #     logger.info(f"{len(experiments)} evalations completed")
-    #     obst = None
-    #     if obstacles != None:
-    #         obst = Obstacle.from_coordinates_multiple(obstacles)
-
-    #     Trajectory.plot_multiple(
-    #         [e.trajectory for e in experiments],
-    #         experiments[0].original_trajectory,
-    #         distance=None
-    #         if experiments[0].original_log is None
-    #         else median(
-    #             [
-    #                 e.trajectory.distance(experiments[0].original_trajectory)
-    #                 for e in experiments
-    #             ]
-    #         ),
-    #         obstacles=None
-    #         if obstacles is None
-    #         else Obstacle.from_coordinates_multiple(obstacles),
-    #     )
