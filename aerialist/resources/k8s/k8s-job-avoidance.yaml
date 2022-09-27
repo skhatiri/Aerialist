@@ -22,7 +22,7 @@ spec:
           command:
             - /bin/bash 
             - -c 
-            - /bin/sleep 5 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
+            - /bin/sleep 10 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
           env:
             - name: COMMAND
               value: "python3 aerialist --help"

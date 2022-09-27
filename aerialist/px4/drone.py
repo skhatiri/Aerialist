@@ -72,11 +72,14 @@ class Drone(object):
         self.scheduler.run()
 
     def start_mission(self):
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.start_mission_async())
+
+    async def start_mission_async(self):
         logger.info("starting mission")
         try:
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(self.drone.action.arm())
-            loop.run_until_complete(self.drone.mission_raw.start_mission())
+            await self.drone.action.arm()
+            await self.drone.mission_raw.start_mission()
             logger.info("mission started")
             return
         except Exception as e:
@@ -126,7 +129,7 @@ class Drone(object):
             elif command.mode == FlightMode.Land:
                 await self.drone.action.land()
             elif command.mode == FlightMode.Mission:
-                await self.start_mission()
+                await self.start_mission_async()
             elif command.mode == FlightMode.Hold:
                 await self.drone.action.hold()
             elif (
