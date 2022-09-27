@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class Simulator(object):
-    # pre_commands = "export PX4_HOME_LAT=0 & export PX4_HOME_LON=-0 & export PX4_HOME_ALT=0"
     PX4_DIR = config("PX4_HOME")
     CATKIN_DIR = config("CATKIN_HOME")
     PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
@@ -32,6 +31,8 @@ class Simulator(object):
         self.config = config
 
         sim_command = ""
+        if config.home_position is not None:
+            sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
         self.log_file = None
         if (
             self.config.simulator == SimulationConfig.GAZEBO
@@ -45,7 +46,7 @@ class Simulator(object):
             sim_command += f"make -C {self.PX4_DIR} px4_sitl {self.config.simulator}"
         elif self.config.simulator == SimulationConfig.ROS:
             self.log_dir = self.ROS_LOG_DIR
-            sim_command = f"source {self.CATKIN_DIR}devel/setup.bash; "
+            sim_command += f"source {self.CATKIN_DIR}devel/setup.bash; "
             sim_command += (
                 f"DONT_RUN=1 make -C {self.PX4_DIR} px4_sitl_default gazebo; "
             )

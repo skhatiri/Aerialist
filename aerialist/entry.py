@@ -101,7 +101,13 @@ def arg_parse():
         type=int,
         help="no. of parallel runs (in Docker)",
     )
-
+    parser.add_argument(
+        "--home",
+        nargs=3,
+        type=float,
+        help="home position to place the drone: [lat,lon,alt] in order",
+        default=None,
+    )
     parser.add_argument(
         "--obstacle",
         nargs=6,
@@ -139,6 +145,7 @@ def run_experiment(args):
             speed=args.speed,
             headless=args.headless,
             obstacles=args.obstacle + args.obstacle2,
+            home_position=args.home,
         )
         test_config = TestConfig(
             commands_file=args.commands,

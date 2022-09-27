@@ -10,7 +10,6 @@ from . import file_helper
 
 
 class DroneTest:
-    # CMD should be updated if the interface in entry.py changes
     def __init__(
         self,
         drone: DroneConfig = None,
@@ -24,6 +23,9 @@ class DroneTest:
         self.test = test
         self.assertion = assertion
         self.agent = agent
+        if simulation is not None and simulation.home_position is None:
+            if assertion is not None and assertion.log_file is not None:
+                simulation.home_position = Trajectory.get_home(assertion.log_file)
 
     @classmethod
     def from_yaml(cls, address):
@@ -64,6 +66,9 @@ class DroneTest:
                 params += f"--speed {self.simulation.speed} "
             if self.simulation.headless:
                 params += f"--headless "
+            if self.simulation.home_position is not None:
+                params += f"--home {self.simulation.home_position[0]} {self.simulation.home_position[1]} {self.simulation.home_position[2]} "
+
             if (
                 self.simulation.obstacles is not None
                 and len(self.simulation.obstacles) >= 1
@@ -147,12 +152,14 @@ class SimulationConfig:
         speed=1,
         headless=True,
         obstacles: List[Obstacle] | List[float] = None,
+        home_position: List[float] = None,
     ) -> None:
         self.simulator = simulator
         self.world = world
         self.speed = speed
         self.headless = headless
         self.obstacles: List[Obstacle] = obstacles
+        self.home_position = home_position
         if (
             obstacles is not None
             and len(obstacles) > 0

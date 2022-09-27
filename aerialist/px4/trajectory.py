@@ -425,6 +425,18 @@ class Trajectory(object):
         traj = cls(positions, cp_activations)
         return traj
 
+    @classmethod
+    def get_home(cls, log_address: str):
+        global_position = file_helper.extract(log_address, "vehicle_global_position")
+        global_position = global_position[["timestamp", "lat", "lon", "alt"]]
+        for row in global_position.itertuples():
+            home = [
+                row.lat,
+                row.lon,
+                row.alt,
+            ]
+            return home
+
     def extract_segments(self) -> List[Trajectory]:
         data = np.array([[c.x, c.y, c.z] for c in self.positions])
         alg = rpt.Pelt(model="rbf").fit(data)
