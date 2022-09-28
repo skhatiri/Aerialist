@@ -8,6 +8,7 @@ from decouple import config
 import logging
 from . import file_helper
 from .drone_test import SimulationConfig
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +62,9 @@ class Simulator(object):
             )
             sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} "
             if self.config.obstacles != None and len(self.config.obstacles) > 0:
-                sim_command += f"obst:=true obst_x:={self.config.obstacles[0].center().y} obst_y:={self.config.obstacles[0].center().x} obst_z:={self.config.obstacles[0].center().z} obst_l:={self.config.obstacles[0].size().y} obst_w:={self.config.obstacles[0].size().x} obst_h:={self.config.obstacles[0].size().z} "
+                sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.y} obst_w:={self.config.obstacles[0].size.x} obst_h:={self.config.obstacles[0].size.z} obst_yaw:={math.radians(self.config.obstacles[0].angle)} "
                 if len(self.config.obstacles) > 1:
-                    sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].center().y} obst2_y:={self.config.obstacles[1].center().x} obst2_z:={self.config.obstacles[1].center().z} obst2_l:={self.config.obstacles[1].size().y} obst2_w:={self.config.obstacles[1].size().x} obst2_h:={self.config.obstacles[1].size().z} "
+                    sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(self.config.obstacles[1].angle)} "
 
         logger.debug("executing:" + sim_command)
         self.sim_process = subprocess.Popen(

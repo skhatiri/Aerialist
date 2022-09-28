@@ -110,14 +110,14 @@ def arg_parse():
     )
     parser.add_argument(
         "--obstacle",
-        nargs=6,
+        nargs=7,
         type=float,
         help="obstacle poisition and size to put in simulation environment: [x1,y1,z1,x2,y2,z2] in order",
         default=[],
     )
     parser.add_argument(
         "--obstacle2",
-        nargs=6,
+        nargs=7,
         type=float,
         help="obstacle poisition and size to put in simulation environment: [x1,y1,z1,x2,y2,z2] in order",
         default=[],

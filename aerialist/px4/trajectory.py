@@ -90,11 +90,12 @@ class Trajectory(object):
             for obst in obstacles:
                 obst_patch = mpatches.Rectangle(
                     (
-                        obst.min().x,
-                        obst.min().y,
+                        obst.position.x,
+                        obst.position.y,
                     ),
-                    obst.size().x,
-                    obst.size().y,
+                    obst.size.x,
+                    obst.size.y,
+                    obst.angle,
                     edgecolor="gray",
                     facecolor="gray",
                     fill=True,

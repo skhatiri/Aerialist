@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import List
 from shapely.geometry import box, LineString, Point
+from shapely import affinity
 from decouple import config
 import logging
 from .position import Position
@@ -14,72 +15,48 @@ class Obstacle(object):
 
     def __init__(
         self,
-        p1: Position,
-        p2: Position,
+        size: Position,
+        position: Position,
+        angle: float = 0,
         shape: str = BOX,
-        # positions: List[Position],
     ) -> None:
         super().__init__()
-        # if positions != None:
-        #     self.positions = positions
-        #     self.location, self.size = self.estimate_box_pose(positions, size)
-        # else:
-        self.p1 = p1
-        self.p2 = p2
+        if shape == self.BOX:
+            rect = box(0, 0, size.x, size.y)
+            rect = affinity.translate(rect, position.x, position.y)
+            rect = affinity.rotate(rect, angle, origin=(position.x, position.y))
+            self.geometry = rect
+            self.size = size
+            self.position = position
+            self.angle = angle
 
     def center(self):
         return Position(
-            (self.p1.x + self.p2.x) / 2.0,
-            (self.p1.y + self.p2.y) / 2.0,
-            (self.p1.z + self.p2.z) / 2.0,
-        )
-
-    def min(self):
-        return Position(
-            min(self.p1.x, self.p2.x),
-            min(self.p1.y, self.p2.y),
-            min(self.p1.z, self.p2.z),
-        )
-
-    def max(self):
-        return Position(
-            max(self.p1.x, self.p2.x),
-            max(self.p1.y, self.p2.y),
-            max(self.p1.z, self.p2.z),
-        )
-
-    def size(self):
-        return Position(
-            abs(self.p2.x - self.p1.x),
-            abs(self.p2.y - self.p1.y),
-            abs(self.p2.z - self.p1.z),
+            self.geometry.centroid.coords[0][0],
+            self.geometry.centroid.coords[0][1],
+            self.size.z / 2,
         )
 
     def to_params(self):
         return [
-            self.p1.x,
-            self.p1.y,
-            self.p1.z,
-            self.p2.x,
-            self.p2.y,
-            self.p2.z,
+            self.size.x,
+            self.size.y,
+            self.size.z,
+            self.position.x,
+            self.position.y,
+            self.position.z,
+            self.angle,
         ]
 
-    def to_box(self):
-        min = self.min()
-        max = self.max()
-        rect = box(min.x, min.y, max.x, max.y)
-        return rect
-
     def intersects(self, other: Obstacle):
-        return self.to_box().intersects(other.to_box())
+        return self.geometry.intersects(other.geometry)
 
     def distance(self, geometry):
-        return self.to_box().distance(geometry)
+        return self.geometry.distance(geometry)
 
     @classmethod
     def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
-        boxes = [o.to_box() for o in obstacles]
+        boxes = [o.geometry for o in obstacles]
         # for i in range(len(boxes)):
         #     for j in range(i + 1, len(boxes)):
         #         if boxes[i].intersects(boxes[j]):
@@ -89,15 +66,16 @@ class Obstacle(object):
 
     @classmethod
     def from_coordinates(cls, coordinates: List[float]):
-        p1 = Position(coordinates[0], coordinates[1], coordinates[2])
-        p2 = Position(coordinates[3], coordinates[4], coordinates[5])
-        return Obstacle(p1, p2)
+        size = Position(coordinates[0], coordinates[1], coordinates[2])
+        position = Position(coordinates[3], coordinates[4], coordinates[5])
+        angle = coordinates[6]
+        return Obstacle(size, position, angle)
 
     @classmethod
     def from_coordinates_multiple(cls, coordinates: List[float]):
         obst = []
-        for i in range(0, len(coordinates), 6):
-            obst.append(Obstacle.from_coordinates(coordinates[i : i + 6]))
+        for i in range(0, len(coordinates), 7):
+            obst.append(Obstacle.from_coordinates(coordinates[i : i + 7]))
         return obst
 
     # def estimate_box_pose(

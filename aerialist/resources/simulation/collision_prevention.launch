@@ -9,6 +9,7 @@
     <arg name="obst_x" default = "0"/>
     <arg name="obst_y" default = "0"/>
     <arg name="obst_z" default = "0"/>
+    <arg name="obst_yaw" default = "0"/>
     <arg name="obst_l" default = "1"/>
     <arg name="obst_w" default = "1"/>
     <arg name="obst_h" default = "1"/>
@@ -18,6 +19,7 @@
     <arg name="obst2_x" default = "0"/>
     <arg name="obst2_y" default = "0"/>
     <arg name="obst2_z" default = "0"/>
+    <arg name="obst2_yaw" default = "0"/>
     <arg name="obst2_l" default = "1"/>
     <arg name="obst2_w" default = "1"/>
     <arg name="obst2_h" default = "1"/>
@@ -76,7 +78,7 @@
         <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h)" />
         
         <node name="spawn_obstacle" pkg="gazebo_ros" type="spawn_model" output="screen"
-            args="-param box_description -urdf -x $(arg obst_x) -y $(arg obst_y) -z $(arg obst_z) -model box/">
+            args="-param box_description -urdf -x $(arg obst_x) -y $(arg obst_y) -z $(arg obst_z) -Y $(arg obst_yaw) -model box/">
         </node>
     </group>
     <group if="$(arg obst2)">
@@ -84,7 +86,7 @@
         <param name="box_description2" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h)" />
         
         <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen"
-            args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -model box2/">
+            args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z)-Y $(arg obst2_yaw) -model box2/">
         </node>
     </group>
     <!-- Load custom console configuration -->
