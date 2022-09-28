@@ -1,4 +1,5 @@
 from __future__ import annotations
+import copy
 import math
 import os
 from typing import List
@@ -239,7 +240,7 @@ class Trajectory(object):
             plt.show()
 
     def allign_origin(self):
-        origin = self.positions[0]
+        origin = copy.deepcopy(self.positions[0])
         for p in self.positions:
             p.x -= origin.x
             p.y -= origin.y
@@ -346,8 +347,6 @@ class Trajectory(object):
                 )
             )
         trj = Trajectory(positions)
-        if cls.ALLIGN_ORIGIN:
-            trj.allign_origin()
         return trj
 
     @classmethod
@@ -398,6 +397,14 @@ class Trajectory(object):
             for p in positions:
                 p.timestamp -= offset
 
+        if cls.ALLIGN_ORIGIN:
+            origin = copy.deepcopy(positions[0])
+            for p in positions:
+                p.x -= origin.x
+                p.y -= origin.y
+                p.z -= origin.z
+                p.r -= origin.r
+
         if ignore_automodes or cls.IGNORE_AUTO_MODES:
             in_auto_modes = True
             filtered_positions = []
@@ -436,8 +443,6 @@ class Trajectory(object):
             cp_activations = cls.extract_CP_active_periods(log_address)
 
         traj = cls(positions, cp_activations)
-        if cls.ALLIGN_ORIGIN:
-            traj.allign_origin()
         return traj
 
     @classmethod
