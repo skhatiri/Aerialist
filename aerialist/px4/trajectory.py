@@ -24,6 +24,7 @@ class Trajectory(object):
     PLOT_TESTS_XYZ = config("PLOT_TESTS_XYZ", default=True, cast=bool)
     TIME_RANGE = None
     DISTANCE_METHOD = config("DISTANCE_METHOD", default="dtw")
+    ALLIGN_ORIGIN = config("ALLIGN_ORIGIN", default=True, cast=bool)
 
     def __init__(
         self, positions: List[Position], highlights: List[tuple[int, int]] = []
@@ -237,6 +238,15 @@ class Trajectory(object):
             plt.ion()
             plt.show()
 
+    def allign_origin(self):
+        origin = self.positions[0]
+        for p in self.positions:
+            p.x -= origin.x
+            p.y -= origin.y
+            p.z -= origin.z
+            p.timestamp -= origin.timestamp
+            p.r -= origin.r
+
     def distance(self, other: Trajectory) -> float:
         """quantify the difference between the two trajectoryies using Dynamic Time Warping and normalized datapoints"""
 
@@ -335,7 +345,10 @@ class Trajectory(object):
                     row.timestamp,
                 )
             )
-        return Trajectory(positions)
+        trj = Trajectory(positions)
+        if cls.ALLIGN_ORIGIN:
+            trj.allign_origin()
+        return trj
 
     @classmethod
     def extract_from_log(
@@ -423,6 +436,8 @@ class Trajectory(object):
             cp_activations = cls.extract_CP_active_periods(log_address)
 
         traj = cls(positions, cp_activations)
+        if cls.ALLIGN_ORIGIN:
+            traj.allign_origin()
         return traj
 
     @classmethod
