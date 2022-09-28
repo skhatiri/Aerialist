@@ -117,11 +117,13 @@ class K8sAgent(DockerAgent):
                 )
 
         # Assertion Config
-        if self.config.assertion is not None:
-            if self.config.assertion.log_file is not None:
-                k8s_config.assertion.log_file = file_helper.upload(
-                    self.config.assertion.log_file, cloud_folder
-                )
+        k8s_config.assertion = None
+        # if self.config.assertion is not None:
+        #     if self.config.assertion.log_file is not None:
+        #         k8s_config.assertion.log_file = file_helper.upload(
+        #             self.config.assertion.log_file, cloud_folder
+        #         )
+
         if k8s_config.agent is not None:
             k8s_config.agent.engine = AgentConfig.LOCAL
             k8s_config.agent.count = 1

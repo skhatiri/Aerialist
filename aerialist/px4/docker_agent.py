@@ -137,12 +137,13 @@ class DockerAgent(TestAgent):
                 )
 
         # Assertion Config
-        if self.config.assertion is not None:
-            if self.config.assertion.log_file is not None:
-                self.import_file(self.config.assertion.log_file, "/io/")
-                docker_config.assertion.log_file = (
-                    f"/io/{path.basename(self.config.assertion.log_file)}"
-                )
+        docker_config.assertion = None
+        # if self.config.assertion is not None:
+        #     if self.config.assertion.log_file is not None:
+        #         self.import_file(self.config.assertion.log_file, "/io/")
+        #         docker_config.assertion.log_file = (
+        #             f"/io/{path.basename(self.config.assertion.log_file)}"
+        #         )
 
         if docker_config.agent is not None:
             docker_config.agent.engine = AgentConfig.LOCAL
