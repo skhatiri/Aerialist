@@ -101,7 +101,7 @@ def arg_parse():
         default=None,
     )
 
-    # test congis
+    # test configs
     parser.add_argument(
         "--commands",
         default=None,
