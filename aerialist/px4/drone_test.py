@@ -197,6 +197,7 @@ class AssertionConfig:
         self.variable = variable
         if expectation is None and log_file is not None:
             if variable == self.TRAJECTORY:
+                # todo: jMavsim complications (take into account local positioning differences with gazebo)
                 self.expectation = Trajectory.extract(
                     file_helper.get_local_file(log_file)
                 )
@@ -231,6 +232,7 @@ class DroneTestResult:
         self.record = record
         self.variable = variable
         if record is None and log_file is not None:
+            # todo: jMavsim complications (take into account local positioning differences with gazebo)
             if variable == AssertionConfig.TRAJECTORY:
                 self.record = Trajectory.extract(file_helper.get_local_file(log_file))
 
