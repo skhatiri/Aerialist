@@ -14,6 +14,7 @@ from decouple import config
 from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
+from tslearn.barycenters import softdtw_barycenter
 
 
 class Trajectory(object):
@@ -25,6 +26,8 @@ class Trajectory(object):
     PLOT_TESTS_XYZ = config("PLOT_TESTS_XYZ", default=True, cast=bool)
     TIME_RANGE = None
     DISTANCE_METHOD = config("DISTANCE_METHOD", default="dtw")
+    AVERAGE_METHOD = config("AVERAGE_METHOD", default="dtw")
+    AVE_GAMMA = config("AVE_GAMMA", default=3, cast=float)
     ALLIGN_ORIGIN = config("ALLIGN_ORIGIN", default=True, cast=bool)
 
     def __init__(
@@ -256,6 +259,8 @@ class Trajectory(object):
             return self.dtw_t_distance(other)
         elif self.DISTANCE_METHOD == "frechet":
             return self.frechet_distance(other)
+        if self.DISTANCE_METHOD == "dtw-tweaked":
+            return self.dtw_tweaked_distance(other)
         else:
             return self.dtw_distance(other)
 
@@ -271,6 +276,15 @@ class Trajectory(object):
         """quantify the difference between the two trajectories using Dynamic Time Warping and not considering the timestamps"""
 
         dtw, d = similaritymeasures.dtw(
+            self.to_data_frame()[:, 1:],
+            other.to_data_frame()[:, 1:],
+        )
+        return dtw
+
+    def dtw_tweaked_distance(self, other: Trajectory) -> float:
+        """quantify the difference between the two trajectories using Dynamic Time Warping and not considering the timestamps"""
+
+        dtw, d = timeserie_helper.dtw_tweaked(
             self.to_data_frame()[:, 1:],
             other.to_data_frame()[:, 1:],
         )
@@ -501,6 +515,13 @@ class Trajectory(object):
 
     @classmethod
     def average(cls, trajectories: List[Trajectory]) -> Trajectory:
+        if cls.AVERAGE_METHOD == "dtw":
+            return cls.dtw_average(trajectories)
+        else:
+            return cls.simple_average(trajectories)
+
+    @classmethod
+    def simple_average(cls, trajectories: List[Trajectory]) -> Trajectory:
         min_len = min([len(t.positions) for t in trajectories])
         down_sampled = [t.downsample(min_len) for t in trajectories]
         ave_positions: List[Position] = []
@@ -509,6 +530,25 @@ class Trajectory(object):
                 Position.average([t.positions[i] for t in down_sampled])
             )
 
+        return Trajectory(ave_positions)
+
+    @classmethod
+    def dtw_average(cls, trajectories: List[Trajectory]) -> Trajectory:
+        dataset = [t.to_data_frame()[:, 1:] for t in trajectories]
+        average_data = softdtw_barycenter(dataset, gamma=cls.AVE_GAMMA)
+        time_dataset = [t.to_data_frame()[:, 0] for t in trajectories]
+        average_time = softdtw_barycenter(time_dataset, gamma=cls.AVE_GAMMA)
+        ave_positions: List[Position] = []
+        if len(average_time) == len(average_data):
+            for i in range(len(average_time)):
+                ave_positions.append(
+                    Position(
+                        timestamp=average_time[i, 0] * 1000000,
+                        x=average_data[i, 0],
+                        y=average_data[i, 1],
+                        z=average_data[i, 2],
+                    )
+                )
         return Trajectory(ave_positions)
 
     @classmethod
