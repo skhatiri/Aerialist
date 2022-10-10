@@ -4,9 +4,9 @@ aerialist/logs/
 #k8s-config.yaml
 venv/
 results/
-aerialist/resources/logs/*_0.csv
-aerialist/resources/logs/*_1.csv
-aerialist/resources/logs/*_2.csv
+data/*_0.csv
+data/*_1.csv
+data/*_2.csv
 .DS_Store
 .huskyrc.json
 out
