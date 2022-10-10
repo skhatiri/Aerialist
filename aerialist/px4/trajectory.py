@@ -1,5 +1,6 @@
 from __future__ import annotations
 import copy
+from ctypes import cast
 import math
 import os
 from typing import List
@@ -14,7 +15,7 @@ from decouple import config
 from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
-from tslearn.barycenters import softdtw_barycenter
+from tslearn.barycenters import softdtw_barycenter, dtw_barycenter_averaging
 
 
 class Trajectory(object):
@@ -27,8 +28,9 @@ class Trajectory(object):
     TIME_RANGE = None
     DISTANCE_METHOD = config("DISTANCE_METHOD", default="dtw")
     AVERAGE_METHOD = config("AVERAGE_METHOD", default="dtw")
-    AVE_GAMMA = config("AVE_GAMMA", default=3, cast=float)
+    AVE_GAMMA = config("AVE_GAMMA", default=5, cast=float)
     ALLIGN_ORIGIN = config("ALLIGN_ORIGIN", default=True, cast=bool)
+    SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
 
     def __init__(
         self, positions: List[Position], highlights: List[tuple[int, int]] = []
@@ -62,7 +64,7 @@ class Trajectory(object):
         trajectories: List[Trajectory],
         goal: Trajectory = None,
         save: bool = True,
-        distance: float = None,
+        distance: float | bool = None,
         highlights: bool = None,
         obstacles: List[Obstacle] = None,
         file_prefix="",
@@ -199,8 +201,12 @@ class Trajectory(object):
             #     [p.y for p in goal.positions],
             #     [p.z for p in goal.positions],
             # )
+        else:
+            ave_trajectory = trajectories[0]
 
         if distance is not None:
+            if distance == True and goal is not None:
+                distance = goal.distance(ave_trajectory)
             fig.text(
                 0.5,
                 0.03,
@@ -326,6 +332,23 @@ class Trajectory(object):
         for i in range(count):
             down_sampled.append(self.positions[math.ceil(i * scale)])
 
+        return Trajectory(down_sampled)
+
+    def downsample_time(self, period: float = SAMPLING_PERIOD) -> Trajectory:
+        down_sampled: List[Position] = []
+        period_start = self.positions[0].timestamp
+        i = 0
+        while i < len(self.positions):
+            period_points: List[Position] = []
+            while (
+                i < len(self.positions)
+                and self.positions[i].timestamp <= period_start + period
+            ):
+                period_points.append(self.positions[i])
+                i += 1
+            if len(period_points) > 0:
+                down_sampled.append(Position.average(period_points))
+            period_start += period
         return Trajectory(down_sampled)
 
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
@@ -534,9 +557,10 @@ class Trajectory(object):
 
     @classmethod
     def dtw_average(cls, trajectories: List[Trajectory]) -> Trajectory:
-        dataset = [t.to_data_frame()[:, 1:] for t in trajectories]
+        resampled = [t.downsample_time() for t in trajectories]
+        dataset = [t.to_data_frame()[:, 1:] for t in resampled]
         average_data = softdtw_barycenter(dataset, gamma=cls.AVE_GAMMA)
-        time_dataset = [t.to_data_frame()[:, 0] for t in trajectories]
+        time_dataset = [t.to_data_frame()[:, 0] for t in resampled]
         average_time = softdtw_barycenter(time_dataset, gamma=cls.AVE_GAMMA)
         ave_positions: List[Position] = []
         if len(average_time) == len(average_data):
@@ -552,8 +576,7 @@ class Trajectory(object):
         return Trajectory(ave_positions)
 
     @classmethod
-    def get_average_folder(cls, path, ignore_automodes=False):
+    def load_folder(cls, path, ignore_automodes=False):
         files = [path + f for f in os.listdir(path) if f.endswith(".ulg")]
         trjs = [Trajectory.extract_from_log(f, ignore_automodes) for f in files]
-        ave = Trajectory.average(trjs)
-        return ave
+        return trjs

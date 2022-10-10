@@ -18,7 +18,7 @@ class DockerAgent(TestAgent):
     DOCKER_CMD = "docker exec -it {id} "
     DOCKER_IMG = config("DOCKER_IMG", default="aerialist")
     COPY_DIR = config("LOGS_COPY_DIR", "results/logs/")
-    DOCKER_TIMEOUT = config("DOCKER_TIMEOUT", default=180, cast=int)
+    DOCKER_TIMEOUT = config("DOCKER_TIMEOUT", default=1000, cast=int)
 
     def __init__(self, config: DroneTest) -> None:
         super().__init__(config)
