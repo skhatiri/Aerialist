@@ -15,7 +15,7 @@ from decouple import config
 from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
-from tslearn.barycenters import softdtw_barycenter, dtw_barycenter_averaging
+from tslearn.barycenters import softdtw_barycenter
 
 
 class Trajectory(object):
@@ -31,6 +31,7 @@ class Trajectory(object):
     AVE_GAMMA = config("AVE_GAMMA", default=5, cast=float)
     ALLIGN_ORIGIN = config("ALLIGN_ORIGIN", default=True, cast=bool)
     SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
+    RESAMPLE = config("RESAMPLE", default=True, cast=bool)
 
     def __init__(
         self, positions: List[Position], highlights: List[tuple[int, int]] = []
@@ -482,6 +483,8 @@ class Trajectory(object):
             cp_activations = cls.extract_CP_active_periods(log_address)
 
         traj = cls(positions, cp_activations)
+        if cls.RESAMPLE:
+            traj = traj.downsample_time()
         return traj
 
     @classmethod
@@ -558,7 +561,8 @@ class Trajectory(object):
 
     @classmethod
     def dtw_average(cls, trajectories: List[Trajectory]) -> Trajectory:
-        resampled = [t.downsample_time() for t in trajectories]
+        # resampled = [t.downsample_time() for t in trajectories]
+        resampled = trajectories
         dataset = [t.to_data_frame()[:, 1:] for t in resampled]
         average_data = softdtw_barycenter(dataset, gamma=cls.AVE_GAMMA)
         time_dataset = [t.to_data_frame()[:, 0] for t in resampled]
