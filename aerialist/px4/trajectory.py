@@ -89,6 +89,7 @@ class Trajectory(object):
         xy_plt.yaxis.set_label_position("right")
         xy_plt.yaxis.tick_right()
         xy_plt.set_xlabel("X (m)")
+        xy_plt.set_aspect("equal", "datalim")
 
         if obstacles is not None:
             labeled = False
