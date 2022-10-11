@@ -34,6 +34,7 @@ setuptools.setup(
         "munch",
         "rospkg",
         "defusedxml",
+        "tslearn",
     ],
     entry_points={"console_scripts": ["aerialist=aerialist.entry:main"]},
 )

@@ -82,10 +82,16 @@ class K8sAgent(DockerAgent):
         pass
 
     def import_config(self):
-        k8s_config = deepcopy(self.config)
-        if self.config.agent.id == None or self.config.agent.id == "":
+        if self.config.agent.id is None:
             self.config.agent.id = file_helper.time_filename()
+        else:
+            self.config.agent.id += "-" + file_helper.time_filename()
+        if not self.config.agent.path.endswith("/"):
+            self.config.agent.path += "/"
+        self.config.agent.path += self.config.agent.id + "/"
         cloud_folder = self.config.agent.path
+
+        k8s_config = deepcopy(self.config)
         file_helper.create_dir(cloud_folder)
 
         # Drone Config

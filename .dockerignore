@@ -1,9 +1,10 @@
-aerialist/tmp/
-aerialist/logs/
+logs/
+tmp/
 .env
-#k8s-config.yaml
+k8s-config.yaml
 venv/
 results/
+data/
 data/*_0.csv
 data/*_1.csv
 data/*_2.csv

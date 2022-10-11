@@ -14,3 +14,4 @@ pyyaml
 munch
 rospkg
 defusedxml
+tslearn
