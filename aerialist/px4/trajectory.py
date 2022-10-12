@@ -28,7 +28,7 @@ class Trajectory(object):
     TIME_RANGE = None
     DISTANCE_METHOD = config("DISTANCE_METHOD", default="dtw")
     AVERAGE_METHOD = config("AVERAGE_METHOD", default="dtw")
-    AVE_GAMMA = config("AVE_GAMMA", default=5, cast=float)
+    AVE_GAMMA = config("AVE_GAMMA", default=20, cast=float)
     ALLIGN_ORIGIN = config("ALLIGN_ORIGIN", default=True, cast=bool)
     SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
