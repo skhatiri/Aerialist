@@ -97,8 +97,8 @@ class Trajectory(object):
             for obst in obstacles:
                 obst_patch = mpatches.Rectangle(
                     (
-                        obst.position.x,
-                        obst.position.y,
+                        obst.corner().x,
+                        obst.corner().y,
                     ),
                     obst.size.x,
                     obst.size.y,
@@ -109,6 +109,8 @@ class Trajectory(object):
                     alpha=0.5,
                     label="obstacle" if not labeled else None,
                 )
+                if Obstacle.CENTER_POSITION:
+                    obst_patch.rotation_point = "center"
                 labeled = True
                 xy_plt.add_patch(obst_patch)
 

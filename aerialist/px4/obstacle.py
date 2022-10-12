@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class Obstacle(object):
     DIR = config("RESULTS_DIR", default="results/")
     BOX = "box"
+    CENTER_POSITION = True
 
     def __init__(
         self,
@@ -22,7 +23,10 @@ class Obstacle(object):
     ) -> None:
         super().__init__()
         if shape == self.BOX:
-            rect = box(0, 0, size.x, size.y)
+            if self.CENTER_POSITION:
+                rect = box(-size.x / 2, -size.y / 2, size.x / 2, size.y / 2)
+            else:
+                rect = box(0, 0, size.x, size.y)
             rect = affinity.translate(rect, position.x, position.y)
             rect = affinity.rotate(rect, angle, origin=(position.x, position.y))
             self.geometry = rect
@@ -35,6 +39,13 @@ class Obstacle(object):
             self.geometry.centroid.coords[0][0],
             self.geometry.centroid.coords[0][1],
             self.size.z / 2,
+        )
+
+    def corner(self):
+        return Position(
+            self.geometry.bounds[0],
+            self.geometry.bounds[1],
+            0,
         )
 
     def to_params(self):
