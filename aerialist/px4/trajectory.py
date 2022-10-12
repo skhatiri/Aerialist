@@ -32,6 +32,7 @@ class Trajectory(object):
     ALLIGN_ORIGIN = config("ALLIGN_ORIGIN", default=True, cast=bool)
     SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
+    AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
 
     def __init__(
         self, positions: List[Position], highlights: List[tuple[int, int]] = []
@@ -580,7 +581,20 @@ class Trajectory(object):
                         z=average_data[i, 2],
                     )
                 )
-        return Trajectory(ave_positions)
+        ave_trj = Trajectory(ave_positions)
+        if cls.AVE_CUT_LAND:
+            ave_trj = ave_trj.cut_landed()
+        return ave_trj
+
+    def cut_landed(self):
+        data = np.array([[c.x, c.y, c.z] for c in self.positions])
+        alg = rpt.Pelt(model="rbf").fit(data)
+        cut_idx = (alg.predict(pen=0.01)[-2] + alg.predict(pen=0.01)[-1]) // 2
+        cut_list = self.positions[cut_idx:]
+        cut_ave = Position.average(cut_list)
+        positions = self.positions[0:cut_idx]
+        positions.append(cut_ave)
+        return Trajectory(positions)
 
     @classmethod
     def load_folder(cls, path, ignore_automodes=False):
