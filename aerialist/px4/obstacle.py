@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List
 from shapely.geometry import box, LineString, Point
 from shapely import affinity
+import matplotlib.patches as mpatches
 from decouple import config
 import logging
 from .position import Position
@@ -27,9 +28,9 @@ class Obstacle(object):
                 rect = box(-size.x / 2, -size.y / 2, size.x / 2, size.y / 2)
             else:
                 rect = box(0, 0, size.x, size.y)
-            rect = affinity.translate(rect, position.x, position.y)
-            rect = affinity.rotate(rect, angle, origin=(position.x, position.y))
-            self.geometry = rect
+            self.geometry = affinity.rotate(rect, angle, "centroid")
+            self.geometry = affinity.translate(self.geometry, position.x, position.y)
+            self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
             self.size = size
             self.position = position
             self.angle = angle
@@ -39,6 +40,13 @@ class Obstacle(object):
             self.geometry.centroid.coords[0][0],
             self.geometry.centroid.coords[0][1],
             self.size.z / 2,
+        )
+
+    def anchor_point(self):
+        return Position(
+            self.unrotated_geometry.bounds[0],
+            self.unrotated_geometry.bounds[1],
+            0,
         )
 
     def corner(self):
@@ -58,6 +66,23 @@ class Obstacle(object):
             self.position.z,
             self.angle,
         ]
+
+    def plt_patch(self):
+        obst_patch = mpatches.Rectangle(
+            (
+                self.anchor_point().x,
+                self.anchor_point().y,
+            ),
+            self.size.x,
+            self.size.y,
+            self.angle,
+            rotation_point="center",
+            edgecolor="gray",
+            facecolor="gray",
+            fill=True,
+            alpha=0.5,
+        )
+        return obst_patch
 
     def intersects(self, other: Obstacle):
         return self.geometry.intersects(other.geometry)
