@@ -63,11 +63,11 @@ spec:
                   key: pass          
           resources:
             requests:
-              cpu: 5000m
-              memory: 1000Mi
-            limits:
-              cpu: 10000m
+              cpu: 6000m
               memory: 2000Mi
+            limits:
+              cpu: 6000m
+              memory: 4000Mi
       affinity:
       imagePullSecrets:
         - name: dockerhub
