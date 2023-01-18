@@ -136,3 +136,28 @@ directly in the PX4 firmware as an on board module, or as a ROS module running o
 The Analyst module is responsible for any post-flight analysis, mostly based on the extracted flight log. It parses the ULog
 files, and extracts any important and relevant data to analyse test result based on the given expectations in the
 test description.
+
+## References
+
+If you use this tool in your research, please cite the following papers:
+
+- **Sajad Khatiri**, Sebastiano Panichella, and Paolo Tonella, "Simulation-based Test Case Generation for Unmanned Aerial Vehicles in the Neighborhood of Real Flights," *In 2023 IEEE 16th International Conference on Software Testing, Verification and Validation (ICST)*
+  - [Preprint](https://skhatiri.ir/papers/surreal.pdf)
+
+````{code-block} bibtex
+@inproceedings{khatiri2023simulation,
+  title={Simulation-based test case generation for unmanned aerial vehicles in the neighborhood of real flights},
+  author={Khatiri, Sajad and Panichella, Sebastiano and Tonella, Paolo},
+  booktitle={2023 16th IEEE International Conference on Software Testing, Verification and Validation (ICST)},
+  year={2023},
+}
+````
+
+## License
+
+The software we developed is distributed under MIT license. See the [license](./LICENSE.md) file.
+
+## Contacts
+
+- Sajad Khatiri
+  - Zurich University of Applied Science (ZHAW), Switzerland - mazr@zhaw.ch
