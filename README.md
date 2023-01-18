@@ -5,7 +5,7 @@ Aerialist (Autonomous aERIAL vehIcle teST-bench) is a modular and extensible tes
 In Aerialist, the tests are defined as specific **software configurations** in a given **simulated/physical environment** and a set of **runtime commands** that make the UAV fly with a specific **observable behavior** (e.g., flight trajectory, speed, distance to obstacles).
 We model a UAV simulated test case with the following test properties:
 
-- UAV Configuration: Autopilot parameters set at startup, configuration files (e.g., mission plan) required, etc.
+- UAV Configuration: [Autopilot parameters](https://docs.px4.io/main/en/advanced_config/parameter_reference.html) set at startup, configuration files (e.g., mission plan) required, etc.
 - Environment Configuration: Simulation settings such as simulation world (e.g., surface material, UAV’s initial position), surrounding objects (e.g., obstacles size, position), weather condition (e.g., wind, lighting), etc.
 - Runtime Commands: Timestamped external commands sent from GCS or RC to the UAV during the flight (e.g., changing the flight mode, flying in a specific direction, starting autonomous flight)
 - Expectation (optional): time series of certain sensor reading that the test flights are expected to follow closely.
@@ -49,7 +49,7 @@ You can now execute all the following commands in the containers bash.
 
 1. `pip3 install git+https://github.com/skhatiri/Aerialist.git`
 
-## command-line interface
+## Command-Line Interface
 
 You can utilize the toolkit with following command line options:
 
@@ -57,7 +57,7 @@ You can utilize the toolkit with following command line options:
 
 `cd Aerialist/`
 
-You can use `python3 aerialist --help` option anywhere to get help on the command parameters.
+You can use `python3 aerialist --help` anywhere to get help on the command parameters.
 
 |argument   | input type            | description                   |
 |-----------|-----------------------|------------------------------ |
