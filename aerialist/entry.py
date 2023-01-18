@@ -69,14 +69,14 @@ def arg_parse():
         "--obstacle",
         nargs=7,
         type=float,
-        help="obstacle poisition and size to put in simulation environment: [x1,y1,z1,x2,y2,z2] in order",
+        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
         default=[],
     )
     parser.add_argument(
         "--obstacle2",
         nargs=7,
         type=float,
-        help="obstacle poisition and size to put in simulation environment: [x1,y1,z1,x2,y2,z2] in order",
+        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
         default=[],
     )
     parser.add_argument(
