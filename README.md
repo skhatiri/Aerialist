@@ -94,7 +94,7 @@ Some of the common combination of the following arguments are listed here as sam
 
 - Executing a pre-planed autonomous flight log with obstacle avoidance enabled:
 
-`python3 aerialist --commands data/auto-commands.csv --mission data/auto1.plan --params data/auto1-params.csv --log data/auto1.ulg --simulator ros --drone ros`
+`python3 aerialist --commands data/auto-commands.csv --mission data/auto1.plan --params data/auto-params.csv --log data/auto1.ulg --simulator ros --drone ros`
 
 <!-- - running a manual flight through keyboard commands:
 
