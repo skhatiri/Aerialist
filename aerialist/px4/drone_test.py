@@ -151,6 +151,7 @@ class SimulationConfig:
         world: str = "default",
         speed=1,
         headless=True,
+        pattern: List[str] = None,
         obstacles: List[Obstacle] | List[float] = None,
         home_position: List[float] = None,
     ) -> None:
@@ -166,6 +167,11 @@ class SimulationConfig:
             and not isinstance(obstacles[0], Obstacle)
         ):
             self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
+        if(
+            pattern is not None
+            and len(pattern) > 0
+        ):
+            self.pattern = pattern
 
 
 class TestConfig:

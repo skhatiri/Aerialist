@@ -30,14 +30,15 @@ class Simulator(object):
     def __init__(self, config: SimulationConfig) -> None:
         super().__init__()
         self.config = config
-
+        logger.info("config is:")
+        logger.info(self.config.pattern)
         sim_command = ""
         if config.home_position is not None:
             sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
         self.log_file = None
         if (
-            self.config.simulator == SimulationConfig.GAZEBO
-            or self.config.simulator == SimulationConfig.JMAVSIM
+                self.config.simulator == SimulationConfig.GAZEBO
+                or self.config.simulator == SimulationConfig.JMAVSIM
         ):
             self.log_dir = self.PX4_LOG_DIR
             if self.config.headless:
@@ -51,21 +52,27 @@ class Simulator(object):
             sim_command += (
                 f"DONT_RUN=1 make -C {self.PX4_DIR} px4_sitl_default gazebo; "
             )
-            sim_command += f". {self.PX4_DIR}Tools/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
+            sim_command += f". {self.PX4_DIR}Tools/simulation/gazebo/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
             sim_command += (
-                "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:"
-                + f"{self.PX4_DIR[:-1]}; "
+                    "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:"
+                    + f"{self.PX4_DIR[:-1]}; "
             )
             sim_command += (
-                'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
-                + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
+                    'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
+                    + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(False and not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} "
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} "
             if self.config.obstacles != None and len(self.config.obstacles) > 0:
                 sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.y} obst_w:={self.config.obstacles[0].size.x} obst_h:={self.config.obstacles[0].size.z} obst_yaw:={math.radians(-self.config.obstacles[0].angle)} "
                 if len(self.config.obstacles) > 1:
                     sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
-
+            if self.config.pattern is not None and len(self.config.pattern) > 0:
+                if self.config.pattern[0] != '_':
+                    sim_command += f"pattern:=true pattern_design:={self.config.pattern[0]} "
+                if len(self.config.pattern) > 1:
+                    if self.config.pattern[1] != '_':
+                        sim_command += f"pattern2:=true pattern_design2:={self.config.pattern[1]} "
+                        logger.info(sim_command)
         logger.debug("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
             sim_command,
@@ -102,13 +109,13 @@ class Simulator(object):
                     )
                     logger.debug(f"logging started: {self.log_file}")
                     if (
-                        self.config.simulator == SimulationConfig.GAZEBO
-                        or self.config.simulator == SimulationConfig.JMAVSIM
+                            self.config.simulator == SimulationConfig.GAZEBO
+                            or self.config.simulator == SimulationConfig.JMAVSIM
                     ):
                         return True
 
                 if self.config.simulator == SimulationConfig.ROS and output.endswith(
-                    "INFO  [tone_alarm] home set"
+                        "INFO  [tone_alarm] home set"
                 ):
                     logger.info("Avoidance is ready (waiting 5 seconds to wrap up)")
                     time.sleep(5)
@@ -139,8 +146,8 @@ class Simulator(object):
                 self.handle_errors(output)
 
                 if (
-                    land_time is not None
-                    and time.perf_counter() - land_time > self.LAND_TIMEOUT
+                        land_time is not None
+                        and time.perf_counter() - land_time > self.LAND_TIMEOUT
                 ):
                     self.kill()
                     raise Exception(

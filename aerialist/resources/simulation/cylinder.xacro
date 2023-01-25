@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="cylinder">
+  <xacro:arg name="name" default = "cylinder" />
+  <xacro:arg name="l" default = "1" />
+  <xacro:arg name="r" default = "1"/>
+  <link name="$(arg name)">
+    <static>true</static>
+    <collision>
+      <geometry>
+        <cylinder length="$(arg l)" radius="$(arg r)"/>
+      </geometry>
+      <!-- <origin xyz="${-$(arg l)/2} ${-$(arg w)/2} ${$(arg h)/2}"/> -->
+    </collision>
+    <visual>
+      <cast_shadows>true</cast_shadows>
+      <geometry>
+        <cylinder length="$(arg l)" radius="$(arg r)"/>
+        <!--<mesh filename = "/home/prasun/Aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_.dae" scale="1.0 1.0 1.0"/>-->
+      </geometry>
+      <!--<material>
+        <script>
+          <uri>model://big_box/materials/scripts/box.material</uri>
+          <name>box/Diffuse</name>
+        </script>
+      </material>-->
+      <!-- <origin xyz="${-$(arg l)/2} ${-$(arg w)/2} ${$(arg h)/2}"/> -->
+    </visual>
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+  <gazebo reference="">
+
+  </gazebo>
+</robot>

@@ -23,6 +23,12 @@
     <arg name="obst2_l" default = "1"/>
     <arg name="obst2_w" default = "1"/>
     <arg name="obst2_h" default = "1"/>
+
+    <arg name="pattern" default="false"/>
+    <arg name="pattern_design" default=""/>
+
+    <arg name="pattern2" default="false"/>
+    <arg name="pattern_design2" default=""/>
     
     <arg name="ns" default="/"/>
     <arg name="model" default="iris_depth_camera"/>
@@ -35,10 +41,6 @@
     <param name="use_sim_time" value="true" />
 
 
-    <!-- Define a static transform from a camera internal frame to the fcu for every camera used -->
-    <node pkg="tf" type="static_transform_publisher" name="tf_depth_camera"
-          args="0 0 0 -1.57 0 -1.57 fcu camera_link 10"/>
-
     <!-- Launch PX4 and mavros -->
         <!-- Launch rqt_reconfigure -->
     <!-- <node pkg="rqt_reconfigure" type="rqt_reconfigure" output="screen" name="rqt_reconfigure" /> -->
@@ -48,6 +50,19 @@
         <arg name="vehicle" value="$(arg vehicle)"/>
     </include>
 
+    <!-- Define a static transform from a camera internal frame to the fcu for every camera used -->
+    <node pkg="tf" type="static_transform_publisher" name="tf_depth_camera"
+          args="0 0 0 -1.57 0 -1.57 fcu camera_link 10"/>
+
+    <!-- Launch stereo_image_proc node which runs OpenCV's block matching  -->
+    <node ns="stereo" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc">
+        <param name="stereo_algorithm" type="double" value="1.0" />
+        <param name="correlation_window_size" type="double" value="19.0" />
+        <param name="disparity_range" type="double" value="32.0" />
+        <param name="uniqueness_ratio" type="double" value="40.0" />
+        <param name="speckle_size" type="double" value="1000.0" />
+        <param name="speckle_range" type="double" value="2.0" />
+    </node>
     <!-- Launch MavROS -->
     <group ns="$(arg ns)">
         <include file="$(find mavros)/launch/node.launch">
@@ -75,20 +90,28 @@
     <!-- add obstacles -->
     <group if="$(arg obst)">
         <!-- Convert xacro and put on parameter server -->
-        <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h)" />
-        
+        <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h) pattern:=$(arg pattern_design)" />
+
         <node name="spawn_obstacle" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description -urdf -x $(arg obst_x) -y $(arg obst_y) -z $(arg obst_z) -Y $(arg obst_yaw) -model box/">
         </node>
+
     </group>
     <group if="$(arg obst2)">
-        <!-- Convert xacro and put on parameter server -->
-        <param name="box_description2" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h)" />
-        
+        <param name="box_description2" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h) pattern:=$(arg pattern_design2)" />
+
         <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model box2/">
         </node>
     </group>
+
+    <!--<group if="$(arg obst2)">
+        <param name="box_description2" command="$(find xacro)/xacro.py aerialist/resources/simulation/cylinder.xacro name:=cylinder l:=$(arg obst2_l) r:=$(arg obst2_w)" />
+
+        <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen"
+            args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model cylinder/">
+        </node>
+    </group>-->
     <!-- Load custom console configuration -->
     <env name="ROSCONSOLE_CONFIG_FILE" value="$(find local_planner)/resource/custom_rosconsole.conf"/>
 

@@ -4,8 +4,11 @@
   <xacro:arg name="l" default = "1" />
   <xacro:arg name="w" default = "1"/>
   <xacro:arg name="h" default = "1" />
+  <xacro:arg name="pattern" default=""/>
+  <xacro:property name="path" value="/home/prasun/Aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_"/>
+  <xacro:property name="extension" value=".dae"/>
   <link name="$(arg name)">
-    <static>true</static>
+    <static>false</static>
     <collision>
       <geometry>
         <box size="$(arg l) $(arg w) $(arg h)"/>
@@ -14,7 +17,8 @@
     </collision>
     <visual>
       <geometry>
-        <box size="$(arg l) $(arg w) $(arg h)"/>
+        <!--<box size="$(arg l) $(arg w) $(arg h)"/>-->
+        <mesh filename = "${path}$(arg pattern)${extension}" scale="1.0 1.0 1.0"/>
       </geometry>
       <!-- <origin xyz="${-$(arg l)/2} ${-$(arg w)/2} ${$(arg h)/2}"/> -->
     </visual>
