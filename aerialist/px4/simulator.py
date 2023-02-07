@@ -22,7 +22,7 @@ class Simulator(object):
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
         "AVOIDANCE_LAUNCH",
-        default="aerialist/resources/simulation/collision_prevention.launch",
+        default="local_planner local_planner_stereo.launch",
     )
     COPY_DIR = config("LOGS_COPY_DIR", None)
     LAND_TIMEOUT = 20
@@ -61,17 +61,17 @@ class Simulator(object):
                     'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
                     + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} "
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} "
             if self.config.obstacles != None and len(self.config.obstacles) > 0:
                 sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.y} obst_w:={self.config.obstacles[0].size.x} obst_h:={self.config.obstacles[0].size.z} obst_yaw:={math.radians(-self.config.obstacles[0].angle)} "
                 if len(self.config.obstacles) > 1:
                     sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
             if self.config.pattern is not None and len(self.config.pattern) > 0:
                 if self.config.pattern[0] != '_':
-                    sim_command += f"pattern:=true pattern_design:={self.config.pattern[0]} "
+                    sim_command += f"pattern:=true pattern_design:=chequered "
                 if len(self.config.pattern) > 1:
                     if self.config.pattern[1] != '_':
-                        sim_command += f"pattern2:=true pattern_design2:={self.config.pattern[1]} "
+                        sim_command += f"pattern2:=true pattern_design2:=sticker "
                         logger.info(sim_command)
         logger.debug("executing:" + sim_command)
         self.sim_process = subprocess.Popen(

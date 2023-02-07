@@ -82,15 +82,25 @@ def arg_parse():
     parser.add_argument(
         "--pattern",
         nargs=1,
-        help="put a patten on the obstacle 1 being spawned",
+        help="flag to put a patten on the obstacle 1 being spawned",
         default="_"
     )
     parser.add_argument(
         "--pattern2",
         nargs=1,
-        help="put a patten on the obstacle 2 being spawned",
+        help="flag put a patten on the obstacle 2 being spawned",
         default="_"
     )
+    parser.add_argument(
+        "--noise",
+        nargs=1,
+        help="flag for the noise"
+    )
+    # parser.add_argument(
+    #     "--pattern_design2",
+    #     nargs=1,
+    #     help="name of the second pattern type"
+    # )
     parser.add_argument(
         "--headless",
         action="store_true",
@@ -174,6 +184,7 @@ def run_experiment(args):
             obstacles=args.obstacle + args.obstacle2,
             pattern=args.pattern + args.pattern2,
             home_position=args.home,
+            noise=args.noise,
         )
         test_config = TestConfig(
             commands_file=args.commands,
@@ -195,6 +206,10 @@ def run_experiment(args):
             assertion=assertion_config,
             agent=agent_config,
         )
+
+
+
+
     test_results = execute_test(test)
     logger.info(f"LOG:{test_results[0].log_file}")
     Plot(test, test_results)

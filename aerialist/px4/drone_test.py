@@ -150,10 +150,11 @@ class SimulationConfig:
         simulator=GAZEBO,
         world: str = "default",
         speed=1,
-        headless=True,
+        headless=False,
         pattern: List[str] = None,
         obstacles: List[Obstacle] | List[float] = None,
         home_position: List[float] = None,
+        noise="false",
     ) -> None:
         self.simulator = simulator
         self.world = world
@@ -172,6 +173,10 @@ class SimulationConfig:
             and len(pattern) > 0
         ):
             self.pattern = pattern
+        print("noise is",noise)
+        if noise[0] == "true":
+            with open("/home/prasun/catkin_ws/src/avoidance/image_proc/src/nodelets/profile.txt", 'w') as f:
+                f.write("1")
 
 
 class TestConfig:
