@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 from decouple import config
+from config_yaml_file import reform_args
 
 try:
     from .px4.k8s_agent import K8sAgent
@@ -31,7 +32,6 @@ except:
         AgentConfig,
         Plot,
     )
-
 
 logger = logging.getLogger(__name__)
 
@@ -90,11 +90,6 @@ def arg_parse():
         nargs=1,
         help="flag put a patten on the obstacle 2 being spawned",
         default="_"
-    )
-    parser.add_argument(
-        "--noise",
-        nargs=1,
-        help="flag for the noise"
     )
     # parser.add_argument(
     #     "--pattern_design2",
@@ -160,6 +155,12 @@ def arg_parse():
         default=None,
         help="k8s job id",
     )
+    parser.add_argument(
+        "--config",
+        default=None,
+        nargs=1,
+        help="Config file to run the whole system"
+    )
 
     parser.set_defaults(func=run_experiment)
 
@@ -184,7 +185,6 @@ def run_experiment(args):
             obstacles=args.obstacle + args.obstacle2,
             pattern=args.pattern + args.pattern2,
             home_position=args.home,
-            noise=args.noise,
         )
         test_config = TestConfig(
             commands_file=args.commands,
@@ -206,9 +206,6 @@ def run_experiment(args):
             assertion=assertion_config,
             agent=agent_config,
         )
-
-
-
 
     test_results = execute_test(test)
     logger.info(f"LOG:{test_results[0].log_file}")
@@ -267,6 +264,8 @@ def main():
         config_loggers()
         args = arg_parse()
         logger.info(f"preparing the test ...{args}")
+        if args.config is not None:
+            args = reform_args(args)
         run_experiment(args)
 
     except Exception as e:
