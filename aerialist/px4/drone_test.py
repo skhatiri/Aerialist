@@ -153,6 +153,7 @@ class SimulationConfig:
         headless=False,
         pattern: List[str] = None,
         obstacles: List[Obstacle] | List[float] = None,
+        pattern_design: List[str] = None,
         home_position: List[float] = None,
     ) -> None:
         self.simulator = simulator
@@ -172,6 +173,11 @@ class SimulationConfig:
             and len(pattern) > 0
         ):
             self.pattern = pattern
+        if(
+            pattern_design is not None
+            and len(pattern_design) > 0
+        ):
+            self.pattern_design = pattern_design
 
 
 

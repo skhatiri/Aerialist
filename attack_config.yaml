@@ -22,11 +22,15 @@ pattern: true
 
 pattern2: true
 
+pattern_design: chequered
+pattern_design2: chequered
+
 noise:
   type: Gaussian
   active: True
   noise_mean: 20
   noise_std_deviation: 20
+
 
 
 

@@ -69,12 +69,15 @@ class Simulator(object):
                     sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
             if self.config.pattern is not None and len(self.config.pattern) > 0:
                 if self.config.pattern[0] != '_':
-                    sim_command += f"pattern:=true pattern_design:=chequered "
+                    sim_command += f"pattern:=true "
                 if len(self.config.pattern) > 1:
                     if self.config.pattern[1] != '_':
-                        sim_command += f"pattern2:=true pattern_design2:=sticker "
-                        logger.info(sim_command)
-        logger.debug("executing:" + sim_command)
+                        sim_command += f"pattern2:=true "
+            if self.config.pattern_design is not None and len(self.config.pattern_design)>0:
+                sim_command += f"pattern_design:={self.config.pattern_design[0]} "
+                if len(self.config.pattern_design) > 1:
+                    sim_command += f"pattern_design2:={self.config.pattern_design[1]} "
+        logger.info("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
             sim_command,
             shell=True,

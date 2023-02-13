@@ -88,14 +88,21 @@ def arg_parse():
     parser.add_argument(
         "--pattern2",
         nargs=1,
-        help="flag put a patten on the obstacle 2 being spawned",
+        help="flag to put a patten on the obstacle 2 being spawned",
         default="_"
     )
-    # parser.add_argument(
-    #     "--pattern_design2",
-    #     nargs=1,
-    #     help="name of the second pattern type"
-    # )
+    parser.add_argument(
+        "--pattern_design",
+        default=None,
+        nargs=1,
+        help="name of the pattern type among chequered or sticker"
+    )
+    parser.add_argument(
+        "--pattern_design2",
+        default=None,
+        nargs=1,
+        help="name of the pattern type among chequered or sticker"
+    )
     parser.add_argument(
         "--headless",
         action="store_true",
@@ -184,6 +191,7 @@ def run_experiment(args):
             headless=args.headless,
             obstacles=args.obstacle + args.obstacle2,
             pattern=args.pattern + args.pattern2,
+            pattern_design=args.pattern_design + args.pattern_design2,
             home_position=args.home,
         )
         test_config = TestConfig(

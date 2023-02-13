@@ -5,6 +5,8 @@ def reform_args(args):
     list_obstacle_2 = []
     list_pattern_1 = []
     list_pattern_2 = []
+    list_pattern_design = []
+    list_pattern_design2 = []
     with open(args.config[0]) as f:
         data = yaml.load(f, Loader=SafeLoader)
 
@@ -27,10 +29,15 @@ def reform_args(args):
         list_pattern_1.append(str(data['pattern']).lower())
         list_pattern_2.append(str(data['pattern2']).lower())
 
+        list_pattern_design.append(str(data['pattern_design']))
+        list_pattern_design2.append(str(data['pattern_design2']))
+
         args.obstacle = list_obstacle_1
         args.obstacle2 = list_obstacle_2
         args.pattern = list_pattern_1
         args.pattern2 = list_pattern_2
+        args.pattern_design = list_pattern_design
+        args.pattern_design2 = list_pattern_design2
         covnert_config(args)
     return args
 
