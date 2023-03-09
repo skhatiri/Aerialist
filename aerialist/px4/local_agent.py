@@ -3,6 +3,9 @@ from .test_agent import TestAgent
 from .drone import Drone
 from .simulator import Simulator
 from .drone_test import AssertionConfig, DroneTest, DroneTestResult
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class LocalAgent(TestAgent):
@@ -23,7 +26,10 @@ class LocalAgent(TestAgent):
             self.drone.run_scheduled()
             log = self.simulator.get_log()
             if self.config.agent is not None and self.config.agent.path is not None:
+                logger.info("Didn't come here")
                 file_helper.upload(log, self.config.agent.path)
+            logger.info("******")
+            logger.info(log)
             self.results.append(DroneTestResult(log, AssertionConfig.TRAJECTORY))
             return self.results
         except Exception as e:

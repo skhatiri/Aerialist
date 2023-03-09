@@ -1,0 +1,34 @@
+obstacle:
+  position:
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    a: 2.0
+    b: 4.0
+    c: 4.0
+    d: 0.0
+
+obstacle2:
+  position:
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    a: -1.0
+    b: 4.0
+    c: 4.0
+    d: 0.0
+
+pattern: true
+
+pattern2: true
+
+pattern_design: sticker
+pattern_design2: sticker
+
+test_case: Scenario-4-pattern_attack_sticker
+
+world_file_name: simple_obstacle
+
+
+
+

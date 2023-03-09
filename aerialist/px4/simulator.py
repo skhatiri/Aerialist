@@ -32,7 +32,7 @@ class Simulator(object):
         super().__init__()
         self.config = config
         logger.info("config is:")
-        logger.info(self.config.pattern)
+        logger.info(self.config)
         sim_command = ""
         if config.home_position is not None:
             sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
@@ -63,6 +63,8 @@ class Simulator(object):
                     + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
             sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} "
+            if self.config.world_file_name != None:
+                sim_command += f"world_file_name:={self.config.world_file_name} "
             if self.config.obstacles != None and len(self.config.obstacles) > 0:
                 sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.y} obst_w:={self.config.obstacles[0].size.x} obst_h:={self.config.obstacles[0].size.z} obst_yaw:={math.radians(-self.config.obstacles[0].angle)} "
                 if len(self.config.obstacles) > 1:
@@ -100,6 +102,8 @@ class Simulator(object):
         try:
             while True:
                 output = self.sim_process.stdout.readline().strip()
+                # logger.info("printing output")
+                # logger.info(output)
                 if output.startswith("ERROR"):
                     logger.error(output)
                 elif output:

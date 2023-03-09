@@ -2,21 +2,24 @@ from __future__ import annotations
 from statistics import median
 from typing import List
 import munch
+import logging
 import yaml
 from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
 from . import file_helper
 
+logger = logging.getLogger(__name__)
+
 
 class DroneTest:
     def __init__(
-        self,
-        drone: DroneConfig = None,
-        simulation: SimulationConfig = None,
-        test: TestConfig = None,
-        assertion: AssertionConfig = None,
-        agent: AgentConfig = None,
+            self,
+            drone: DroneConfig = None,
+            simulation: SimulationConfig = None,
+            test: TestConfig = None,
+            assertion: AssertionConfig = None,
+            agent: AgentConfig = None,
     ) -> None:
         self.drone = drone
         self.simulation = simulation
@@ -70,15 +73,15 @@ class DroneTest:
                 params += f"--home {self.simulation.home_position[0]} {self.simulation.home_position[1]} {self.simulation.home_position[2]} "
 
             if (
-                self.simulation.obstacles is not None
-                and len(self.simulation.obstacles) >= 1
+                    self.simulation.obstacles is not None
+                    and len(self.simulation.obstacles) >= 1
             ):
                 params += "--obstacle "
                 for p in self.simulation.obstacles[0].to_params():
                     params += f"{p} "
             if (
-                self.simulation.obstacles is not None
-                and len(self.simulation.obstacles) >= 2
+                    self.simulation.obstacles is not None
+                    and len(self.simulation.obstacles) >= 2
             ):
                 params += "--obstacle2 "
                 for p in self.simulation.obstacles[1].to_params():
@@ -110,11 +113,11 @@ class DroneConfig:
     ROS_PORT = 14541
 
     def __init__(
-        self,
-        port: int | str = SITL_PORT,
-        params: dict = None,
-        params_file: str = None,
-        mission_file=None,
+            self,
+            port: int | str = SITL_PORT,
+            params: dict = None,
+            params_file: str = None,
+            mission_file=None,
     ) -> None:
 
         if isinstance(port, int):
@@ -146,15 +149,16 @@ class SimulationConfig:
     ROS = "ros"
 
     def __init__(
-        self,
-        simulator=GAZEBO,
-        world: str = "default",
-        speed=1,
-        headless=False,
-        pattern: List[str] = None,
-        obstacles: List[Obstacle] | List[float] = None,
-        pattern_design: List[str] = None,
-        home_position: List[float] = None,
+            self,
+            simulator=GAZEBO,
+            world: str = "default",
+            speed=1,
+            headless=False,
+            pattern: List[str] = None,
+            obstacles: List[Obstacle] | List[float] = None,
+            pattern_design: List[str] = None,
+            home_position: List[float] = None,
+            world_file_name: str = None,
     ) -> None:
         self.simulator = simulator
         self.world = world
@@ -162,33 +166,37 @@ class SimulationConfig:
         self.headless = headless
         self.obstacles: List[Obstacle] = obstacles
         self.home_position = home_position
+        self.pattern_design = pattern_design
+        self.pattern = pattern
         if (
-            obstacles is not None
-            and len(obstacles) > 0
-            and not isinstance(obstacles[0], Obstacle)
+                obstacles is not None
+                and len(obstacles) > 0
+                and not isinstance(obstacles[0], Obstacle)
         ):
             self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
-        if(
-            pattern is not None
-            and len(pattern) > 0
+        if (
+                pattern is not None
+                and len(pattern) > 0
         ):
             self.pattern = pattern
-        if(
-            pattern_design is not None
-            and len(pattern_design) > 0
+        if (
+                pattern_design is not None
+                and len(pattern_design) > 0
         ):
             self.pattern_design = pattern_design
-
+        if (
+                world_file_name is not None
+        ):
+            self.world_file_name = world_file_name
 
 
 class TestConfig:
     def __init__(
-        self,
-        commands: List[Command] = None,
-        commands_file: str = None,
-        speed: float = 1,
+            self,
+            commands: List[Command] = None,
+            commands_file: str = None,
+            speed: float = 1,
     ) -> None:
-
         self.speed = speed
         self.commands = commands
         self.commands_file = commands_file
@@ -200,10 +208,10 @@ class AssertionConfig:
     TRAJECTORY = "trajectory"
 
     def __init__(
-        self,
-        log_file: str = None,
-        variable: str = TRAJECTORY,
-        expectation=None,
+            self,
+            log_file: str = None,
+            variable: str = TRAJECTORY,
+            expectation=None,
     ) -> None:
         self.log_file = log_file
         self.expectation = expectation
@@ -211,8 +219,11 @@ class AssertionConfig:
         if expectation is None and log_file is not None:
             if variable == self.TRAJECTORY:
                 # todo: jMavsim complications (take into account local positioning differences with gazebo)
+                # self.expectation = Trajectory.extract(
+                #     file_helper.get_local_file(log_file)
+                # )
                 self.expectation = Trajectory.extract(
-                    file_helper.get_local_file(log_file)
+                    log_file
                 )
 
 
@@ -222,11 +233,11 @@ class AgentConfig:
     LOCAL = "local"
 
     def __init__(
-        self,
-        engine: str,
-        count: int = 1,
-        path: str = None,
-        id: str = None,
+            self,
+            engine: str,
+            count: int = 1,
+            path: str = None,
+            id: str = None,
     ) -> None:
         self.engine = engine
         self.count = count
@@ -236,10 +247,10 @@ class AgentConfig:
 
 class DroneTestResult:
     def __init__(
-        self,
-        log_file: str = None,
-        variable: str = AssertionConfig.TRAJECTORY,
-        record=None,
+            self,
+            log_file: str = None,
+            variable: str = AssertionConfig.TRAJECTORY,
+            record=None,
     ) -> None:
         self.log_file = log_file
         self.record = record
@@ -247,11 +258,14 @@ class DroneTestResult:
         if record is None and log_file is not None:
             # todo: jMavsim complications (take into account local positioning differences with gazebo)
             if variable == AssertionConfig.TRAJECTORY:
-                self.record = Trajectory.extract(file_helper.get_local_file(log_file))
+                self.record = Trajectory.extract(log_file)
+                # self.record = Trajectory.extract(file_helper.get_local_file(log_file))
 
 
 def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:
+    logger.info("In Plot method")
     if results is not None and len(results) >= 1:
+        logger.info("Satisfied condition***")
         Trajectory.plot_multiple(
             [r.record for r in results],
             goal=test.assertion.expectation if test.assertion is not None else None,
@@ -262,3 +276,33 @@ def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:
             ),
             obstacles=test.simulation.obstacles,
         )
+
+
+def getDistance(test: DroneTest, results: List[DroneTestResult]):
+    logger.info("Calling from here")
+    ave_trajectory: Trajectory = None
+    distance = -1
+    obstacle_distance = -1
+    obstacle_distance1 = -1
+    if results is not None and len(results) >= 1:
+        trajectories = [r.record for r in results]
+        goal = test.assertion.expectation if test.assertion is not None else None
+        obstacles = test.simulation.obstacles
+        if len(trajectories) > 1:
+            if ave_trajectory is None:
+                ave_trajectory = Trajectory.average(trajectories)
+        else:
+            ave_trajectory = trajectories[0]
+
+    logger.info(f"goal is:{goal}")
+    if ave_trajectory is not None:
+        if goal is not None:
+            distance = goal.distance(ave_trajectory)
+    logger.info(f"distance is:{distance}")
+    if goal is not None:
+        obstacle_distance = goal.distance_to_obstacles(obstacles)
+        logger.info(f"obstacle_distance is:{obstacle_distance}")
+    if ave_trajectory is not None:
+        obstacle_distance1 = ave_trajectory.distance_to_obstacles(obstacles)
+        logger.info(f"obstacle_distance is:{obstacle_distance1}")
+    return distance, obstacle_distance, obstacle_distance1

@@ -1,0 +1,33 @@
+obstacle:
+  position:
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    a: 2.0
+    b: 4.0
+    c: 4.0
+    d: 0.0
+
+obstacle2:
+  position:
+    x: 1.0
+    y: 1.0
+    z: 1.0
+    a: -1.0
+    b: 4.0
+    c: 4.0
+    d: 0.0
+
+noise:
+  type: Gaussian
+  active: True
+  noise_mean: 20
+  noise_std_deviation: 20
+
+test_case: Scenario-4-noise_attack
+
+world_file_name: simple_obstacle
+
+
+
+

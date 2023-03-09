@@ -1,0 +1,10 @@
+noise:
+  type: Gaussian
+  active: True
+  noise_mean: 20
+  noise_std_deviation: 20
+
+
+test_case: Scenario-1-noise_attack
+
+world_file_name: simple_obstacle_scenario1

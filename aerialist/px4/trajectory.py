@@ -4,6 +4,7 @@ from ctypes import cast
 import math
 import os
 from typing import List
+import logging
 import numpy as np
 import pandas as pd
 import similaritymeasures
@@ -17,6 +18,7 @@ from .position import Position
 from . import file_helper, timeserie_helper
 from tslearn.barycenters import softdtw_barycenter
 
+logger = logging.getLogger(__name__)
 
 class Trajectory(object):
     DIR = config("RESULTS_DIR", default="results/")
@@ -72,6 +74,7 @@ class Trajectory(object):
         file_prefix="",
         ave_trajectory: Trajectory = None,
     ):
+        logger.info("Finding the trajectory...")
         fig = plt.figure(tight_layout=True)
         gs = fig.add_gridspec(3, 4)
         x_plt = fig.add_subplot(gs[0, :2])
@@ -198,7 +201,9 @@ class Trajectory(object):
 
         if distance is not None:
             if distance == True and goal is not None:
+                logger.info(f"goal is:{goal}")
                 distance = goal.distance(ave_trajectory)
+                logger.info(f"distance returned is:{distance}")
             fig.text(
                 0.5,
                 0.03,
@@ -344,6 +349,7 @@ class Trajectory(object):
         return Trajectory(down_sampled)
 
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
+        logger.info("Inside the obstacles")
         return Obstacle.distance_to_many(obstacles, self.to_line())
 
     def to_line(self) -> LineString:

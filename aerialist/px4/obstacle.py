@@ -97,6 +97,7 @@ class Obstacle(object):
         #     for j in range(i + 1, len(boxes)):
         #         if boxes[i].intersects(boxes[j]):
         #             return 1000
+        # This checks the distance of drone from the object all the time...
         dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
         return dist
 
