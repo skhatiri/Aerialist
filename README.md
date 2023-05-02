@@ -45,6 +45,17 @@ You can now execute all the following commands in the containers bash.
 **Note:** Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
 **Note:** The .env for the docker image come from [template.env](template.env). You can customize them using environment variables for the Docker container.
 
+### Using K8S
+
+Aerialist can be easily depoyed on a Kubernetes cluster to facilitate running tests in the cloud. Speciffically, as can be seen in the below figure, Aerialist can run multiple executions of the same test case in isolated Kubernets pods in parallel, and gather test results for further processing.
+
+![Kubernetes Deployment](docs/deployment.png)
+
+Aerialist uses a [NextCloud](https://nextcloud.com/) instance to share files between the main container, and the parallel test executers. You can get a free account in [a cloud provider](https://nextcloud.com/sign-up/) or deploy your own [dockerized instance](https://hub.docker.com/_/nextcloud).
+
+1. Set your NextCloud credentials and address in the environment variables.  
+2. Copy your [`k8s-config.yaml`](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) in the root directory of the tool.
+
 ### Using Pip
 
 1. `pip3 install git+https://github.com/skhatiri/Aerialist.git`
