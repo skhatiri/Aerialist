@@ -16,7 +16,7 @@ spec:
         - imagePullPolicy: Always
           name: container-0
           __active: true
-          image: skhatiri/drone-experiments:aerialist
+          image: skhatiri/aerialist
           stdin: true
           stdinOnce: false
           command:

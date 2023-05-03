@@ -12,11 +12,16 @@ spec:
       labels:
         {}
     spec:
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: k8s-config
+          name: vol-k8s-conf
       containers:
         - imagePullPolicy: Always
           name: init
           __active: true
-          image: skhatiri/drone-experiments:server
+          image: skhatiri/aerialist:k8s
           stdin: true
           stdinOnce: false
           command:
@@ -26,6 +31,11 @@ spec:
           env:
             - name: COMMAND
               value: "python3 aerialist --help"
+          volumeMounts:
+            - mountPath: /root/.kube/config
+              name: vol-k8s-conf
+              readOnly: true
+              subPath: k8s-config.yaml
           tty: true
           resources:
             limits:
@@ -35,7 +45,7 @@ spec:
         - imagePullPolicy: Always
           name: sim
           __active: true
-          image: skhatiri/drone-experiments:aerialist
+          image: skhatiri/aerialist
           stdin: true
           stdinOnce: true
           command: 

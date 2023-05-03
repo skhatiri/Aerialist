@@ -10,7 +10,7 @@ spec:
     - imagePullPolicy: Always
       name: sim
       __active: true
-      image: skhatiri/drone-experiments
+      image: skhatiri/aerialist
       stdin: true
       stdinOnce: true
       command: 
@@ -42,7 +42,7 @@ spec:
     - imagePullPolicy: Always
       name: init
       __active: true
-      image: skhatiri/drone-experiments:server
+      image: skhatiri/aerialist:k8s
       stdin: true
       stdinOnce: false
       command:
