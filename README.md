@@ -1,6 +1,6 @@
 # AERIALIST: UAV Test Bench
 
-Aerialist (Autonomous aERIAL vehIcle teST-bench) is a modular and extensible test bench for UAV software, supporting both simulated and physical UAVs.
+Aerialist (unmanned AERIAL vehIcle teST bench) is a modular and extensible test bench for UAV software, supporting both simulated and physical UAVs.
 
 In Aerialist, the tests are defined as specific **software configurations** in a given **simulated/physical environment** and a set of **runtime commands** that make the UAV fly with a specific **observable behavior** (e.g., flight trajectory, speed, distance to obstacles).
 We model a UAV simulated test case with the following test properties:
@@ -21,29 +21,51 @@ The implementation currently supports [PX4-Autopilot](https://github.com/PX4/PX4
 
 ## Setup
 
+You can setup Aerialist in different ways:
+
+- [Locally on your Ubuntu machine](#local-development-environment), which gives you the opportunity to easily develop new functionalities, and run the UAV simulators with the graphical interface, so you can also visually follow the UAV behavior.
+
+- [Locally within a Docker container](#using-docker), which automates all the technical requiremens and the setup process, and lets you easily run tests with headless simulation (without the graphical interface)
+
+- [On a Kubernetes Cluster in the cloud](#using-k8s), which makes it very easy to run large scale experiments, speciffically when multiple executions of each test case is needed for eliminating randomness in the UAV behaviour.
+
+- [As a python package](#using-pip) to integrate its functionalities in your own code.
+
 ### Local Development Environment
 
-The toolkit requires python >= 3.8 and has been tested with PX4 development environment on ubuntu 18.04 and 20.04
+Aerialist requires python >= 3.8 and has been tested with PX4 development environment on ubuntu 18.04 and 20.04
 
 1. Setup PX4 development environment. Follow the instrudctions [here](https://docs.px4.io/master/en/dev_setup/dev_env_linux_ubuntu.html)
 2. Clone this repository and cd into its root directory
 3. `pip3 install -r requiremetns.txt`
-4. `sudo apt-get install python3.8-tk`
-5. Create a file named .env in the repository's root directory. Then copy and customize contents of [template.env](template.env) into it.
+4. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
 
 **Note:** Update *PX4_HOME* and *RESULTS_DIR* variables according to your installation.
 
 ### Using Docker
 
-You can use the dockerfile to build a Docker image with all the requirements.
+You can use the dockerfile to build a Docker image with all the requirements, or instead pull the latest image from the Image repository.
 
-1. `docker build . -t aerialist`
+1. `docker build . -t aerialist` or `docker pull skhatiri/aerialist`
 2. `docker run -it aerialist bash`
 
 You can now execute all the following commands in the containers bash.
 
 **Note:** Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
-**Note:** The .env for the docker image come from [template.env](template.env). You can customize them using environment variables for the Docker container.
+**Note:** The .env for the docker image come from [template.env](template.env). You can customize them using [environment variables](https://docs.docker.com/engine/reference/commandline/run/#env) for the Docker container.
+
+### Using K8S
+
+Aerialist can be easily depoyed on a Kubernetes cluster to facilitate running tests in the cloud. Speciffically, as can be seen in the below figure, Aerialist can run multiple executions of the same test case in isolated Kubernets pods in parallel, and gather test results for further processing.
+
+![Kubernetes Deployment](docs/deployment.png)
+
+Aerialist uses a [NextCloud](https://nextcloud.com/) instance to share files between the main container, and the parallel test executers. You can get a free account in [a cloud provider](https://nextcloud.com/sign-up/) or deploy your own [dockerized instance](https://hub.docker.com/_/nextcloud).
+
+1. Set your NextCloud credentials and address in as a k8s-Secret: `kubectl create secret generic webdav --from-literal=host=https://[your-nextcloud-address]/remote.php/dav/files/[your-account-id]/ --from-literal=root=https://[your-nextcloud-address]/remote.php/webdav/ --from-literal=user=[username] --from-literal=pass=[password]`
+2. Upload your [`k8s-config.yaml`](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) as a k8s-ConfigMap: `kubectl create configmap k8s-config --from-file k8s-config.yaml`
+3. You can now use `--k8s` in the commands to run the simulations in your k8s-cluster.
+`python3 aerialist --id case0-manual --obstacle 1 1 1 -8.1 3.1 0 0 --path https://[your-nextcloud-address]/remote.php/webdav/ --mission data/case0.plan --log data/case0.ulg --params data/case0-params.csv --commands data/case0-commands.csv --drone ros --simulator ros --agent k8s -n 5`
 
 ### Using Pip
 
@@ -80,7 +102,7 @@ You can use `python3 aerialist --help` anywhere to get help on the command param
 
 Some of the common combination of the following arguments are listed here as sample test cases:
 
-- Replaying a pre-recorder manual flight log:
+- Replaying a pre-recorded manual flight log:
 
 `python3 aerialist --commands data/t0.ulg --simulator gazebo --drone sitl`
 
@@ -88,7 +110,7 @@ Some of the common combination of the following arguments are listed here as sam
 
 `python3 aerialist --commands data/t0_commands.csv --simulator gazebo --drone sitl`
 
-- Replaying a pre-recorder manual flight log with collission prevention enabled:
+- Replaying a pre-recorded manual flight log with collission prevention enabled:
 
 `python3 aerialist --commands data/ta0.ulg --simulator ros --drone ros`
 
