@@ -18,6 +18,7 @@ setuptools.setup(
     python_requires=">=3.7",
     include_package_data=True,
     install_requires=[
+        "numpy==1.23.2",
         "similaritymeasures==0.5.0",
         "matplotlib>=3.6.0",
         "pyulog==0.9.0",
