@@ -23,7 +23,6 @@ COPY . .
 RUN chmod +x ./aerialist/__main__.py
 COPY ./template.env ./.env
 RUN mkdir -p /io/ ./results/logs/
-#COPY ./k8s-config.yaml /root/.kube/config
 
 RUN mkdir -p /io/ ./results/logs/
 

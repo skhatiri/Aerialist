@@ -102,7 +102,7 @@ You can use `python3 aerialist --help` anywhere to get help on the command param
 
 Some of the common combination of the following arguments are listed here as sample test cases:
 
-- Replaying a pre-recorder manual flight log:
+- Replaying a pre-recorded manual flight log:
 
 `python3 aerialist --commands data/t0.ulg --simulator gazebo --drone sitl`
 
@@ -110,7 +110,7 @@ Some of the common combination of the following arguments are listed here as sam
 
 `python3 aerialist --commands data/t0_commands.csv --simulator gazebo --drone sitl`
 
-- Replaying a pre-recorder manual flight log with collission prevention enabled:
+- Replaying a pre-recorded manual flight log with collission prevention enabled:
 
 `python3 aerialist --commands data/ta0.ulg --simulator ros --drone ros`
 
