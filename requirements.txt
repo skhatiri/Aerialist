@@ -1,6 +1,6 @@
 similaritymeasures
 matplotlib>=3.6.0
-pyulog
+pyulog==0.9.0
 mavsdk
 keyboard
 python-decouple

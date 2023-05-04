@@ -46,7 +46,7 @@ spec:
                   name: webdav
                   key: pass
             - name: COMMAND
-              value: "./run.py --help"          
+              value: "python3 aerialist --help"          
           resources:
 
             requests:
