@@ -19,8 +19,8 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         "similaritymeasures",
-        "matplotlib",
-        "pyulog",
+        "matplotlib>=3.6.0",
+        "pyulog==0.9.0",
         "mavsdk",
         "keyboard",
         "python-decouple",
