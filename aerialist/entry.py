@@ -37,7 +37,11 @@ logger = logging.getLogger(__name__)
 
 
 def arg_parse():
-    parser = ArgumentParser(description="Test Execution on Drones")
+    main_parser = ArgumentParser(
+        description="UAV Test Bench",
+    )
+    subparsers = main_parser.add_subparsers()
+    parser = subparsers.add_parser(name="exec", description="executes a UAV test")
     parser.add_argument("--test", default=None, help="test description yaml file")
 
     # drone configs
@@ -141,7 +145,7 @@ def arg_parse():
 
     parser.set_defaults(func=run_experiment)
 
-    args = parser.parse_args()
+    args = main_parser.parse_args()
     return args
 
 

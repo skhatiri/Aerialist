@@ -65,7 +65,7 @@ Aerialist uses a [NextCloud](https://nextcloud.com/) instance to share files bet
 1. Set your NextCloud credentials and address in as a k8s-Secret: `kubectl create secret generic webdav --from-literal=host=https://[your-nextcloud-address]/remote.php/dav/files/[your-account-id]/ --from-literal=root=https://[your-nextcloud-address]/remote.php/webdav/ --from-literal=user=[username] --from-literal=pass=[password]`
 2. Upload your [`k8s-config.yaml`](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) as a k8s-ConfigMap: `kubectl create configmap k8s-config --from-file k8s-config.yaml`
 3. You can now use `--k8s` in the commands to run the simulations in your k8s-cluster.
-`python3 aerialist --id case0-manual --obstacle 1 1 1 -8.1 3.1 0 0 --path https://[your-nextcloud-address]/remote.php/webdav/ --mission data/case0.plan --log data/case0.ulg --params data/case0-params.csv --commands data/case0-commands.csv --drone ros --simulator ros --agent k8s -n 5`
+`python3 aerialist exec --id case0-manual --obstacle 1 1 1 -8.1 3.1 0 0 --path https://[your-nextcloud-address]/remote.php/webdav/ --mission samples/flights/mission1.plan --log samples/flights/mission1.ulg --params samples/flights/mission1-params.csv --commands samples/flights/mission1-commands.csv --drone ros --simulator ros --agent k8s -n 5`
 
 ### Using Pip
 
@@ -79,7 +79,47 @@ You can utilize the toolkit with following command line options:
 
 `cd Aerialist/`
 
-You can use `python3 aerialist --help` anywhere to get help on the command parameters.
+Using a predefined [test-description yaml file](samples/tests/template-test.yaml) is the easiest way to define the test case.
+
+`python3 aerialist exec --test samples/tests/manual1-local.yaml`
+
+```yaml
+# template-test.yaml
+drone:
+  port: sitl # type of the drone to conect to {sitl, ros, cf}
+  #params: #PX4 parameters : https://docs.px4.io/main/en/advanced_config/parameter_reference.html
+    # {parameter_name}: {parameter_value} #(keep datatype -> e.g, 1.0 for float, 1 for int)
+    # CP_DIST: 1.0
+    # POS_MOD: 2.5
+  params_file: samples/flights/mission1-params.csv #csv file with the same structure as above 
+  mission_file: samples/flights/mission1.plan # input mission file address
+
+simulation:
+  simulator: ros # the simulator environment to run {gazebo,jmavsim,ros} 
+  speed: 1 # the simulator speed relative to real time
+  headless: true # whether to run the simulator headless
+  obstacles: [5,5,5,  10,5,0,  0] # propetries (size, position, and rotation) of box shaped obstaclesto put in simulation environment: [l,w,h,x,y,z,r]
+  # home_position: # home position to place the drone [lat,lon,alt]  
+test:
+  commands_file: samples/flights/mission1-commands.csv # runtime commands file address
+  speed: 1 # the commands speed relative to real time
+
+assertion:
+  log_file: samples/flights/mission1.ulg # reference log file address
+  # variable: trajectory # reference variables to compare 
+
+agent:
+  engine: k8s # where to run the tests {k8s, docker, local}
+  count: 5 # no. of parallel runs (only for k8s)
+  path: https://filer.cloudlab.zhaw.ch/remote.php/webdav/test/ # cloud output path to copy logs (only for k8s)
+  id: yaml-test # k8s job id (only for k8s)
+
+```
+
+More sample tests can be found [here](samples/tests/)
+
+You can use `python3 aerialist exec --help` anywhere to get help on the command parameters.
+Alternatively, the above test properties can also be set using commandline aruguments as below.
 
 |argument   | input type            | description                   |
 |-----------|-----------------------|------------------------------ |
@@ -104,19 +144,19 @@ Some of the common combination of the following arguments are listed here as sam
 
 - Replaying a pre-recorded manual flight log:
 
-`python3 aerialist --commands data/t0.ulg --simulator gazebo --drone sitl`
+`python3 aerialist exec --commands samples/flights/manual1.ulg --simulator gazebo --drone sitl`
 
-- Running an existing series of manual commands stored in a csv file. Look [here](data/t0_commands.csv) for an example (corresponding to previous .ulg file).
+- Running an existing series of manual commands stored in a csv file. Look [here](samples/flights/manual1-commands.csv) for an example (corresponding to previous .ulg file).
 
-`python3 aerialist --commands data/t0_commands.csv --simulator gazebo --drone sitl`
+`python3 aerialist exec --commands samples/flights/manual1-commands.csv --simulator gazebo --drone sitl`
 
 - Replaying a pre-recorded manual flight log with collission prevention enabled:
 
-`python3 aerialist --commands data/ta0.ulg --simulator ros --drone ros`
+`python3 aerialist exec --commands samples/flights/manual2.ulg --simulator ros --drone ros`
 
 - Executing a pre-planed autonomous flight log with obstacle avoidance enabled:
 
-`python3 aerialist --commands data/auto-commands.csv --mission data/auto1.plan --params data/auto-params.csv --log data/auto1.ulg --simulator ros --drone ros`
+`python3 aerialist exec --commands samples/flights/mission1-commands.csv --mission samples/flights/mission1.plan --params samples/flights/mission1-params.csv --log samples/flights/mission1.ulg --simulator ros --drone ros`
 
 <!-- - running a manual flight through keyboard commands:
 

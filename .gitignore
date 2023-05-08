@@ -4,9 +4,9 @@ tmp/**
 k8s-config.yaml
 venv/
 results/
-data/*_0.csv
-data/*_1.csv
-data/*_2.csv
+samples/flights/*_0.csv
+samples/flights/*_1.csv
+samples/flights/*_2.csv
 aerialist.egg-info/
 .DS_Store
 .huskyrc.json

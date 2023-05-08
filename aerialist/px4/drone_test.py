@@ -42,7 +42,9 @@ class DroneTest:
             config.assertion = AssertionConfig(**data_dict.assertion)
         if data_dict.agent is not None:
             config.agent = AgentConfig(**data_dict.agent)
-        return config
+        return cls(
+            config.drone, config.simulation, config.test, config.assertion, config.agent
+        )
 
     def to_yaml(self, address):
         with open(address, "w") as file:
@@ -50,8 +52,8 @@ class DroneTest:
         return address
 
     def cmd_params(self):
-        # CMD should be updated if the interface in entry.py changes
-        params = ""
+        # CMD must be updated if the interface in entry.py changes
+        params = "exec "
         if self.drone is not None:
             if self.drone.port is not None:
                 params += f"--drone {self.drone.port} "
@@ -116,7 +118,6 @@ class DroneConfig:
         params_file: str = None,
         mission_file=None,
     ) -> None:
-
         if isinstance(port, int):
             self.port = port
         else:
@@ -175,7 +176,6 @@ class TestConfig:
         commands_file: str = None,
         speed: float = 1,
     ) -> None:
-
         self.speed = speed
         self.commands = commands
         self.commands_file = commands_file

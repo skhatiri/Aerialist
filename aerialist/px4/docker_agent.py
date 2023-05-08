@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 
 class DockerAgent(TestAgent):
-
     CMD = "timeout {timeout} python3 aerialist {params}"
     DOCKER_CMD = "docker exec -it {id} "
     DOCKER_IMG = config("DOCKER_IMG", default="aerialist")

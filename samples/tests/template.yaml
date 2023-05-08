@@ -1,0 +1,24 @@
+drone:
+  port: sitl # conected drone type {sitl, ros, cf}
+  params_file: path/to/params.csv # params file address
+  mission_file: path/to/mission.plan # input mission file address
+
+simulation:
+  simulator: gazebo # simulation engine {gazebo,jmavsim,ros} 
+  speed: 1 # simulator speed relative to real time
+  headless: true # execute without simulator GUI
+  obstacles: [l,w,h, x,y,z, r] # box size, position, and rotation 
+  home_position: [lat,lon,alt] # starting position of the drone   
+
+test:
+  commands_file: path/to/commands.csv # runtime commands file address
+
+assertion:
+  log_file: path/to/log.ulg # reference log file address
+  variable: trajectory # flight behavior to compare 
+
+agent:
+  engine: k8s # test execution environment {k8s, docker, local}
+  count: 5 # no. of parallel runs (only for k8s)
+  path: https://path/to/cloud/storage/ # shared cloud storage (only for k8s)
+  id: k8s-id # k8s job id (only for k8s)
