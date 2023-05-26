@@ -4,7 +4,7 @@ drone:
 simulation:
   simulator: gazebo #{gazebo,jmavsim,ros} 
   speed: 1
-  headless: false
+  headless: true
 
 test:
   commands_file: samples/flights/manual1.ulg

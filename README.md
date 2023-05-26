@@ -1,5 +1,7 @@
 # AERIALIST: UAV Test Bench
 
+## [Demo Video](https://youtu.be/pmBspS2EiGg)
+
 Aerialist (unmanned AERIAL vehIcle teST bench) is a modular and extensible test bench for UAV software, supporting both simulated and physical UAVs.
 
 In Aerialist, the tests are defined as specific **software configurations** in a given **simulated/physical environment** and a set of **runtime commands** that make the UAV fly with a specific **observable behavior** (e.g., flight trajectory, speed, distance to obstacles).
@@ -223,4 +225,4 @@ The software we developed is distributed under MIT license. See the [license](./
 ## Contacts
 
 - Sajad Khatiri
-  - Zurich University of Applied Science (ZHAW), Switzerland - mazr@zhaw.ch
+  - Zurich University of Applied Science (ZHAW), Switzerland - <mazr@zhaw.ch>

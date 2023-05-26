@@ -1,9 +1,5 @@
 drone:
   port: ros #{sitl, ros, cf}
-  #params: #PX4 parameters : https://docs.px4.io/main/en/advanced_config/parameter_reference.html
-    # {parameter_name}: {parameter_value} #(keep datatype -> e.g, 1.0 for float, 1 for int)
-    # CP_DIST: 1.0
-    # POS_MOD: 2.5
   params_file: samples/flights/mission1-params.csv #csv file with the same structure as above 
   mission_file: samples/flights/mission1.plan
 
