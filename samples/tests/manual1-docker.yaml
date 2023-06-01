@@ -1,0 +1,20 @@
+drone:
+  port: sitl #{sitl, ros, cf}
+  
+simulation:
+  simulator: gazebo #{gazebo,jmavsim,ros} 
+  speed: 1
+  headless: false
+
+test:
+  commands_file: samples/flights/manual1-commands.csv
+  speed: 1
+
+assertion:
+  log_file: samples/flights/manual1.ulg
+  # variable: trajectory
+
+agent:
+  engine: docker # {k8s, docker, local}
+  count: 1
+
