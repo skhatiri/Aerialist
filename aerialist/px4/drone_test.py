@@ -29,7 +29,8 @@ class DroneTest:
 
     @classmethod
     def from_yaml(cls, address):
-        with open(address) as file:
+        file_address = file_helper.get_local_file(address)
+        with open(file_address) as file:
             data_dict = munch.DefaultMunch.fromYAML(file, None)
         config = cls()
         if data_dict.drone is not None:

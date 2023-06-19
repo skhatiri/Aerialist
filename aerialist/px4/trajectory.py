@@ -1,6 +1,5 @@
 from __future__ import annotations
 import copy
-from ctypes import cast
 import math
 import os
 from typing import List
@@ -8,7 +7,6 @@ import numpy as np
 import pandas as pd
 import similaritymeasures
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import ruptures as rpt
 from shapely.geometry import LineString
 from decouple import config
@@ -136,7 +134,6 @@ class Trajectory(object):
 
         alpha = 1 if len(trajectories) <= 1 else 0.25
         for i in range(len(trajectories)):
-
             data_frame = trajectories[i].to_data_frame()
 
             if len(trajectories) <= 1 or cls.PLOT_TESTS_XYZ:

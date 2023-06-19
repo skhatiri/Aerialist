@@ -12,7 +12,7 @@ test:
 
 assertion:
   log_file: samples/flights/manual1.ulg
-  # variable: trajectory
+  variable: trajectory
 
 agent:
   engine: local # {k8s, docker, local}
