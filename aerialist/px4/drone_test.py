@@ -237,16 +237,25 @@ class DroneTestResult:
             if variable == AssertionConfig.TRAJECTORY:
                 self.record = Trajectory.extract(file_helper.get_local_file(log_file))
 
+    @classmethod
+    def load_folder(
+        cls, logs_folder: str, variable: str = AssertionConfig.TRAJECTORY
+    ) -> List[DroneTestResult]:
+        logs_folder = file_helper.get_local_folder(logs_folder)
+        logs = file_helper.get_logs_address(logs_folder)
+        results = [DroneTestResult(log, variable) for log in logs]
+        return results
+
 
 def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:
     if results is not None and len(results) >= 1:
         Trajectory.plot_multiple(
             [r.record for r in results],
-            goal=test.assertion.expectation if test.assertion is not None else None,
+            goal=None if test.assertion is None else test.assertion.expectation,
             distance=None
-            if test.assertion.expectation is None
+            if test.assertion is None or test.assertion.expectation is None
             else median(
                 [r.record.distance(test.assertion.expectation) for r in results]
             ),
-            obstacles=test.simulation.obstacles,
+            obstacles=None if test.simulation is None else test.simulation.obstacles,
         )

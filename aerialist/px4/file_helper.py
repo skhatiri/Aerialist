@@ -20,10 +20,26 @@ RETRIES = 0
 
 def get_local_file(file_path: str):
     if validators.url(file_path):
-        local_add = download(file_path, config("WEBDAV_DL_FLD", default="/tmp/"))
+        local_add = download(file_path, config("WEBDAV_DL_FLD", default="tmp/"))
         return local_add
     elif path.exists(file_path):
         return file_path
+    else:
+        raise Exception("path does not exist")
+
+
+def get_local_folder(folder_path: str):
+    if validators.url(folder_path):
+        if folder_path.endswith("/"):
+            folder = folder_path.split("/")[-2]
+        else:
+            folder = folder_path.split("/")[-1]
+        local_add = download_dir(
+            folder_path, f'{config("WEBDAV_DL_FLD", default="tmp/")}{folder}/'
+        )
+        return local_add
+    elif path.exists(folder_path):
+        return folder_path
     else:
         raise Exception("path does not exist")
 
@@ -46,6 +62,7 @@ def init_webdav():
 init_webdav()
 
 
+# TODO: use python API directly instead of reading the generated file
 def extract(log_address: str, topic: str, use_cache=True) -> DataFrame:
     """extracts specific messages from the input log and returns the csv object"""
 

@@ -5,6 +5,7 @@ import os
 import sys
 from decouple import config
 
+
 try:
     from .px4.k8s_agent import K8sAgent
     from .px4.local_agent import LocalAgent
@@ -17,6 +18,7 @@ try:
         TestConfig,
         AgentConfig,
         Plot,
+        DroneTestResult,
     )
 except:
     from px4.k8s_agent import K8sAgent
@@ -30,6 +32,7 @@ except:
         TestConfig,
         AgentConfig,
         Plot,
+        DroneTestResult,
     )
 
 
@@ -145,6 +148,19 @@ def arg_parse():
 
     parser.set_defaults(func=run_experiment)
 
+    # plotting parser
+    plot_parser = subparsers.add_parser(
+        name="plot", description="plot an executed test"
+    )
+    plot_parser.add_argument("--test", default=None, help="test description yaml file")
+    plot_parser.add_argument(
+        "--log",
+        "--logs",
+        default=None,
+        help="test log file address / parallel tests logs folder address",
+    )
+    plot_parser.set_defaults(func=plot_test)
+
     args = main_parser.parse_args()
     return args
 
@@ -210,6 +226,20 @@ def execute_test(test: DroneTest):
     return test_results
 
 
+def plot_test(args):
+    if args.test is not None:
+        test = DroneTest.from_yaml(args.test)
+    else:
+        test = DroneTest()
+    if args.log is not None:
+        if args.log.endswith(".ulg"):
+            test_results = [DroneTestResult(args.log)]
+        else:
+            test_results = DroneTestResult.load_folder(args.log)
+
+    Plot(test, test_results)
+
+
 def config_loggers():
     os.makedirs("logs/", exist_ok=True)
     logging.basicConfig(
@@ -243,7 +273,7 @@ def main():
         config_loggers()
         args = arg_parse()
         logger.info(f"preparing the test ...{args}")
-        run_experiment(args)
+        args.func(args)
 
     except Exception as e:
         logger.exception("program terminated:" + str(e), exc_info=True)
