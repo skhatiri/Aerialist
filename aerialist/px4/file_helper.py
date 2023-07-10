@@ -1,8 +1,9 @@
 from datetime import datetime
 from time import sleep
+from typing import List
 from decouple import config
 from pandas.core.frame import DataFrame
-from pyulog import ulog2csv
+from pyulog import ULog
 import pandas as pd
 import os.path
 import shutil
@@ -62,19 +63,16 @@ def init_webdav():
 init_webdav()
 
 
-# TODO: use python API directly instead of reading the generated file
-def extract(log_address: str, topic: str, use_cache=True) -> DataFrame:
-    """extracts specific messages from the input log and returns the csv object"""
-
-    csv_add = f"{log_address[:-4]}_{topic}_0.csv"
-    if not (use_cache and os.path.isfile(csv_add)):
-        ulog2csv.convert_ulog2csv(log_address, topic, None, ",")
-
-    if os.path.isfile(csv_add):
-        data = pd.read_csv(csv_add)
-        return data
-    else:
+def extract(log_address: str, topic: str, columns: List[str] = None) -> DataFrame:
+    """extracts specific messages from the input log and returns the dataframe object"""
+    ulog = ULog(log_address, topic, True)
+    if len(ulog.data_list) == 0:
         return None
+    if columns is None:
+        df = pd.DataFrame(ulog.data_list[0].data)
+    else:
+        df = pd.DataFrame({c: ulog.data_list[0].data[c] for c in columns})
+    return df
 
 
 def copy(src_file: str, dest_file: str) -> bool:
