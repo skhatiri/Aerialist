@@ -56,5 +56,6 @@ class Position(object):
             x=mean([p.x for p in positions]),
             y=mean([p.y for p in positions]),
             z=mean([p.z for p in positions]),
+            r=mean([p.r for p in positions]),
             timestamp=mean([p.timestamp for p in positions]),
         )

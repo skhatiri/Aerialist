@@ -14,6 +14,7 @@ from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
 from tslearn.barycenters import softdtw_barycenter
+import warnings
 
 
 class Trajectory(object):
@@ -23,6 +24,7 @@ class Trajectory(object):
     IGNORE_AUTO_MODES = False
     REMOVE_OFFSET = True
     PLOT_TESTS_XYZ = config("PLOT_TESTS_XYZ", default=True, cast=bool)
+    PLOT_R = config("PLOT_R", default=False, cast=bool)
     TIME_RANGE = None
     DISTANCE_METHOD = config("DISTANCE_METHOD", default="dtw")
     AVERAGE_METHOD = config("AVERAGE_METHOD", default="dtw")
@@ -32,12 +34,9 @@ class Trajectory(object):
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
 
-    def __init__(
-        self, positions: List[Position], highlights: List[tuple[int, int]] = []
-    ) -> None:
+    def __init__(self, positions: List[Position]) -> None:
         super().__init__()
         self.positions = positions
-        self.highlights = highlights
 
     def plot(
         self,
@@ -65,13 +64,18 @@ class Trajectory(object):
         goal: Trajectory = None,
         save: bool = True,
         distance: float | bool = None,
-        highlights: bool = None,
+        highlights: List[float] = None,
         obstacles: List[Obstacle] = None,
         file_prefix="",
         ave_trajectory: Trajectory = None,
     ):
         fig = plt.figure(tight_layout=True)
-        gs = fig.add_gridspec(3, 4)
+
+        if cls.PLOT_R:
+            gs = fig.add_gridspec(4, 4)
+            r_plt = fig.add_subplot(gs[3, :2])
+        else:
+            gs = fig.add_gridspec(3, 4)
         x_plt = fig.add_subplot(gs[0, :2])
         y_plt = fig.add_subplot(gs[1, :2])
         z_plt = fig.add_subplot(gs[2, :2])
@@ -84,7 +88,11 @@ class Trajectory(object):
         x_plt.set_ylabel("X (m)")
         y_plt.set_ylabel("Y (m)")
         z_plt.set_ylabel("Z (m)")
-        z_plt.set_xlabel("flight time (s)")
+        if cls.PLOT_R:
+            r_plt.set_ylabel("Yaw (\u00b0)")
+            r_plt.set_xlabel("flight time (s)")
+        else:
+            z_plt.set_xlabel("flight time (s)")
         xy_plt.set_ylabel("Y (m)")
         xy_plt.yaxis.set_label_position("right")
         xy_plt.yaxis.tick_right()
@@ -100,38 +108,6 @@ class Trajectory(object):
                     labeled = True
                 xy_plt.add_patch(obst_patch)
 
-                # obst_patch = mpatches.Rectangle(
-                #     (
-                #         obstacle[0][0] - obstacle[1][0] / 2,
-                #         obstacle[0][2] - obstacle[1][2] / 2,
-                #     ),
-                #     obstacle[1][0],
-                #     obstacle[1][2],
-                #     edgecolor="black",
-                #     fill=False,
-                #     alpha=0.5,
-                # )
-                # xyz_plt.add_patch(obst_patch)
-                # mplot3d.art3d.pathpatch_2d_to_3d(
-                #     obst_patch, z=obstacle[0][1] - obstacle[1][1] / 2, zdir="y"
-                # )
-
-                # patch2 = mpatches.Rectangle(
-                #     (
-                #         obstacle[0][0] - obstacle[1][0] / 2,
-                #         obstacle[0][2] - obstacle[1][2] / 2,
-                #     ),
-                #     obstacle[1][0],
-                #     obstacle[1][2],
-                #     edgecolor="black",
-                #     fill=False,
-                #     alpha=0.5,
-                # )
-                # xyz_plt.add_patch(patch2)
-                # mplot3d.art3d.pathpatch_2d_to_3d(
-                #     patch2, z=obstacle[0][1] + obstacle[1][1] / 2, zdir="y"
-                # )
-
         alpha = 1 if len(trajectories) <= 1 else 0.25
         for i in range(len(trajectories)):
             data_frame = trajectories[i].to_data_frame()
@@ -140,12 +116,12 @@ class Trajectory(object):
                 x_plt.plot(data_frame[:, 0], data_frame[:, 1], alpha=alpha)
                 y_plt.plot(data_frame[:, 0], data_frame[:, 2], alpha=alpha)
                 z_plt.plot(data_frame[:, 0], data_frame[:, 3], alpha=alpha)
+                if cls.PLOT_R:
+                    r_plt.plot(data_frame[:, 0], data_frame[:, 4], alpha=alpha)
+
             label = None
             if i == 0:
-                # if len(trajectories) > 1:
                 label = "tests"
-                # elif goal is None:
-                #     label = "flight trajectory"
 
             xy_plt.plot(
                 data_frame[:, 1],
@@ -166,11 +142,10 @@ class Trajectory(object):
             x_plt.plot(
                 data_frame[:, 0], data_frame[:, 1], label="test ave.", color="red"
             )
-
             y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="red")
-
             z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="red")
-
+            if cls.PLOT_R:
+                r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="red")
             xy_plt.plot(data_frame[:, 1], data_frame[:, 2], color="red")
 
         if goal != None:
@@ -178,10 +153,10 @@ class Trajectory(object):
             x_plt.plot(
                 data_frame[:, 0], data_frame[:, 1], label="original", color="blue"
             )
-
             y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="blue")
-
             z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="blue")
+            if cls.PLOT_R:
+                r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="blue")
 
             xy_plt.plot(data_frame[:, 1], data_frame[:, 2], color="blue")
 
@@ -203,27 +178,30 @@ class Trajectory(object):
                 ha="center",
                 bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
             )
-
+        highlightcolor = "green"
         if highlights is not None:
-            for period in highlights:
-                x_plt.axvspan(
-                    period[0] / 1000000.0,
-                    period[1] / 1000000.0,
-                    color="yellow",
+            for timestamp in highlights:
+                x_plt.axvline(
+                    timestamp / 1000000.0,
+                    color=highlightcolor,
                     alpha=0.5,
                 )
-                y_plt.axvspan(
-                    period[0] / 1000000.0,
-                    period[1] / 1000000.0,
-                    color="yellow",
+                y_plt.axvline(
+                    timestamp / 1000000.0,
+                    color=highlightcolor,
                     alpha=0.5,
                 )
-                z_plt.axvspan(
-                    period[0] / 1000000.0,
-                    period[1] / 1000000.0,
-                    color="yellow",
+                z_plt.axvline(
+                    timestamp / 1000000.0,
+                    color=highlightcolor,
                     alpha=0.5,
                 )
+                if cls.PLOT_R:
+                    r_plt.axvline(
+                        timestamp / 1000000.0,
+                        color=highlightcolor,
+                        alpha=0.5,
+                    )
 
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
         if save:
@@ -254,16 +232,14 @@ class Trajectory(object):
             return self.dtw_t_distance(other)
         elif self.DISTANCE_METHOD == "frechet":
             return self.frechet_distance(other)
-        if self.DISTANCE_METHOD == "dtw-tweaked":
-            return self.dtw_tweaked_distance(other)
         else:
             return self.dtw_distance(other)
 
     def dtw_t_distance(self, other: Trajectory) -> float:
         """quantify the difference between the two trajectoryies using Dynamic Time Warping and normalized datapoints"""
         dtw, d = similaritymeasures.dtw(
-            timeserie_helper.normalize(self.to_data_frame()),
-            timeserie_helper.normalize(other.to_data_frame()),
+            timeserie_helper.normalize(self.to_data_frame()[:, 0:4]),
+            timeserie_helper.normalize(other.to_data_frame()[:, 0:4]),
         )
         return dtw
 
@@ -271,24 +247,15 @@ class Trajectory(object):
         """quantify the difference between the two trajectories using Dynamic Time Warping and not considering the timestamps"""
 
         dtw, d = similaritymeasures.dtw(
-            self.to_data_frame()[:, 1:],
-            other.to_data_frame()[:, 1:],
-        )
-        return dtw
-
-    def dtw_tweaked_distance(self, other: Trajectory) -> float:
-        """quantify the difference between the two trajectories using Dynamic Time Warping and not considering the timestamps"""
-
-        dtw, d = timeserie_helper.dtw_tweaked(
-            self.to_data_frame()[:, 1:],
-            other.to_data_frame()[:, 1:],
+            self.to_data_frame()[:, 1:4],
+            other.to_data_frame()[:, 1:4],
         )
         return dtw
 
     def frechet_distance(self, other: Trajectory) -> float:
         """quantify the difference between the two trajectories using Frechete and not considering the timestamps"""
         d = similaritymeasures.frechet_dist(
-            self.to_data_frame()[:, 1:], other.to_data_frame()[:, 1:]
+            self.to_data_frame()[:, 1:4], other.to_data_frame()[:, 1:4]
         )
         return d
 
@@ -303,12 +270,13 @@ class Trajectory(object):
             ]
 
         data = np.zeros(
-            (len(positions), 4),
+            (len(positions), 5),
         )
         data[:, 0] = [p.timestamp / 1000000.0 for p in positions]
         data[:, 1] = [p.x for p in positions]
         data[:, 2] = [p.y for p in positions]
         data[:, 3] = [p.z for p in positions]
+        data[:, 4] = [p.r for p in positions]
         return data
 
     def downsample(self, count: int) -> Trajectory:
@@ -465,11 +433,7 @@ class Trajectory(object):
 
             positions = filtered_positions
 
-        cp_activations = None
-        if load_CP_activations:
-            cp_activations = cls.extract_CP_active_periods(log_address)
-
-        traj = cls(positions, cp_activations)
+        traj = cls(positions)
         if cls.RESAMPLE:
             traj = traj.downsample_time()
         return traj
@@ -548,12 +512,17 @@ class Trajectory(object):
 
     @classmethod
     def dtw_average(cls, trajectories: List[Trajectory]) -> Trajectory:
-        # resampled = [t.downsample_time() for t in trajectories]
-        resampled = trajectories
-        dataset = [t.to_data_frame()[:, 1:] for t in resampled]
-        average_data = softdtw_barycenter(dataset, gamma=cls.AVE_GAMMA)
-        time_dataset = [t.to_data_frame()[:, 0] for t in resampled]
-        average_time = softdtw_barycenter(time_dataset, gamma=cls.AVE_GAMMA)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # resampled = [t.downsample_time() for t in trajectories]
+            resampled = trajectories
+            dataset = [t.to_data_frame()[:, 1:4] for t in resampled]
+            average_data = softdtw_barycenter(dataset, gamma=cls.AVE_GAMMA)
+            time_dataset = [t.to_data_frame()[:, 0] for t in resampled]
+            average_time = softdtw_barycenter(time_dataset, gamma=cls.AVE_GAMMA)
+            r_dataset = [t.to_data_frame()[:, 4] for t in resampled]
+            average_r = softdtw_barycenter(r_dataset, gamma=cls.AVE_GAMMA)
+
         ave_positions: List[Position] = []
         if len(average_time) == len(average_data):
             for i in range(len(average_time)):
@@ -563,6 +532,7 @@ class Trajectory(object):
                         x=average_data[i, 0],
                         y=average_data[i, 1],
                         z=average_data[i, 2],
+                        r=average_r[i, 0],
                     )
                 )
         ave_trj = Trajectory(ave_positions)
