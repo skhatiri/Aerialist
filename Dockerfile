@@ -1,26 +1,30 @@
-FROM skhatiri/px4
+FROM px4io/px4-dev-ros-melodic:2021-09-08
 
+RUN mkdir /data
+
+# Setting up PX4-Autopilot
+RUN mkdir /src &&\      
+    cd /src &&\        
+    git clone --depth 1 --branch v1.12.3 https://github.com/PX4/PX4-Autopilot.git
+RUN DONT_RUN=1 make -C /src/PX4-Autopilot/ px4_sitl_default gazebo
+
+# Installing PX4-Avoidance and its dependencies
 RUN sudo apt-get update -y &&\
-    sudo apt-get install python3.8 python3-setuptools python3.8-dev -y &&\
+    sudo apt-get install python3.7 python3-setuptools python3.7-dev -y &&\
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 &&\
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 2 &&\
-    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 3 
-RUN python3 -m pip install --upgrade pip
-#&&\
-# sudo -H pip3 install --upgrade pip
+    sudo -H pip3 install --upgrade pip
 
-#Setting up the current tool 
-COPY ./requirements.txt /src/aerialist/requirements.txt
-WORKDIR /src/aerialist/
-RUN pip3 install -r requirements.txt
-COPY . .
-RUN chmod +x ./aerialist/__main__.py
-COPY ./template.env ./.env
-RUN mkdir -p /io/ ./results/logs/
+RUN sudo apt-get update -y &&\
+    sudo apt-get install python-catkin-tools ros-melodic-mavros ros-melodic-mavros-extras libpcl1 ros-melodic-octomap-* -y 
 
-# ENTRYPOINT [ "./run.py" ]
-# CMD [ "--help" ]
+RUN mkdir -p /src/catkin_ws/src &&\
+    wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh &&\
+    chmod +x install_geographiclib_datasets.sh &&\
+    sudo ./install_geographiclib_datasets.sh &&\
+    cd /src/catkin_ws/src &&\
+    git clone --depth 1 https://github.com/saurabhprasun20/PX4-Avoidance.git
 
-
-
-
+RUN . /opt/ros/melodic/setup.sh &&\
+    catkin build -w /src/catkin_ws &&\
+    echo "source /src/catkin_ws/devel/setup.bash" >> ~/.bashrc  
