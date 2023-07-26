@@ -44,12 +44,13 @@ class Trajectory(object):
         save: bool = True,
         obstacles: List[Obstacle] = None,
         file_prefix="",
+        highlights: List[float] = None,
     ):
         distance = None
         if goal is not None:
             distance = self.distance(goal)
         self.plot_multiple(
-            [self], goal, save, distance, self.highlights, obstacles, file_prefix
+            [self], goal, save, distance, highlights, obstacles, file_prefix
         )
 
     def save_csv(self, address: str) -> None:
