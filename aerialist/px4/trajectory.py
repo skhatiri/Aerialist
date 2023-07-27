@@ -33,6 +33,7 @@ class Trajectory(object):
     SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
+    HIGHLIGHT_COLOR = "red"
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()
@@ -130,6 +131,14 @@ class Trajectory(object):
                 label=label,
                 alpha=alpha,
             )
+            if highlights is not None:
+                for timestamp in highlights:
+                    point = data_frame[
+                        abs(data_frame[:, 0] - (timestamp / 1000000.0)).argsort()[0]
+                    ]
+                    xy_plt.scatter(
+                        [point[1]], [point[2]], color=cls.HIGHLIGHT_COLOR, alpha=0.3
+                    )
             # xyz_plt.plot3D(
             #     [p.x for p in trj.positions],
             #     [p.y for p in trj.positions],
@@ -179,29 +188,32 @@ class Trajectory(object):
                 ha="center",
                 bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
             )
-        highlightcolor = "green"
         if highlights is not None:
             for timestamp in highlights:
                 x_plt.axvline(
                     timestamp / 1000000.0,
-                    color=highlightcolor,
-                    alpha=0.5,
+                    color=cls.HIGHLIGHT_COLOR,
+                    alpha=0.3,
+                    linewidth=1.75,
                 )
                 y_plt.axvline(
                     timestamp / 1000000.0,
-                    color=highlightcolor,
-                    alpha=0.5,
+                    color=cls.HIGHLIGHT_COLOR,
+                    alpha=0.3,
+                    linewidth=1.75,
                 )
                 z_plt.axvline(
                     timestamp / 1000000.0,
-                    color=highlightcolor,
-                    alpha=0.5,
+                    color=cls.HIGHLIGHT_COLOR,
+                    alpha=0.3,
+                    linewidth=1.75,
                 )
                 if cls.PLOT_R:
                     r_plt.axvline(
                         timestamp / 1000000.0,
-                        color=highlightcolor,
-                        alpha=0.5,
+                        color=cls.HIGHLIGHT_COLOR,
+                        alpha=0.3,
+                        linewidth=1.75,
                     )
 
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
