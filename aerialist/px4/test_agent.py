@@ -7,5 +7,5 @@ class TestAgent(object):
         self.config = config
         self.results: List[DroneTestResult] = []
 
-    def Run(self, config: DroneTest) -> DroneTestResult:
+    def run(self) -> DroneTestResult:
         pass

@@ -6,7 +6,6 @@ import logging
 import subprocess
 from typing import List
 from decouple import config
-
 from .command import Command
 from .docker_agent import DockerAgent
 from .drone_test import AgentConfig, DroneTest, DroneTestResult, SimulationConfig
@@ -16,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class K8sAgent(DockerAgent):
-
     KUBE_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
     WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
     DEFAULT_KUBE_TEMPLATE = config(
@@ -31,7 +29,7 @@ class K8sAgent(DockerAgent):
         self.results: List[DroneTestResult] = []
         self.k8s_config = self.import_config()
 
-    def run(self, config: DroneTest):
+    def run(self):
         cmd = self.format_command(self.k8s_config)
 
         logger.debug("docker command:" + cmd)

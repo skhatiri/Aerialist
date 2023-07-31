@@ -12,7 +12,6 @@ class Position(object):
         z: float,
         r: float = None,
         timestamp: int = None,
-        is_jmavsim: bool = False,
     ) -> None:
         super().__init__()
         self.timestamp = timestamp
@@ -20,9 +19,6 @@ class Position(object):
         self.y = y
         self.z = z
         self.r = r
-
-        if is_jmavsim:
-            self.convert_jmavsim()
 
     def convert_jmavsim(self):
         jmav_x = self.x

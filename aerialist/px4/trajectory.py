@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 import ruptures as rpt
 from shapely.geometry import LineString
 from decouple import config
+from tslearn.barycenters import softdtw_barycenter
+import warnings
 from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
-from tslearn.barycenters import softdtw_barycenter
-import warnings
 
 
 class Trajectory(object):
@@ -363,7 +363,6 @@ class Trajectory(object):
         log_address: str,
         ignore_automodes=False,
         is_jmavsim=False,
-        load_CP_activations=True,
     ):
         """extracts and returns trajectory logs from the input log"""
         positions: List[Position] = []
@@ -389,16 +388,16 @@ class Trajectory(object):
             local_position = file_helper.extract(log_address, "vehicle_local_position")
             local_position = local_position[["timestamp", "x", "y", "z", "heading"]]
             for row in local_position.itertuples():
-                positions.append(
-                    Position(
-                        row.x,
-                        row.y,
-                        -row.z,
-                        row.heading,
-                        timestamp=row.timestamp,
-                        is_jmavsim=is_jmavsim,
-                    )
+                pos = Position(
+                    row.x,
+                    row.y,
+                    -row.z,
+                    row.heading,
+                    timestamp=row.timestamp,
                 )
+                if is_jmavsim:
+                    pos.convert_jmavsim()
+                positions.append(pos)
 
         if cls.REMOVE_OFFSET:
             offset = positions[0].timestamp
@@ -473,36 +472,6 @@ class Trajectory(object):
             segments.append(Trajectory(seg_pos))
 
         return segments
-
-    @classmethod
-    def extract_CP_active_periods(cls, log_address):
-        collision_constraints = file_helper.extract(
-            log_address, "collision_constraints"
-        )
-        if collision_constraints is None:
-            return []
-        avoidance_active_periods = []
-        period_start = -1
-        for ind, row in collision_constraints.iterrows():
-            # skip the rows where CP did not change setpoints (where in-active)
-            if (
-                row["original_setpoint[0]"] != row["adapted_setpoint[0]"]
-                or row["original_setpoint[1]"] != row["adapted_setpoint[1]"]
-            ):
-                if period_start < 0:
-                    period_start = int(row["timestamp"])
-                    avoidance_active_periods.append(
-                        (period_start, int(row["timestamp"]))
-                    )
-                else:
-                    avoidance_active_periods[-1] = (
-                        period_start,
-                        int(row["timestamp"]),
-                    )
-            else:
-                period_start = -1
-
-        return avoidance_active_periods
 
     @classmethod
     def average(cls, trajectories: List[Trajectory]) -> Trajectory:

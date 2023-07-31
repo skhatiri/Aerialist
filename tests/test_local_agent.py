@@ -1,7 +1,6 @@
 import unittest
 import os
 import logging
-from aerialist.px4.command import Command, DefaultCommands
 from aerialist.px4.drone import Drone
 from aerialist.px4.drone_test import (
     AssertionConfig,
