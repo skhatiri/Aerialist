@@ -5,13 +5,11 @@ import logging
 from mavsdk import asyncio
 import keyboard
 
-from aerialist.px4 import timeserie_helper
-from aerialist.px4.obstacle import Obstacle
+from . import timeserie_helper, file_helper
 from .command import Command, FlightMode, DefaultCommands
 from .drone import Drone
 from .position import Position
 from .trajectory import Trajectory
-from . import file_helper
 
 logger = logging.getLogger(__name__)
 
