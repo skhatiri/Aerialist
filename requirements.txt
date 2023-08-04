@@ -16,4 +16,4 @@ munch==2.5.0
 rospkg==1.4.0
 defusedxml==0.7.1
 tslearn==0.5.2
-h5py==1.23.2
+h5py==3.9.0
