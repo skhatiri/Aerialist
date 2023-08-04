@@ -16,7 +16,7 @@ RUN pip3 install -r requirements.txt
 COPY . .
 RUN chmod +x ./aerialist/__main__.py
 COPY ./template.env ./.env
-RUN mkdir -p /io/ ./results/logs/
+RUN mkdir -p /io/ ./results/logs/ tmp/
 
 # ENTRYPOINT [ "./run.py" ]
 # CMD [ "--help" ]

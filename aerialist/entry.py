@@ -220,7 +220,7 @@ def execute_test(test: DroneTest):
         agent = K8sAgent(test)
 
     logger.info("running the test...")
-    test_results = agent.run(test)
+    test_results = agent.run()
 
     logger.info("test finished...")
     return test_results
