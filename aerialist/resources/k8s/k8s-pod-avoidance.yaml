@@ -9,7 +9,6 @@ spec:
   containers:
     - imagePullPolicy: Always
       name: sim
-      __active: true
       image: skhatiri/aerialist
       stdin: true
       stdinOnce: true
@@ -41,7 +40,6 @@ spec:
         requests: {}
     - imagePullPolicy: Always
       name: init
-      __active: true
       image: skhatiri/aerialist:k8s
       stdin: true
       stdinOnce: false

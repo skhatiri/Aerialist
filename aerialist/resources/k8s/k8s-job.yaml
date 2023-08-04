@@ -15,7 +15,6 @@ spec:
       containers:
         - imagePullPolicy: Always
           name: container-0
-          __active: true
           image: skhatiri/aerialist
           stdin: true
           stdinOnce: false
@@ -63,11 +62,8 @@ spec:
       restartPolicy: Never
   completions: 1
   suspend: false
-  replicas: 1
 #  activeDeadlineSeconds: int
   backoffLimit: 5
   completionMode: NonIndexed
-#  manualSelector: boolean
   parallelism: 1
   ttlSecondsAfterFinished: 60
-__clone: true
