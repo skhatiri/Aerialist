@@ -113,3 +113,13 @@ class Obstacle(object):
         for i in range(0, len(coordinates), 7):
             obst.append(Obstacle.from_coordinates(coordinates[i : i + 7]))
         return obst
+
+    @classmethod
+    def from_dict_list(cls, obstacle_list):
+        obst = []
+        for data in obstacle_list:
+            size_object = Position(data.size.x, data.size.y, data.size.z)
+            position_object = Position(data.position.x, data.position.y, data.position.z)
+            obstacle = Obstacle(size_object, position_object, data.angle)
+            obst.append(obstacle)
+        return obst

@@ -6,8 +6,17 @@ drone:
 simulation:
   simulator: ros #{gazebo, jmavsim, ros} 
   speed: 1
-  headless: false
-  obstacles: [5,5,5,  -8,3,0,  0] # size,position,orientation of a box
+  headless: true
+  obstacles:
+  - size:
+      x: 6
+      y: 6
+      z: 10
+    position:
+      x: -20
+      y: 50
+      z: 4
+    angle: 0
 
 test:
   commands_file: samples/flights/mission1-commands.csv
