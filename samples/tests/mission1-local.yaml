@@ -1,20 +1,33 @@
 drone:
   port: ros #{sitl, ros, cf}
-  params_file: samples/flights/mission1-params.csv 
-  mission_file: samples/flights/mission1.plan
+  params_file: samples/flights/auto-params.csv #csv file with the same structure as above
+  mission_file: samples/flights/scenario1_10m.plan #5m trajectory altitude
 
 simulation:
-  simulator: ros #{gazebo, jmavsim, ros} 
+  simulator: ros #{gazebo, jmavsim, ros}
   speed: 1
-  headless: false
-  obstacles: [5,5,5,  -8,3,0,  0] # size,position,orientation of a box
+  headless: true
+  obstacles:
+    - size:
+        x: 6
+        y: 6
+        z: 10
+      position:
+        x: -20
+        y: 50
+        z: 4
+      angle: 0
+      shape: BOX
+  pattern_design:
+    - chequered
+  world_file_name: ["simple_obstacle_scenario1"]
 
 test:
-  commands_file: samples/flights/mission1-commands.csv
+  commands_file: samples/flights/auto_commands.csv
   speed: 1
 
 assertion:
-  log_file: samples/flights/mission1.ulg
+  # log_file: samples/flights/log-test_case_2-normal-5m.ulg
   variable: trajectory
 
 agent:

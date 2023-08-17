@@ -1,9 +1,8 @@
 from datetime import datetime
 from time import sleep
-from typing import List
 from decouple import config
 from pandas.core.frame import DataFrame
-from pyulog import ULog
+from pyulog import ulog2csv
 import pandas as pd
 import os.path
 import shutil
@@ -21,26 +20,10 @@ RETRIES = 0
 
 def get_local_file(file_path: str):
     if validators.url(file_path):
-        local_add = download(file_path, config("WEBDAV_DL_FLD", default="tmp/"))
+        local_add = download(file_path, config("WEBDAV_DL_FLD", default="/tmp/"))
         return local_add
     elif path.exists(file_path):
         return file_path
-    else:
-        raise Exception("path does not exist")
-
-
-def get_local_folder(folder_path: str):
-    if validators.url(folder_path):
-        if folder_path.endswith("/"):
-            folder = folder_path.split("/")[-2]
-        else:
-            folder = folder_path.split("/")[-1]
-        local_add = download_dir(
-            folder_path, f'{config("WEBDAV_DL_FLD", default="tmp/")}{folder}/'
-        )
-        return local_add
-    elif path.exists(folder_path):
-        return folder_path
     else:
         raise Exception("path does not exist")
 
@@ -63,16 +46,18 @@ def init_webdav():
 init_webdav()
 
 
-def extract(log_address: str, topic: str, columns: List[str] = None) -> DataFrame:
-    """extracts specific messages from the input log and returns the dataframe object"""
-    ulog = ULog(log_address, topic, True)
-    if len(ulog.data_list) == 0:
-        return None
-    if columns is None:
-        df = pd.DataFrame(ulog.data_list[0].data)
+def extract(log_address: str, topic: str, use_cache=True) -> DataFrame:
+    """extracts specific messages from the input log and returns the csv object"""
+
+    csv_add = f"{log_address[:-4]}_{topic}_0.csv"
+    if not (use_cache and os.path.isfile(csv_add)):
+        ulog2csv.convert_ulog2csv(log_address, topic, None, ",")
+
+    if os.path.isfile(csv_add):
+        data = pd.read_csv(csv_add)
+        return data
     else:
-        df = pd.DataFrame({c: ulog.data_list[0].data[c] for c in columns})
-    return df
+        return None
 
 
 def copy(src_file: str, dest_file: str) -> bool:
@@ -184,3 +169,11 @@ def create_dir(path: str):
 def get_logs_address(path):
     files = [path + f for f in os.listdir(path) if f.endswith(".ulg")]
     return files
+
+
+def zip_folder(file_path_list):
+    zip_list = []
+    for temp_file_path in file_path_list:
+        shutil.make_archive(temp_file_path, 'zip', root_dir=temp_file_path)
+        zip_list.append(temp_file_path + ".zip")
+    return zip_list

@@ -16,11 +16,11 @@ class Obstacle(object):
     CENTER_POSITION = True
 
     def __init__(
-        self,
-        size: Position,
-        position: Position,
-        angle: float = 0,
-        shape: str = BOX,
+            self,
+            size: Position,
+            position: Position,
+            angle: float = 0,
+            shape: str = BOX,
     ) -> None:
         super().__init__()
         if shape == self.BOX:
@@ -34,6 +34,7 @@ class Obstacle(object):
             self.size = size
             self.position = position
             self.angle = angle
+            # self.shape = self.BOX
 
     def center(self):
         return Position(
@@ -64,7 +65,7 @@ class Obstacle(object):
             self.position.x,
             self.position.y,
             self.position.z,
-            self.angle,
+            self.angle
         ]
 
     def plt_patch(self):
@@ -111,7 +112,17 @@ class Obstacle(object):
     def from_coordinates_multiple(cls, coordinates: List[float]):
         obst = []
         for i in range(0, len(coordinates), 7):
-            obst.append(Obstacle.from_coordinates(coordinates[i : i + 7]))
+            obst.append(Obstacle.from_coordinates(coordinates[i: i + 7]))
+        return obst
+
+    @classmethod
+    def from_dict_list(cls, obstacle_list):
+        obst = []
+        for data in obstacle_list:
+            size_object = Position(data.size.x, data.size.y, data.size.z)
+            position_object = Position(data.position.x, data.position.y, data.position.z)
+            obstacle = Obstacle(size_object, position_object, data.angle)
+            obst.append(obstacle)
         return obst
 
     # def estimate_box_pose(

@@ -1,0 +1,1 @@
+python3 aerialist exec --test samples/tests/mission1-local.yaml

@@ -1,0 +1,96 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-test
+  labels:
+    {}
+spec:
+  selector:
+    matchLabels:
+  template:
+    metadata:
+      labels:
+        {}
+    spec:
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: k8s-config
+          name: vol-k8s-conf
+      containers:
+        - imagePullPolicy: Always
+          name: init
+          __active: true
+          image: skhatiri/aerialist:k8s
+          stdin: true
+          stdinOnce: false
+          command:
+            - /bin/bash 
+            - -c 
+            - /bin/sleep 10 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
+          env:
+            - name: COMMAND
+              value: "python3 aerialist --help"
+          volumeMounts:
+            - mountPath: /root/.kube/config
+              name: vol-k8s-conf
+              readOnly: true
+              subPath: k8s-config.yaml
+          tty: true
+          resources:
+            limits:
+              cpu: 100m
+              memory: 250Mi
+            requests: {}
+        - imagePullPolicy: Always
+          name: sim
+          __active: true
+          image: prasun20/aerialist
+          stdin: true
+          stdinOnce: true
+          command: 
+          tty: true
+          env:
+            - name: WEBDAV_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: host        
+            - name: WEBDAV_ROOT
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: root               
+            - name: WEBDAV_USER
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: user           
+            - name: WEBDAV_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: webdav
+                  key: pass          
+          resources:
+            requests:
+              cpu: 6000m
+              memory: 2000Mi
+            limits:
+              cpu: 6000m
+              memory: 4000Mi
+      affinity:
+      imagePullSecrets:
+        - name: dockerhub
+      initContainers:
+      restartPolicy: Never
+      activeDeadlineSeconds: 600
+  completions: 1
+  suspend: false
+  replicas: 1
+  # activeDeadlineSeconds: 1000
+  backoffLimit: 5
+  completionMode: NonIndexed
+#  manualSelector: boolean
+  parallelism: 1
+  ttlSecondsAfterFinished: 60
+__clone: true

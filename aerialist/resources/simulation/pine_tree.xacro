@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="oak_tree">
+  <link name="$(arg name)">
+    <static>true</static>
+    <collision>
+      <geometry>
+        <mesh filename = "/home/prasun/.gazebo/models/oak_tree/meshes/oak_tree.dae"/>
+      </geometry>
+    </collision>
+    <visual name="branch">
+      <geometry>
+        <mesh filename = "/home/prasun/.gazebo/models/oak_tree/meshes/oak_tree.dae"/>
+          <submesh name = "Branch"/>
+      </geometry>
+      <material>
+        <script filename = "/home/prasun/.gazebo/models/oak_tree/scripts"/> 
+        <script filename = "/home/prasun/.gazebo/models/oak_tree/textures" name="OakTree/Branch"/>
+      </material>
+    </visual>
+    <visual name="bark">
+      <geometry>
+        <mesh filename = "/home/prasun/.gazebo/models/oak_tree/meshes/oak_tree.dae"/>
+          <submesh name = "Bark"/>
+      </geometry>
+      <material>
+        <script filename = "/home/prasun/.gazebo/models/oak_tree/scripts"/>
+        <script filename = "/home/prasun/.gazebo/models/oak_tree/textures" name="OakTree/Bark"/>
+      </material>
+    </visual>
+  </link>
+</robot>

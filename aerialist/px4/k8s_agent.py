@@ -34,7 +34,7 @@ class K8sAgent(DockerAgent):
     def run(self, config: DroneTest):
         cmd = self.format_command(self.k8s_config)
 
-        logger.debug("docker command:" + cmd)
+        logger.info("docker command:" + cmd)
         kube_cmd = self.KUBE_CMD.format(
             name=self.config.agent.id,
             command=cmd,
@@ -43,7 +43,7 @@ class K8sAgent(DockerAgent):
             if self.config.simulation.simulator == SimulationConfig.ROS
             else self.DEFAULT_KUBE_TEMPLATE,
         )
-        logger.debug("k8s command:" + kube_cmd)
+        logger.info("k8s command:" + kube_cmd)
         logger.info("creating k8s job")
         kube_prc = subprocess.run(kube_cmd, shell=True)
         if kube_prc.returncode == 0:

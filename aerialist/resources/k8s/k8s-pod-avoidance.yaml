@@ -6,21 +6,58 @@ metadata:
     {}
 
 spec:
+  volumes:
+    - configMap:
+        defaultMode: 420
+        name: k8s-config
+      name: vol-k8s-conf
   containers:
     - imagePullPolicy: Always
+      name: init
+      image: skhatiri/aerialist:k8s
+      stdin: true
+      stdinOnce: false
+      command:
+#      command:
+#         - /bin/bash
+#         - -c
+#         - /bin/sleep 10 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
+#      command: ["/bin/bash"]
+#      args: ["-c","python3 aerialist exec --test samples/tests/mission1-local.yaml"]
+      env:
+        - name: COMMAND
+          value: "python3 aerialist --help"
+      volumeMounts:
+        - mountPath: /root/.kube/config
+          name: vol-k8s-conf
+          readOnly: true
+          subPath: k8s-config.yaml
+      tty: true
+      resources:
+        limits:
+          cpu: 100m
+          memory: 250Mi
+        requests: {}
+    - imagePullPolicy: Always
       name: sim
-      __active: true
-      image: skhatiri/aerialist
+      image: prasun20/aerialist
       stdin: true
       stdinOnce: true
-      command: 
+      command:
       tty: true
       env:
+        - name: COMMAND
+          value: "python3 aerialist --help"
         - name: WEBDAV_HOST
           valueFrom:
             secretKeyRef:
               name: webdav
               key: host        
+        - name: WEBDAV_ROOT
+          valueFrom:
+            secretKeyRef:
+              name: webdav
+              key: root               
         - name: WEBDAV_USER
           valueFrom:
             secretKeyRef:
@@ -30,34 +67,14 @@ spec:
           valueFrom:
             secretKeyRef:
               name: webdav
-              key: pass          
+              key: pass
       resources:
         requests:
-          cpu: 1000m
-          memory: 1000Mi
+          cpu: 6000m
+          memory: 2000Mi
         limits:
-          cpu: 7000m
-          memory: 1500Mi
-        requests: {}
-    - imagePullPolicy: Always
-      name: init
-      __active: true
-      image: skhatiri/aerialist:k8s
-      stdin: true
-      stdinOnce: false
-      command:
-        - /bin/bash 
-        - -c 
-        - /bin/sleep 5 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
-      env:
-        - name: COMMAND
-          value: "timeout 600 python3 aerialist exec --obst 15 0 2.5 1 10 5 --cloud --mission resources/logs/m0.plan --params resources/simulation/params_avoidance.csv --output ASE2022/obst/ --drone ros --env avoidance --headless experiment replay"
-      tty: true
-      resources:
-        limits:
-          cpu: 50m
-          memory: 50Mi
-        requests: {}
+          cpu: 6000m
+          memory: 4000Mi
   affinity:
   imagePullSecrets:
     - name: dockerhub

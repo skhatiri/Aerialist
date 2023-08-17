@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Define the oak_tree model -->
+  <xacro:macro name="oak_tree">
+    <link name="link">
+      <!-- Define collision -->
+      <collision name="collision">
+        <geometry>
+          <mesh filename="/home/prasun/.gazebo/models/meshes/oak_tree.dae"/>
+        </geometry>
+      </collision>
+      <!-- Visual for the branch -->
+      <xacro:visual_mesh name="branch" mesh_name="Branch"/>
+      <!-- Visual for the bark -->
+      <xacro:visual_mesh name="bark" mesh_name="Bark"/>
+    </link>
+  </xacro:macro>
+
+  <!-- Macro to define visual elements with meshes and materials -->
+  <xacro:macro name="visual_mesh" params="name mesh_name">
+    <visual name="${name}">
+      <geometry>
+        <mesh filename="/home/prasun/.gazebo/models/meshes/oak_tree.dae"/>
+        <submesh name="${mesh_name}"/>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://oak_tree/materials/scripts/</uri>
+          <uri>model://oak_tree/materials/textures/</uri>
+          <name>OakTree/${name}</name>
+        </script>
+      </material>
+    </visual>
+  </xacro:macro>
+
+  <!-- Include the oak_tree model in the main URDF file -->
+  <xacro:oak_tree/>
+
+</robot>

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="aerialist",
-    version="0.1.16",
+    version="0.1.1",
     author="Sajad Khatiri",
     author_email="s.khatiri@gmail.com",
     description="UAV Test Bench",
@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/skhatiri/Aerialist",
     project_urls={"Bug Tracker": "https://github.com/skhatiri/Aerialist/issues"},
-    license="MIT",
+    license="GNU GPLv3",
     packages=setuptools.find_packages(),
     python_requires=">=3.7",
     include_package_data=True,

@@ -1,0 +1,41 @@
+ - type: "cube"
+   name: "box1"
+   frame_id: "local_origin"
+   mesh_resource: ""
+   position: [20.0, 0.0, 1.25]
+   orientation: [0.0, 0.0, 0.0, 1.0]
+   scale: [10.0, 20.0, 2.5]
+
+ - type: "cube"
+   name: "box2"
+   frame_id: "local_origin"
+   mesh_resource: ""
+   position: [27, 0.0, 2.0]
+   orientation: [0.0, 0.0, 0.0, 1.0]
+   scale: [4.0, 20.0, 4.0]
+
+ - type: "cube"
+   name: "box3"
+   frame_id: "local_origin"
+   mesh_resource: ""
+   position: [33.0, 0.0, 0.5]
+   orientation: [0.0, 0.0, 0.0, 1.0]
+   scale: [8.0, 20.0, 1.0]
+
+ - type: "cube"
+   name: "box4"
+   frame_id: "local_origin"
+   mesh_resource: ""
+   position: [48, 0.0, 0.5]
+   orientation: [0.0, 0.0, 0.0, 1.0]
+   scale: [8.0, 20.0, 1.0]
+
+ - type: "cube"
+   name: "box5"
+   frame_id: "local_origin"
+   mesh_resource: ""
+   position: [18, 0.0, 4.5]
+   orientation: [0.0, 0.0, 0.0, 1.0]
+   scale: [2.0, 3.0, 4.0]
+
+

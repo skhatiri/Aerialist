@@ -1,10 +1,12 @@
 #!/usr/bin/python3
+import subprocess
 from argparse import ArgumentParser
 import logging
 import os
 import sys
 from decouple import config
-
+from external_subprocess import run_subprocess
+from ext_proc import run_proc
 
 try:
     from .px4.k8s_agent import K8sAgent
@@ -18,7 +20,6 @@ try:
         TestConfig,
         AgentConfig,
         Plot,
-        DroneTestResult,
     )
 except:
     from px4.k8s_agent import K8sAgent
@@ -32,7 +33,6 @@ except:
         TestConfig,
         AgentConfig,
         Plot,
-        DroneTestResult,
     )
 
 
@@ -87,6 +87,36 @@ def arg_parse():
         default=[],
     )
     parser.add_argument(
+        "--pattern",
+        nargs=1,
+        help="flag to put a patten on the obstacle 1 being spawned",
+        default="_"
+    )
+    parser.add_argument(
+        "--pattern2",
+        nargs=1,
+        help="flag to put a patten on the obstacle 2 being spawned",
+        default="_"
+    )
+    parser.add_argument(
+        "--pattern_design",
+        nargs=1,
+        help="name of the pattern type among chequered or sticker",
+        default=[],
+    )
+    parser.add_argument(
+        "--pattern_design2",
+        nargs=1,
+        help="name of the pattern type among chequered or sticker",
+        default=[],
+    )
+    parser.add_argument(
+        "--world_file_name",
+        nargs=1,
+        help="name of the world file name",
+        default="collision_prevention",
+    )
+    parser.add_argument(
         "--headless",
         action="store_true",
         default=config("HEADLESS", default=False, cast=bool),
@@ -107,7 +137,6 @@ def arg_parse():
         help="home position to place the drone: [lat,lon,alt] in order",
         default=None,
     )
-
     # test configs
     parser.add_argument(
         "--commands",
@@ -148,19 +177,6 @@ def arg_parse():
 
     parser.set_defaults(func=run_experiment)
 
-    # plotting parser
-    plot_parser = subparsers.add_parser(
-        name="plot", description="plot an executed test"
-    )
-    plot_parser.add_argument("--test", default=None, help="test description yaml file")
-    plot_parser.add_argument(
-        "--log",
-        "--logs",
-        default=None,
-        help="test log file address / parallel tests logs folder address",
-    )
-    plot_parser.set_defaults(func=plot_test)
-
     args = main_parser.parse_args()
     return args
 
@@ -180,7 +196,10 @@ def run_experiment(args):
             speed=args.speed,
             headless=args.headless,
             obstacles=args.obstacle + args.obstacle2,
+            pattern=args.pattern + args.pattern2,
+            pattern_design=args.pattern_design + args.pattern_design2,
             home_position=args.home,
+            world_file_name=args.world_file_name
         )
         test_config = TestConfig(
             commands_file=args.commands,
@@ -226,20 +245,6 @@ def execute_test(test: DroneTest):
     return test_results
 
 
-def plot_test(args):
-    if args.test is not None:
-        test = DroneTest.from_yaml(args.test)
-    else:
-        test = DroneTest()
-    if args.log is not None:
-        if args.log.endswith(".ulg"):
-            test_results = [DroneTestResult(args.log)]
-        else:
-            test_results = DroneTestResult.load_folder(args.log)
-
-    Plot(test, test_results)
-
-
 def config_loggers():
     os.makedirs("logs/", exist_ok=True)
     logging.basicConfig(
@@ -272,8 +277,21 @@ def main():
     try:
         config_loggers()
         args = arg_parse()
+        disparity_m_pro = run_subprocess(
+            config("HISTOGRAM_IMAGE"),
+            config("POINTCLOUD_IMAGE"),
+            config("DISPARITY_IMAGE"),
+            config("RAW_IMAGE"))
         logger.info(f"preparing the test ...{args}")
-        args.func(args)
+        # command = "exec roslaunch inter_images test.launch"
+        # sub_proc = subprocess.run(command, shell=True)
+        run_experiment(args)
+        # sub_proc.kill()
+        # histogram_pro.kill()
+        # # pointcloud_pro.kill()
+        # disparity_pro.kill()
+        # raw_pro.kill()
+        disparity_m_pro.kill()
 
     except Exception as e:
         logger.exception("program terminated:" + str(e), exc_info=True)

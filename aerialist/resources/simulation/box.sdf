@@ -1,0 +1,36 @@
+<sdf version='1.6'>
+  <model name='box'>
+    <link name='box'>
+      <pose frame=''>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <mass>100</mass>
+        <inertia>
+          <ixx>1088</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>550</iyy>
+          <iyz>0</iyz>
+          <izz>1088</izz>
+        </inertia>
+      </inertial>
+      <collision name='box_collision'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name='box_visual'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>6 6 10</scale>
+            <uri>/home/prasun/Downloads/Test-Aerialist/Aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

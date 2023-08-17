@@ -1,25 +1,27 @@
 drone:
   port: ros #{sitl, ros, cf}
-  params_file: samples/flights/mission1-params.csv #csv file with the same structure as above 
-  mission_file: samples/flights/mission1.plan
+  params_file: samples/flights/auto-params.csv #csv file with the same structure as above 
+  mission_file: samples/flights/scenario1_10m.plan
 
 simulation:
   simulator: ros #{gazebo, jmavsim, ros} 
   speed: 1
   headless: true
-  obstacles: [5,5,5,  -8,3,0,  0] #propetries of box shaped obstacles, [l,w,h,x,y,z,r]
-  # home_position: [lat,lon,alt]  
+  obstacles: [6,6,10,  -9,35,4,  0] # size,position,orientation of a box
+  pattern_design: ["chequered"]
+  world_file_name: ["simple_obstacle_scenario1"]
+
 test:
-  commands_file: samples/flights/mission1-commands.csv
+  commands_file: samples/flights/auto_commands.csv
   speed: 1
 
 assertion:
-  log_file: samples/flights/mission1.ulg
-  # variable: trajectory
+  # log_file: samples/flights/log-test_case_2-normal-5m.ulg
+  variable: trajectory
 
 agent:
   engine: k8s # {k8s, docker, local}
-  count: 5
+  count: 1
   path: https://filer.cloudlab.zhaw.ch/remote.php/webdav/test/
   id: yaml-test
 
