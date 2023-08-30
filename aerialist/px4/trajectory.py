@@ -235,8 +235,10 @@ class Trajectory(object):
             p.x -= origin.x
             p.y -= origin.y
             p.z -= origin.z
-            p.timestamp -= origin.timestamp
-            p.r -= origin.r
+            if origin.timestamp is not None:
+                p.timestamp -= origin.timestamp
+            if origin.r is not None:
+                p.r -= origin.r
 
     def distance(self, other: Trajectory) -> float:
         """quantify the difference between the two trajectoryies using Dynamic Time Warping and normalized datapoints"""
@@ -448,6 +450,89 @@ class Trajectory(object):
         traj = cls(positions)
         if cls.RESAMPLE:
             traj = traj.downsample_time()
+        return traj
+
+    @classmethod
+    def extract_waypoints(cls, log_address: str):
+        """extracts and returns trajectory logs from the input log"""
+        positions: List[Position] = []
+
+        # waypoints
+        waypoints = file_helper.extract(log_address, "vehicle_trajectory_waypoint")
+        waypoints = waypoints[
+            [
+                "timestamp",
+                "waypoints[0].position[0]",
+                "waypoints[0].position[1]",
+                "waypoints[0].position[2]",
+                "waypoints[0].yaw",
+            ]
+        ]
+        waypoints.columns = ["timestamp", "x", "y", "z", "heading"]
+        for row in waypoints.itertuples():
+            pos = Position(
+                row.x,
+                row.y,
+                -row.z,
+                row.heading,
+                timestamp=row.timestamp,
+            )
+            positions.append(pos)
+
+        if cls.REMOVE_OFFSET:
+            offset = positions[0].timestamp
+            for p in positions:
+                p.timestamp -= offset
+
+        if cls.ALLIGN_ORIGIN:
+            origin = copy.deepcopy(positions[0])
+            for p in positions:
+                p.x -= origin.x
+                p.y -= origin.y
+                p.z -= origin.z
+                p.r -= origin.r
+
+        traj = cls(positions)
+        # if cls.RESAMPLE:
+        #     traj = traj.downsample_time()
+        return traj
+
+    @classmethod
+    def extract_groundtruth(cls, log_address: str):
+        """extracts and returns trajectory logs from the input log"""
+        positions: List[Position] = []
+
+        # waypoints
+        waypoints = file_helper.extract(
+            log_address, "vehicle_local_position_groundtruth"
+        )
+        waypoints = waypoints[["timestamp", "x", "y", "z", "heading"]]
+        for row in waypoints.itertuples():
+            pos = Position(
+                row.x,
+                row.y,
+                -row.z,
+                row.heading,
+                timestamp=row.timestamp,
+            )
+            positions.append(pos)
+
+        if cls.REMOVE_OFFSET:
+            offset = positions[0].timestamp
+            for p in positions:
+                p.timestamp -= offset
+
+        if cls.ALLIGN_ORIGIN:
+            origin = copy.deepcopy(positions[0])
+            for p in positions:
+                p.x -= origin.x
+                p.y -= origin.y
+                p.z -= origin.z
+                p.r -= origin.r
+
+        traj = cls(positions)
+        # if cls.RESAMPLE:
+        #     traj = traj.downsample_time()
         return traj
 
     @classmethod

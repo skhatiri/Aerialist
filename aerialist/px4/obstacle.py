@@ -93,10 +93,6 @@ class Obstacle(object):
     @classmethod
     def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
         boxes = [o.geometry for o in obstacles]
-        # for i in range(len(boxes)):
-        #     for j in range(i + 1, len(boxes)):
-        #         if boxes[i].intersects(boxes[j]):
-        #             return 1000
         dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
         return dist
 

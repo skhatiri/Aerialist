@@ -2,6 +2,7 @@ from __future__ import annotations
 import math
 from statistics import mean
 from typing import List
+from shapely.geometry import Point
 
 
 class Position(object):
@@ -30,6 +31,9 @@ class Position(object):
         delta_x = distance * math.cos(self.r)
         delta_y = distance * math.sin(self.r)
         return Position(self.x + delta_x, self.y + delta_y, self.z, self.r)
+
+    def to_geometry(self):
+        return Point(self.x, self.y)
 
     def to_dict(self):
         return {
