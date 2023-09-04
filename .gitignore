@@ -1,7 +1,6 @@
 logs/
 tmp/**
 .env
-.idea/
 k8s-config.yaml
 venv/
 results/
@@ -52,3 +51,4 @@ debugpy*.log
 pydevd*.log
 nodeLanguageServer/**
 nodeLanguageServer.*/**
+.idea/
