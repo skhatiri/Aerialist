@@ -118,8 +118,8 @@ class Obstacle(object):
     def from_dict_list(cls, obstacle_list):
         obst = []
         for data in obstacle_list:
-            size_object = Position(data.size.x, data.size.y, data.size.z)
+            size_object = Position(data.size.l, data.size.w, data.size.h)
             position_object = Position(data.position.x, data.position.y, data.position.z)
-            obstacle = Obstacle(size_object, position_object, data.angle)
+            obstacle = Obstacle(size_object, position_object, data.position.angle)
             obst.append(obstacle)
         return obst

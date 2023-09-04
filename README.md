@@ -100,7 +100,25 @@ simulation:
   simulator: ros # the simulator environment to run {gazebo,jmavsim,ros} 
   speed: 1 # the simulator speed relative to real time
   headless: true # whether to run the simulator headless
-  obstacles: [5,5,5,  10,5,0,  0] # propetries (size, position, and rotation) of box shaped obstaclesto put in simulation environment: [l,w,h,x,y,z,r]
+  obstacles:
+  - size: # Object 1 size in l,w,h
+      l: 6
+      w: 6
+      h: 10
+    position: # Object 1 position in x,y,z and it's rotation
+      x: -20
+      y: 50
+      z: 4
+      angle: 0
+  - size: # Object 2 size in l,w,h
+      l: 6
+      w: 6
+      h: 10
+    position:  # Object 2 position in x,y,z and it's rotation
+      x: -20
+      y: 50
+      z: 4
+      angle: 0
   # home_position: # home position to place the drone [lat,lon,alt]  
 test:
   commands_file: samples/flights/mission1-commands.csv # runtime commands file address
@@ -117,6 +135,24 @@ agent:
   id: yaml-test # k8s job id (only for k8s)
 
 ```
+
+The obstacles can be also added in the simulation in below format.
+
+```yaml
+obstacles: [5,5,5,  10,5,0,  0]
+```
+
+and the resulting simulation section in the yaml file will look like this:
+```yaml
+simulation:
+  simulator: ros # the simulator environment to run {gazebo,jmavsim,ros} 
+  speed: 1 # the simulator speed relative to real time
+  headless: true # whether to run the simulator headless
+  obstacles: [5,5,5,  10,5,0,  0] # propetries (size, position, and rotation) of box shaped obstaclesto put in simulation environment: [l,w,h,x,y,z,r]
+  # home_position: # home position to place the drone [lat,lon,alt] 
+```
+
+However, we suggest to use the first format for defining obstacles for better readability.
 
 More sample tests can be found [here](samples/tests/)
 

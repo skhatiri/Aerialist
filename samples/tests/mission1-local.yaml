@@ -9,14 +9,14 @@ simulation:
   headless: true
   obstacles:
   - size:
-      x: 6
-      y: 6
-      z: 10
+      l: 6
+      w: 6
+      h: 10
     position:
       x: -20
       y: 50
       z: 4
-    angle: 0
+      angle: 0
 
 test:
   commands_file: samples/flights/mission1-commands.csv

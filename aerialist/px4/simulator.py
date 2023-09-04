@@ -32,8 +32,8 @@ class Simulator(object):
         self.config = config
 
         sim_command = ""
-        if config.home_position is not None:
-            sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
+        # if config.home_position is not None:
+        #     sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
         self.log_file = None
         if (
             self.config.simulator == SimulationConfig.GAZEBO
@@ -66,7 +66,7 @@ class Simulator(object):
                 if len(self.config.obstacles) > 1:
                     sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
 
-        logger.debug("executing:" + sim_command)
+        logger.info("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
             sim_command,
             shell=True,
