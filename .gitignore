@@ -1,6 +1,7 @@
 logs/
 tmp/**
 .env
+.idea/
 k8s-config.yaml
 venv/
 results/
