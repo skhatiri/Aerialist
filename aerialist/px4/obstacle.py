@@ -122,7 +122,7 @@ class Obstacle(object):
         return Obstacle(size_object, position_object, obstacle.position.angle)
 
     @classmethod
-    def from_dict_list(cls, obstacle_list: List[munch.DefaultMunch]):
+    def from_obstacle_list(cls, obstacle_list: List[munch.DefaultMunch]):
         obst = []
         for obstacle in obstacle_list:
             obst.append(Obstacle.from_obstacle_def(obstacle))
