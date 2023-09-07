@@ -17,11 +17,11 @@ class Obstacle(object):
     CENTER_POSITION = True
 
     def __init__(
-            self,
-            size: Position,
-            position: Position,
-            angle: float = 0,
-            shape: str = BOX,
+        self,
+        size: Position,
+        position: Position,
+        angle: float = 0,
+        shape: str = BOX,
     ) -> None:
         super().__init__()
         if shape == self.BOX:
