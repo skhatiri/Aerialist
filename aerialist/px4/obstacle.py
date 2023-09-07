@@ -6,6 +6,7 @@ import matplotlib.patches as mpatches
 from decouple import config
 import logging
 from .position import Position
+import munch
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +17,11 @@ class Obstacle(object):
     CENTER_POSITION = True
 
     def __init__(
-            self,
-            size: Position,
-            position: Position,
-            angle: float = 0,
-            shape: str = BOX,
+        self,
+        size: Position,
+        position: Position,
+        angle: float = 0,
+        shape: str = BOX,
     ) -> None:
         super().__init__()
         if shape == self.BOX:
@@ -34,7 +35,6 @@ class Obstacle(object):
             self.size = size
             self.position = position
             self.angle = angle
-            # self.shape = self.BOX
 
     def center(self):
         return Position(
@@ -65,7 +65,7 @@ class Obstacle(object):
             self.position.x,
             self.position.y,
             self.position.z,
-            self.angle
+            self.angle,
         ]
 
     def plt_patch(self):
@@ -116,91 +116,14 @@ class Obstacle(object):
         return obst
 
     @classmethod
-    def from_dict_list(cls, obstacle_list):
+    def from_obstacle_def(cls, obstacle: munch.DefaultMunch):
+        size_object = Position(obstacle.size.l, obstacle.size.w, obstacle.size.h)
+        position_object = Position(obstacle.position.x, obstacle.position.y, obstacle.position.z)
+        return Obstacle(size_object, position_object, obstacle.position.angle)
+
+    @classmethod
+    def from_obstacle_list(cls, obstacle_list: List[munch.DefaultMunch]):
         obst = []
-        for data in obstacle_list:
-            size_object = Position(data.size.x, data.size.y, data.size.z)
-            position_object = Position(data.position.x, data.position.y, data.position.z)
-            obstacle = Obstacle(size_object, position_object, data.angle)
-            obst.append(obstacle)
+        for obstacle in obstacle_list:
+            obst.append(Obstacle.from_obstacle_def(obstacle))
         return obst
-
-    # def estimate_box_pose(
-    #     self, positions: List[Position], size: Position = None
-    # ) -> Tuple[Position, Position]:
-    #     min_pos = Position(
-    #         min(p.x for p in positions),
-    #         min(p.y for p in positions),
-    #         min(abs(p.z) for p in positions),
-    #     )
-    #     max_pos = Position(
-    #         max(p.x for p in positions),
-    #         max(p.y for p in positions),
-    #         max(abs(p.z) for p in positions),
-    #     )
-    #     if size == None:
-    #         size = (max_pos.x - min_pos.x, max_pos.y - min_pos.y, max_pos.z)
-
-    #     location = Position(
-    #         (max_pos.x + min_pos.x) / 2,
-    #         (max_pos.y + min_pos.y) / 2,
-    #         size[2] / 2,
-    #     )
-
-    #     logger.info(location, size)
-    #     return location, size
-
-    # @classmethod
-    # def extract_from_log(cls, log_address: str, size: Position = None):
-    #     """extracts and returns detected obstacle borders from the input log"""
-
-    #     avoidance_active_periods = Trajectory.extract_CP_active_periods(log_address)
-
-    #     points: List[Position] = []
-    #     idx = 0
-
-    #     obstacle_distance = ulog_helper.extract(log_address, "obstacle_distance_fused")
-    #     # dropping duplicate rows (some rows are repated in the logs with the same timestamps)
-    #     obstacle_distance.drop_duplicates("timestamp", inplace=True)
-    #     for i, row in obstacle_distance.iterrows():
-    #         tmstmp = int(row["timestamp"])
-    #         if tmstmp < avoidance_active_periods[idx][0]:
-    #             continue
-    #         elif tmstmp <= avoidance_active_periods[idx][1]:
-    #             p = Position(
-    #                 None,
-    #                 None,
-    #                 None,
-    #                 timestamp=row.timestamp,
-    #             )
-    #             p.distance = (
-    #                 float(row["distances[0]"]) / 100
-    #             )  # convert to meters (originally cm)
-    #             points.append(p)
-
-    #         else:
-    #             idx += 1
-    #             if idx >= len(avoidance_active_periods):
-    #                 break
-    #         # logger.info (points)
-
-    #     trajectory = Trajectory.extract_from_log(log_address)
-    #     trj_times = [p.timestamp for p in trajectory.positions]
-    #     for p in points:
-    #         # find nearest data in local positions
-    #         idx = timeserie_helper.find_nearest_index(trj_times, p.timestamp)
-
-    #         # updating position based on yaw angle
-    #         obstacle_point = trajectory.positions[
-    #             idx
-    #         ].get_position_in_relative_distance(p.distance)
-
-    #         p.x, p.y, p.z, p.r = (
-    #             obstacle_point.x,
-    #             obstacle_point.y,
-    #             obstacle_point.z,
-    #             obstacle_point.r,
-    #         )
-
-    #     logger.info(points)
-    #     return cls(points, size=size)

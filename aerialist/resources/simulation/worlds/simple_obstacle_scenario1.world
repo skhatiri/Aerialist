@@ -61,10 +61,10 @@
       <pose>10 0 0  0 0 0</pose>
     </include>
 
-    <!-- <include>
-      <uri>model://police_station</uri>
-      <pose>4 7 0   0 0 0</pose>
-    </include> -->
+    <include>
+      <uri>model://apartment</uri>
+      <pose>15 15 0   0 0 0</pose>
+    </include>
 
     <!-- <include>
       <name>pine_tree_2</name>

@@ -197,15 +197,10 @@ class SimulationConfig:
                 and len(obstacles) > 0
                 and not isinstance(obstacles[0], Obstacle)
         ):
-            print(f'*** obstacle is {type(obstacles[0])}')
-
             if isinstance(obstacles[0], munch.DefaultMunch):
-                print("Default munch type")
-                self.obstacles = Obstacle.from_dict_list(obstacles)
-                print(obstacles[0].size.x)
+                self.obstacles = Obstacle.from_obstacle_list(obstacles)
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
-            # self.obstacles.append(Obstacle(**obstacles[0]))
 
         if (
                 pattern is not None
@@ -219,7 +214,7 @@ class SimulationConfig:
         ):
             self.pattern_design = pattern_design
         if(
-            world_file_name is not None 
+            world_file_name is not None
             and len(world_file_name) > 0
         ):
             self.world_file_name = world_file_name
