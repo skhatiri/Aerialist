@@ -168,9 +168,7 @@ class SimulationConfig:
             and not isinstance(obstacles[0], Obstacle)
         ):
             if isinstance(obstacles[0], munch.DefaultMunch):
-                # print("Default munch type")
                 self.obstacles = Obstacle.from_dict_list(obstacles)
-                # print(obstacles[0].size.x)
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
 

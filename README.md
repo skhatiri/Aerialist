@@ -102,18 +102,18 @@ simulation:
   headless: true # whether to run the simulator headless
   obstacles:
   - size: # Object 1 size in l,w,h
-      l: 6
-      w: 6
-      h: 10
+      l: 5
+      w: 5
+      h: 5
     position: # Object 1 position in x,y,z and it's rotation
-      x: -20
-      y: 50
-      z: 4
+      x: 10
+      y: 5
+      z: 0
       angle: 0
   - size: # Object 2 size in l,w,h
-      l: 6
-      w: 6
-      h: 10
+      l: 5
+      w: 5
+      h: 5
     position:  # Object 2 position in x,y,z and it's rotation
       x: -20
       y: 50
