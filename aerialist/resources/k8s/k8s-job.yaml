@@ -28,12 +28,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: webdav
-                  key: host        
-            - name: WEBDAV_ROOT
-              valueFrom:
-                secretKeyRef:
-                  name: webdav
-                  key: root        
+                  key: host            
             - name: WEBDAV_USER
               valueFrom:
                 secretKeyRef:

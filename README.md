@@ -64,10 +64,10 @@ Aerialist can be easily depoyed on a Kubernetes cluster to facilitate running te
 
 Aerialist uses a [NextCloud](https://nextcloud.com/) instance to share files between the main container, and the parallel test executers. You can get a free account in [a cloud provider](https://nextcloud.com/sign-up/) or deploy your own [dockerized instance](https://hub.docker.com/_/nextcloud).
 
-1. Set your NextCloud credentials and address in as a k8s-Secret: `kubectl create secret generic webdav --from-literal=host=https://[your-nextcloud-address]/remote.php/dav/files/[your-account-id]/ --from-literal=root=https://[your-nextcloud-address]/remote.php/webdav/ --from-literal=user=[username] --from-literal=pass=[password]`
+1. Set your NextCloud credentials and address in as a k8s-Secret: `kubectl create secret generic webdav --from-literal=host=https://[your-nextcloud-address]/remote.php/dav/files/[your-account-id]/ --from-literal=user=[username] --from-literal=pass=[password]`
 2. Upload your [`k8s-config.yaml`](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) as a k8s-ConfigMap: `kubectl create configmap k8s-config --from-file k8s-config.yaml`
 3. You can now use `--k8s` in the commands to run the simulations in your k8s-cluster.
-`python3 aerialist exec --id case0-manual --obstacle 1 1 1 -8.1 3.1 0 0 --path https://[your-nextcloud-address]/remote.php/webdav/ --mission samples/flights/mission1.plan --log samples/flights/mission1.ulg --params samples/flights/mission1-params.csv --commands samples/flights/mission1-commands.csv --drone ros --simulator ros --agent k8s -n 5`
+`python3 aerialist exec --id case0-manual --obstacle 1 1 1 -8.1 3.1 0 0 --path webdav:// --mission samples/flights/mission1.plan --log samples/flights/mission1.ulg --params samples/flights/mission1-params.csv --commands samples/flights/mission1-commands.csv --drone ros --simulator ros --agent k8s -n 5`
 
 ### Using Pip
 
@@ -113,7 +113,7 @@ assertion:
 agent:
   engine: k8s # where to run the tests {k8s, docker, local}
   count: 5 # no. of parallel runs (only for k8s)
-  path: https://filer.cloudlab.zhaw.ch/remote.php/webdav/test/ # cloud output path to copy logs (only for k8s)
+  path: webdav://test/ # cloud output path to copy logs (only for k8s)
   id: yaml-test # k8s job id (only for k8s)
 
 ```
