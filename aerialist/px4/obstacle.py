@@ -6,6 +6,7 @@ import matplotlib.patches as mpatches
 from decouple import config
 import logging
 from .position import Position
+import munch
 
 logger = logging.getLogger(__name__)
 
@@ -107,5 +108,18 @@ class Obstacle(object):
     def from_coordinates_multiple(cls, coordinates: List[float]):
         obst = []
         for i in range(0, len(coordinates), 7):
-            obst.append(Obstacle.from_coordinates(coordinates[i : i + 7]))
+            obst.append(Obstacle.from_coordinates(coordinates[i: i + 7]))
+        return obst
+
+    @classmethod
+    def from_obstacle_def(cls, obstacle: munch.DefaultMunch):
+        size_object = Position(obstacle.size.l, obstacle.size.w, obstacle.size.h)
+        position_object = Position(obstacle.position.x, obstacle.position.y, obstacle.position.z)
+        return Obstacle(size_object, position_object, obstacle.position.angle)
+
+    @classmethod
+    def from_obstacle_list(cls, obstacle_list: List[munch.DefaultMunch]):
+        obst = []
+        for obstacle in obstacle_list:
+            obst.append(Obstacle.from_obstacle_def(obstacle))
         return obst

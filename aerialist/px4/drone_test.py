@@ -167,7 +167,10 @@ class SimulationConfig:
             and len(obstacles) > 0
             and not isinstance(obstacles[0], Obstacle)
         ):
-            self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
+            if isinstance(obstacles[0], munch.DefaultMunch):
+                self.obstacles = Obstacle.from_obstacle_list(obstacles)
+            else:
+                self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
 
 
 class TestConfig:
