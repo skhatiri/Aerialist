@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class K8sAgent(DockerAgent):
     KUBE_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value="{command}") | .spec.completions={runs} | .spec.parallelism={runs}\' {template} | kubectl apply -f - --validate=false'
+    CMD = "timeout {timeout} python3 aerialist exec --test {test_file}"
     WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
     DEFAULT_KUBE_TEMPLATE = config(
         "KUBE_TEMPLATE", default="aerialist/resources/k8s/k8s-job.yaml"
@@ -32,7 +33,10 @@ class K8sAgent(DockerAgent):
         self.k8s_config = self.import_config()
 
     def run(self):
-        cmd = self.format_command(self.k8s_config)
+        cmd = self.CMD.format(
+            test_file=self.k8s_test_yaml,
+            timeout=self.DOCKER_TIMEOUT,
+        )
 
         logger.debug("docker command:" + cmd)
         kube_cmd = self.KUBE_CMD.format(
@@ -143,7 +147,7 @@ class K8sAgent(DockerAgent):
             k8s_config.agent.count = 1
 
         self.k8s_test_yaml = k8s_config.to_yaml(
-            f"{self.WEBDAV_LOCAL_DIR}{file_helper.time_filename()}.yaml"
+            f"{self.WEBDAV_LOCAL_DIR}{self.config.agent.id}.yaml"
         )
         self.k8s_test_yaml = file_helper.upload(self.k8s_test_yaml, cloud_folder)
         logger.info(f"files uploaded")
@@ -196,7 +200,7 @@ class K8sAgent(DockerAgent):
             k8s_config.agent.count = 1
 
         self.k8s_test_yaml = k8s_config.to_yaml(
-            f"{volume_folder}{file_helper.time_filename()}.yaml"
+            f"{volume_folder}{self.config.agent.id}.yaml"
         ).replace(volume_folder, self.VOLUME_PATH)
         logger.info(f"files copied")
         return k8s_config

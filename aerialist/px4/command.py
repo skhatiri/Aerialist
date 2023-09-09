@@ -39,7 +39,10 @@ class Command(object):
         self.y = y
         self.z = z
         self.r = r
-        self.mode = mode
+        if type(mode) == FlightMode:
+            self.mode = mode
+        else:
+            self.mode = FlightMode(mode)
 
     def __str__(self) -> str:
         return f"{int(self.timestamp)}\t{self.mode.name}\t({self.x},{self.y},{self.z},{self.r})\n"
@@ -124,7 +127,7 @@ class Command(object):
                     row.y,
                     row.z,
                     row.r,
-                    FlightMode(row.mode),
+                    row.mode,
                 )
             )
         return commands

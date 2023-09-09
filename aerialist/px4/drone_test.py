@@ -224,6 +224,8 @@ class TestConfig:
         self.speed = speed
         self.commands = commands
         self.commands_file = commands_file
+        if commands is not None and type(commands[0]) != Command:
+            self.commands = [Command(**c) for c in commands]
         if commands is None and commands_file is not None:
             self.commands = Command.extract(file_helper.get_local_file(commands_file))
 
