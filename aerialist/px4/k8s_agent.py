@@ -23,6 +23,8 @@ class K8sAgent(DockerAgent):
     ROS_KUBE_TEMPLATE = config(
         "ROS_KUBE_TEMPLATE", default="aerialist/resources/k8s/k8s-job-avoidance.yaml"
     )
+    USE_VOLUME = config("KUBE_USE_VOLUME", cast=bool, default=False)
+    VOLUME_PATH = config("KUBE_VOULUME_PATH", default="/io/")
 
     def __init__(self, config: DroneTest) -> None:
         self.config = config
@@ -87,6 +89,14 @@ class K8sAgent(DockerAgent):
         if not self.config.agent.path.endswith("/"):
             self.config.agent.path += "/"
         self.config.agent.path += self.config.agent.id + "/"
+
+        if self.USE_VOLUME:
+            k8s_config = self.copy_files_volume()
+        else:
+            k8s_config = self.copy_files_cloud()
+        return k8s_config
+
+    def copy_files_cloud(self):
         cloud_folder = self.config.agent.path
 
         k8s_config = deepcopy(self.config)
@@ -110,7 +120,7 @@ class K8sAgent(DockerAgent):
                 and self.config.test.commands_file is None
             ):
                 self.config.test.commands_file = (
-                    f"/tmp/{file_helper.time_filename()}.csv"
+                    f"{self.WEBDAV_LOCAL_DIR}{file_helper.time_filename()}.csv"
                 )
                 Command.save_csv(
                     self.config.test.commands, self.config.test.commands_file
@@ -132,7 +142,63 @@ class K8sAgent(DockerAgent):
             k8s_config.agent.engine = AgentConfig.LOCAL
             k8s_config.agent.count = 1
 
+        self.k8s_test_yaml = k8s_config.to_yaml(
+            f"{self.WEBDAV_LOCAL_DIR}{file_helper.time_filename()}.yaml"
+        )
+        self.k8s_test_yaml = file_helper.upload(self.k8s_test_yaml, cloud_folder)
         logger.info(f"files uploaded")
+        return k8s_config
+
+    def copy_files_volume(self):
+        volume_folder = self.config.agent.path
+
+        k8s_config = deepcopy(self.config)
+        os.makedirs(volume_folder, exist_ok=True)
+
+        # Drone Config
+        if self.config.drone is not None:
+            if self.config.drone.mission_file is not None:
+                k8s_config.drone.mission_file = file_helper.copy(
+                    self.config.drone.mission_file, volume_folder
+                ).replace(volume_folder, self.VOLUME_PATH)
+            if self.config.drone.params_file is not None:
+                k8s_config.drone.params_file = file_helper.copy(
+                    self.config.drone.params_file, volume_folder
+                ).replace(volume_folder, self.VOLUME_PATH)
+
+        # Test Config
+        if self.config.test is not None:
+            if (
+                self.config.test.commands is not None
+                and self.config.test.commands_file is None
+            ):
+                self.config.test.commands_file = (
+                    f"/tmp/{file_helper.time_filename()}.csv"
+                )
+                Command.save_csv(
+                    self.config.test.commands, self.config.test.commands_file
+                )
+            if self.config.test.commands_file is not None:
+                k8s_config.test.commands_file = file_helper.copy(
+                    self.config.test.commands_file, volume_folder
+                ).replace(volume_folder, self.VOLUME_PATH)
+
+        # Assertion Config
+        k8s_config.assertion = None
+        # if self.config.assertion is not None:
+        #     if self.config.assertion.log_file is not None:
+        #         k8s_config.assertion.log_file = file_helper.upload(
+        #             self.config.assertion.log_file, cloud_folder
+        #         )
+
+        if k8s_config.agent is not None:
+            k8s_config.agent.engine = AgentConfig.LOCAL
+            k8s_config.agent.count = 1
+
+        self.k8s_test_yaml = k8s_config.to_yaml(
+            f"{volume_folder}{file_helper.time_filename()}.yaml"
+        ).replace(volume_folder, self.VOLUME_PATH)
+        logger.info(f"files copied")
         return k8s_config
 
     async def wait_success(self, job_id):

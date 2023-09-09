@@ -90,6 +90,17 @@ class Obstacle(object):
     def distance(self, geometry):
         return self.geometry.distance(geometry)
 
+    def to_dict(self):
+        return {
+            "size": {"l": self.size.x, "w": self.size.y, "h": self.size.z},
+            "position": {
+                "x": self.position.x,
+                "y": self.position.y,
+                "z": self.position.z,
+                "angle": self.angle,
+            },
+        }
+
     @classmethod
     def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
         boxes = [o.geometry for o in obstacles]
