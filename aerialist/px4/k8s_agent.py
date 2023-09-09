@@ -55,11 +55,14 @@ class K8sAgent(DockerAgent):
             loop = asyncio.get_event_loop()
             succes = loop.run_until_complete(self.wait_success(self.config.agent.id))
             logger.info("k8s job finished")
-            local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.agent.id}/"
-            os.makedirs(local_folder, exist_ok=True)
-            logger.info(f"downloading simulation logs to {local_folder}")
-            file_helper.download_dir(self.k8s_config.agent.path, local_folder)
-            logger.debug("files downloaded")
+            if self.USE_VOLUME:
+                local_folder = self.config.agent.path
+            else:
+                local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.agent.id}/"
+                os.makedirs(local_folder, exist_ok=True)
+                logger.info(f"downloading simulation logs to {local_folder}")
+                file_helper.download_dir(self.k8s_config.agent.path, local_folder)
+                logger.debug("files downloaded")
 
             for test_log in os.listdir(local_folder):
                 if test_log.endswith(".ulg") and (
