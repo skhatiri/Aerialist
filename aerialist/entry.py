@@ -133,12 +133,12 @@ def arg_parse():
         "-n",
         default=1,
         type=int,
-        help="no. of parallel runs (in Docker)",
+        help="no. of parallel runs (in k8s)",
     )
     parser.add_argument(
         "--path",
         default=None,
-        help="cloud output path to copy logs",
+        help="cloud output path to copy logs (in k8s)",
     )
     parser.add_argument(
         "--id",
@@ -168,6 +168,14 @@ def arg_parse():
 def run_experiment(args):
     if args.test is not None:
         test = DroneTest.from_yaml(args.test)
+        if test.agent is None:
+            test.agent = AgentConfig(
+                engine=args.agent,
+                count=args.n,
+                path=args.path,
+                id=args.id,
+            )
+
     else:
         drone_config = DroneConfig(
             port=args.drone,
