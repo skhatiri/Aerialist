@@ -12,8 +12,8 @@ With Aerialist, we aim to provide researchers with an easy platform to automate 
   - [UAV Tests](#uav-tests)
 - [Getting Started](#setup)
   - [Local Test Execution](#local-test-execution)
-  - [Dockerized Test Execution](#dockerized-test-execution)
-    - [Using Kubernetes](#using-kubernetes)
+  - [Docker Test Execution](#docker-test-execution)
+  - [Kubernetes Test Execution](#kubernetes-test-execution)
 - [Usage](#usage)
   - [Test Description File](#test-description-file)
   - [Command Line Interface](#command-line-interface)
@@ -26,7 +26,7 @@ With Aerialist, we aim to provide researchers with an easy platform to automate 
 <!-- **Aerialist** (unmanned AERIAL vehIcle teST bench) is a modular and extensible test bench for UAV software and it aims to facilitate and automate all the necessary steps of definition, generation, execution, and analysis of system-level test cases for UAVs. -->
 Below figure demonstrates Aerialist's software architecture, with the current implementation supporting UAVs powered by [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot) (a widely used open-source UAV firmware).
 
-The input is a [**Test Description**](#test-description) file which defines the UAV and environment configurations and the test steps.
+The input is a [**Test Description**](#test-description-file) file which defines the UAV and environment configurations and the test steps.
 The **Test Runner** subsystem, which abstracts any dependencies to the actual UAV, its software platform, and the simulation environment prepares the environment for running the test case as described in the test description.  
 After setting up the simulation environment (if testing a simulated UAV), Test Runner connects to the (simulated or physical) UAV and configures it according to the startup instructions. Then, it sends runtime commands, monitors the UAV's state during the flight, and extracts flight logs at the end of the test for future analysis. Each module is detailed in the [Architecture Documents](docs/architecture.md).
 
@@ -40,9 +40,9 @@ The runtime commands received during the UAV flight (e.g, from a remote controll
 
 Hence, Aerialist models a UAV test case with the following set of *test properties* and uses a *yaml* structure to describe the test.
 
-- Drone: physical and software configurations of the UAV model, including all [Autopilot parameters](https://docs.px4.io/main/en/advanced_config/parameter_reference.html) and configuration files (e.g., mission plan) required to setup the drone for the test.
+- Drone: Software configurations of the UAV model, including all [Autopilot parameters](https://docs.px4.io/main/en/advanced_config/parameter_reference.html) and configuration files (e.g., mission plan) required to setup the drone for the test.
 
-- Environment: Simulation settings such as the used simulator, simulation world (e.g., surface material, UAV’s initial position), surrounding objects (e.g., obstacles size, position), weather condition (e.g., wind, lighting), etc.
+- Environment: Simulation settings such as the used simulator, physics of the simulated UAV, simulation world (e.g., surface material, UAV’s initial position), surrounding objects (e.g., obstacles size, position), weather condition (e.g., wind, lighting), etc.
 
 - Commands: Timestamped external commands from the ground control station (GCS) or the remote controller (RC) to the UAV during the flight (e.g, change  flight mode, go in a specific direction, enter mission mode).
 
@@ -50,74 +50,89 @@ Hence, Aerialist models a UAV test case with the following set of *test properti
 
 ## Setup
 
-You can execute UAV test cases with Aerialist in two different ways:
+You can execute UAV test cases with Aerialist in three different ways:
 
 - [Local Test Execution](#local-test-execution): Execute Test Cases using PX4 dependencies installed on the same machine.
-Install PX4 and simulation tools on your Ubuntu machine.  This gives you the opportunity to easily develop new functionalities, and run the UAV simulators with the graphical interface, so you can visually follow the UAV behavior.
+This gives you the opportunity to easily develop new functionalities, and run the UAV simulators with the graphical interface, so you can visually follow the UAV behavior.
 
-- [Dockerized Test Execution](#dockerized-test-execution): Execute Test Cases in pre-built Docker containers, without the need to install PX4 dependencies on your machine.
-This option only supports headless simulation (without the graphical interface). You can also deploy your test execution to a kubernetes cluster for more scale.
+- [Docker Test Execution](#docker-test-execution): Execute Test Cases in pre-built Docker containers, without the need to install PX4 dependencies on your machine.
+This option only supports headless simulation (without the graphical interface).
+
+- [Kubernetes Test Execution](#kubernetes-test-execution): You can also deploy your test execution to a kubernetes cluster for more scale.
 
 ### Local Test Execution
 
-**Note:** Installing [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot), [PX4-Avoidance](https://github.com/PX4/PX4-Avoidance) and their requirements including ROS and Gazebo could be problematic in many cases. We only suggest this full installation to the users who needs direct visual access to the simulator or are curious to visually monitor the UAVs during the flight. Othervise, test execution, extractin the flight logs and ploting them can be achieved by the [docker exection](#dockerized-test-execution) as well.
+**Note:** Installing [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot), [PX4-Avoidance](https://github.com/PX4/PX4-Avoidance) and their requirements including ROS and Gazebo could be problematic in many cases. We only suggest this full installation to the users who needs direct visual access to the simulator or are curious to visually monitor the UAVs during the flight. Othervise, test execution, extracting the flight logs and ploting them can be achieved by the [docker exection](#docker-test-execution) as well.
 
-We have prepared a ready-to-use virtual machine ([download link](https://zhaw-my.sharepoint.com/:f:/g/personal/mazr_zhaw_ch/EnxLqlyju6RMhUYV_SXTqBEBfxundq_-X67eRQAwCPjHvg?e=9953JZ)) to help users onboaord fast. You can move on to using [dockerized test executions](#dockerized-test-execution) if you don'n need the simulation visualizations anymore.
+- We have prepared a ready-to-use virtual machine ([download link](https://zhaw-my.sharepoint.com/:f:/g/personal/mazr_zhaw_ch/EnxLqlyju6RMhUYV_SXTqBEBfxundq_-X67eRQAwCPjHvg?e=9953JZ)) to help users onboaord fast. You can move on to using [dockerized test executions](#docker-test-execution) if you don'n need the simulation visualizations anymore.
 
 If you prefer to run the simulations and PX4 on your own machine, follow [PX4 instalation guide](./docs/PX4_installation.md).
 
-- We have prepared a [bashsript](./setup_script/full_setup.sh) to automate all the steps of installing PX4 and Aerialist in one shot. [Follow the instructions](./docs/PX4_installation.md#instalation-using-bash-script).
-- You can also follow a [step by step guide](./docs/PX4_installation.md#step-by-step-instlation) if needed, 
+- Requirements: Ubuntu 18
 
-1. Clone this repository and cd into its root directory
-2. `pip3 install -r requiremetns.txt`
-3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
+1. We have prepared a [bashsript](./setup_script/full_setup.sh) to automate all the steps of installing PX4 and Aerialist in one shot. [Follow the instructions](./docs/PX4_installation.md#instalation-using-bash-script).
 
-- **Note:** Update *PX4_HOME* and *RESULTS_DIR* variables according to your installation.
+- You can also follow a [step by step guide](./docs/PX4_installation.md#step-by-step-instlation) if needed.
 
-4. You can now use the [Command Line Interface](#command-line-interface).
+2. Clone this repository and cd into its root directory
+3. `pip3 install -r requiremetns.txt`
+4. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
 
-### Dockerized Test Execution
+- Update *PX4_HOME* and *RESULTS_DIR* variables according to your installation.
 
-1. Clone this repository and cd into its root directory
-2. `pip3 install -r requiremetns.txt`
-3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
+5. You can now use the [Command Line Interface](#command-line-interface).
 
-#### Using Local Docker Engine
+### Docker Test Execution
 
-1. [Install Docker](https://docs.docker.com/engine/install/) (skip if you already have it)
+- Requirements: [Docker](https://docs.docker.com/engine/install/)
 
-2. You can use the dockerfile to build a Docker image with all the requirements, or instead pull the latest image from the Image repository.
+#### Using Docker Container's CLI
 
-- `docker build . -t aerialist`
-- or `docker pull skhatiri/aerialist`
+1. `docker run -it skhatiri/aerialist bash`
 
-3. `docker run -it aerialist bash`
-
-- You can now use the [Command Line Interface](#command-line-interface) in the containers bash.
+- You can now use the [Command Line Interface](#command-line-interface) in the container's bash.
 - check `python3 aerialist exec --help`
-
-4. Alternatively, you can use the CLI on your local machine and instruct Aerialist to execute test cases inside a docker container by adding `--docker` to the command line or updating the test-description file (`agent.engine:docker`).
-
-**Note:** Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
 
 **Note:** The .env for the docker image come from [template.env](template.env). You can customize them using [environment variables](https://docs.docker.com/engine/reference/commandline/run/#env) for the Docker container.
 
-#### Using Kubernetes
+#### Using Host's CLI
+
+Alternatively, you can use the CLI on your local machine and instruct Aerialist to execute test cases inside a docker container.
+
+1. Clone this repository and cd into its root directory
+2. `pip3 install -r requiremetns.txt`
+3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
+4. You can use the dockerfile to build a Docker image with all the requirements, or instead pull the latest image from the Image repository.
+
+- `docker build . -t skhatiri/aerialist`
+- or `docker pull skhatiri/aerialist`
+
+5. you can now instruct Aerialist to execute test cases inside a docker container
+
+- Just add `--docker` to the command line or update the test-description file (`agent.engine:docker`).
+- You can now use the [Command Line Interface](#command-line-interface) in your local bash.
+- check `python3 aerialist exec --help`
+
+**Note:** Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
+
+### Kubernetes Test Execution
 
 Aerialist can also depoy test executions on a Kubernetes cluster to facilitate running tests in the cloud. Speciffically, as can be seen in the below figure, Aerialist can run multiple executions of the same test case in isolated Kubernets pods in parallel, and gather test results for further processing.
 
 This feature is specifically helpfull when performing test generation tasks, where UAV's flight could be subject to non-determinism and multiple simulations are required.
 
-![Kubernetes Deployment](docs/deployment.png)
+<img src="docs/deployment.png" alt="Kubernetes Deployment" width="35%"/>
+<!-- ![Kubernetes Deployment](docs/deployment.png) -->
 
 Aerialist can conect both to a cloud Kubernetes cluster, or a local instance (more useful during development).
 
-##### Setup Local Kubernetes Instance
+#### Using Local Kubernetes Instance
+
+- Requirements: KubeCtl
 
 **TODO**
 
-#### Configure Cloud Kubernetes
+#### Using Cloud Kubernetes Cluster
 
 Aerialist uses a [NextCloud](https://nextcloud.com/) instance to share files between the main container, and the parallel test executers. You can get a free account in [a cloud provider](https://nextcloud.com/sign-up/) or deploy your own [dockerized instance](https://hub.docker.com/_/nextcloud).
 
