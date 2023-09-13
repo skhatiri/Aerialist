@@ -17,7 +17,6 @@ try:
         SimulationConfig,
         TestConfig,
         AgentConfig,
-        Plot,
         DroneTestResult,
     )
 except:
@@ -31,7 +30,6 @@ except:
         SimulationConfig,
         TestConfig,
         AgentConfig,
-        Plot,
         DroneTestResult,
     )
 
@@ -212,7 +210,7 @@ def run_experiment(args):
         )
     test_results = execute_test(test)
     logger.info(f"LOG:{test_results[0].log_file}")
-    Plot(test, test_results)
+    DroneTest.plot(test, test_results)
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)
     #     print(f"LOG:{exp.log}")
@@ -245,7 +243,7 @@ def plot_test(args):
         else:
             test_results = DroneTestResult.load_folder(args.log)
 
-    Plot(test, test_results)
+    DroneTest.plot(test, test_results)
 
 
 def config_loggers():

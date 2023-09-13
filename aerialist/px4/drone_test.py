@@ -120,6 +120,22 @@ class DroneTest:
 
         return params
 
+    @classmethod
+    def plot(cls, test: DroneTest, results: List[DroneTestResult]) -> None:
+        if results is not None and len(results) >= 1:
+            Trajectory.plot_multiple(
+                [r.record for r in results],
+                goal=None if test.assertion is None else test.assertion.expectation,
+                distance=None
+                if test.assertion is None or test.assertion.expectation is None
+                else median(
+                    [r.record.distance(test.assertion.expectation) for r in results]
+                ),
+                obstacles=None
+                if test.simulation is None
+                else test.simulation.obstacles,
+            )
+
 
 class DroneConfig:
     CF_PORT = 14550
@@ -320,17 +336,3 @@ class DroneTestResult:
         logs = file_helper.get_logs_address(logs_folder)
         results = [DroneTestResult(log, variable) for log in logs]
         return results
-
-
-def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:
-    if results is not None and len(results) >= 1:
-        Trajectory.plot_multiple(
-            [r.record for r in results],
-            goal=None if test.assertion is None else test.assertion.expectation,
-            distance=None
-            if test.assertion is None or test.assertion.expectation is None
-            else median(
-                [r.record.distance(test.assertion.expectation) for r in results]
-            ),
-            obstacles=None if test.simulation is None else test.simulation.obstacles,
-        )
