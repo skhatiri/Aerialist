@@ -68,7 +68,8 @@ This option only supports headless simulation (without the graphical interface).
 
 If you prefer to run the simulations and PX4 on your own machine, follow [PX4 instalation guide](./docs/PX4_installation.md).
 
-- Requirements: Ubuntu 18
+- Requirements:
+  - Ubuntu 18
 
 1. We have prepared a [bashsript](./setup_script/full_setup.sh) to automate all the steps of installing PX4 and Aerialist in one shot. [Follow the instructions](./docs/PX4_installation.md#instalation-using-bash-script).
 
@@ -99,6 +100,9 @@ If you prefer to run the simulations and PX4 on your own machine, follow [PX4 in
 
 Alternatively, you can use the CLI on your local machine and instruct Aerialist to execute test cases inside a docker container.
 
+- Requirements:
+  - Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
+
 1. Clone this repository and cd into its root directory
 2. `pip3 install -r requiremetns.txt`
 3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
@@ -112,23 +116,29 @@ Alternatively, you can use the CLI on your local machine and instruct Aerialist 
 - Just add `--docker` to the command line or update the test-description file (`agent.engine:docker`).
 - You can now use the [Command Line Interface](#command-line-interface) in your local bash.
 - check `python3 aerialist exec --help`
-
-**Note:** Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
-
+ 
 ### Kubernetes Test Execution
 
 Aerialist can also depoy test executions on a Kubernetes cluster to facilitate running tests in the cloud. Speciffically, as can be seen in the below figure, Aerialist can run multiple executions of the same test case in isolated Kubernets pods in parallel, and gather test results for further processing.
 
 This feature is specifically helpfull when performing test generation tasks, where UAV's flight could be subject to non-determinism and multiple simulations are required.
 
-<img src="docs/deployment.png" alt="Kubernetes Deployment" width="35%"/>
+<img src="docs/deployment.png" alt="Kubernetes Deployment" width="60%" style="display:block; margin:auto;"/>
 <!-- ![Kubernetes Deployment](docs/deployment.png) -->
 
 Aerialist can conect both to a cloud Kubernetes cluster, or a local instance (more useful during development).
 
-#### Using Local Kubernetes Instance
+- Requirements:
+  - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
+    - [Set default context and namespace](https://kubernetes.io/docs/reference/kubectl/cheatsheet/#kubectl-context-and-configuration) to your prefered clster and namespace if needed
+  - [yq](https://github.com/mikefarah/yq#install)
 
-- Requirements: KubeCtl
+      ```bash
+      wget https://github.com/mikefarah/yq/releases/download/v4.22.1/yq_linux_amd64 -O /usr/bin/yq &&\
+          chmod +x /usr/bin/yq
+      ```
+
+#### Using Local Kubernetes Instance
 
 **TODO**
 
