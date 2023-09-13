@@ -123,7 +123,7 @@ Aerialist can also depoy test executions on a Kubernetes cluster to facilitate r
 
 This feature is specifically helpfull when performing test generation tasks, where UAV's flight could be subject to non-determinism and multiple simulations are required.
 
-<img src="docs/deployment.png" alt="Kubernetes Deployment" width="60%" style="display:block; margin:auto;"/>
+<p align="center"><img src="docs/deployment.png" alt="Kubernetes Deployment" width="60%"/></p>
 <!-- ![Kubernetes Deployment](docs/deployment.png) -->
 
 Aerialist can conect both to a cloud Kubernetes cluster, or a local instance (more useful during development).
