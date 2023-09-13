@@ -119,13 +119,15 @@ class Obstacle(object):
     def from_coordinates_multiple(cls, coordinates: List[float]):
         obst = []
         for i in range(0, len(coordinates), 7):
-            obst.append(Obstacle.from_coordinates(coordinates[i: i + 7]))
+            obst.append(Obstacle.from_coordinates(coordinates[i : i + 7]))
         return obst
 
     @classmethod
     def from_obstacle_def(cls, obstacle: munch.DefaultMunch):
         size_object = Position(obstacle.size.l, obstacle.size.w, obstacle.size.h)
-        position_object = Position(obstacle.position.x, obstacle.position.y, obstacle.position.z)
+        position_object = Position(
+            obstacle.position.x, obstacle.position.y, obstacle.position.z
+        )
         return Obstacle(size_object, position_object, obstacle.position.angle)
 
     @classmethod
