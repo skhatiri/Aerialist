@@ -10,7 +10,7 @@ With Aerialist, we aim to provide researchers with an easy platform to automate 
 
 - [Introduction](#introduction)
   - [UAV Tests](#uav-tests)
-- [Getting Started](#setup)
+- [Getting Started](#getting-started)
   - [Local Test Execution](#local-test-execution)
   - [Docker Test Execution](#docker-test-execution)
   - [Kubernetes Test Execution](#kubernetes-test-execution)
@@ -48,18 +48,59 @@ Hence, Aerialist models a UAV test case with the following set of *test properti
 
 - Expectation (optional): time series of certain sensor reading that the test flights are expected to follow closely.
 
-## Setup
+## Getting Started
 
 You can execute UAV test cases with Aerialist in three different ways:
 
+- [Docker Test Execution](#docker-test-execution) (**Recommended**): Execute Test Cases in pre-built Docker containers, without the need to install PX4 dependencies on your machine.
+This is the recommended option for most usecases, and supports headless simulation (without the graphical interface).
+
 - [Local Test Execution](#local-test-execution): Execute Test Cases using PX4 dependencies installed on the same machine.
 This gives you the opportunity to easily develop new functionalities, and run the UAV simulators with the graphical interface, so you can visually follow the UAV behavior.
-
-- [Docker Test Execution](#docker-test-execution): Execute Test Cases in pre-built Docker containers, without the need to install PX4 dependencies on your machine.
-This option only supports headless simulation (without the graphical interface).
+This is only recommended if you prefer to fet more insights into the UAV behaviour
 
 - [Kubernetes Test Execution](#kubernetes-test-execution): You can also deploy your test execution to a kubernetes cluster for more scale.
+This option is only recommended if you are using Aerialist to conduct large scale experiments on test generation for drones.
 
+### Docker Test Execution
+
+Using Docker containers with pre-configured PX4 dependencies to execute test cases is the simplest and recommended way of executing UAV tests with Aerialist.
+Aerialist's Docker image is hosted on [Dockerhub](https://hub.docker.com/r/skhatiri/aerialist).
+#### Using Docker Container's CLI
+
+- Requirements: [Docker](https://docs.docker.com/engine/install/)
+
+1. `docker run -it skhatiri/aerialist bash`
+
+- You can now use the [Command Line Interface](#command-line-interface) in the container's bash.
+- check `python3 aerialist exec --help`
+
+**Note:** The .env for the docker image come from [template.env](template.env). You can customize them using [environment variables](https://docs.docker.com/engine/reference/commandline/run/#env) for the Docker container.
+
+#### Using Host's CLI
+
+Alternatively, you can use the CLI on your local machine and instruct Aerialist to execute test cases inside a docker container.
+This gives you more flexibility since the test results (flight logs) are directly stored on the host machine and you don't lose them.
+
+- Requirements:
+  - [Docker](https://docs.docker.com/engine/install/)
+  - Python ≥ 3.8
+  - Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
+
+1. Clone this repository and cd into its root directory
+2. `pip3 install -r requiremetns.txt`
+3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
+4. You can use the dockerfile to build a Docker image with all the requirements, or instead pull the latest image from the Image repository.
+
+- `docker build . -t skhatiri/aerialist`
+- or `docker pull skhatiri/aerialist`
+
+5. you can now instruct Aerialist to execute test cases inside a docker container
+
+- Just add `--agent docker` to the command line or update the test-description file (`agent.engine:docker`).
+- You can now use the [Command Line Interface](#command-line-interface) in your local bash.
+- check `python3 aerialist exec --help`
+ 
 ### Local Test Execution
 
 **Note:** Installing [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot), [PX4-Avoidance](https://github.com/PX4/PX4-Avoidance) and their requirements including ROS and Gazebo could be problematic in many cases. We only suggest this full installation to the users who needs direct visual access to the simulator or are curious to visually monitor the UAVs during the flight. Othervise, test execution, extracting the flight logs and ploting them can be achieved by the [docker exection](#docker-test-execution) as well.
@@ -83,40 +124,6 @@ If you prefer to run the simulations and PX4 on your own machine, follow [PX4 in
 
 5. You can now use the [Command Line Interface](#command-line-interface).
 
-### Docker Test Execution
-
-- Requirements: [Docker](https://docs.docker.com/engine/install/)
-
-#### Using Docker Container's CLI
-
-1. `docker run -it skhatiri/aerialist bash`
-
-- You can now use the [Command Line Interface](#command-line-interface) in the container's bash.
-- check `python3 aerialist exec --help`
-
-**Note:** The .env for the docker image come from [template.env](template.env). You can customize them using [environment variables](https://docs.docker.com/engine/reference/commandline/run/#env) for the Docker container.
-
-#### Using Host's CLI
-
-Alternatively, you can use the CLI on your local machine and instruct Aerialist to execute test cases inside a docker container.
-
-- Requirements:
-  - Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
-
-1. Clone this repository and cd into its root directory
-2. `pip3 install -r requiremetns.txt`
-3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
-4. You can use the dockerfile to build a Docker image with all the requirements, or instead pull the latest image from the Image repository.
-
-- `docker build . -t skhatiri/aerialist`
-- or `docker pull skhatiri/aerialist`
-
-5. you can now instruct Aerialist to execute test cases inside a docker container
-
-- Just add `--docker` to the command line or update the test-description file (`agent.engine:docker`).
-- You can now use the [Command Line Interface](#command-line-interface) in your local bash.
-- check `python3 aerialist exec --help`
- 
 ### Kubernetes Test Execution
 
 Aerialist can also depoy test executions on a Kubernetes cluster to facilitate running tests in the cloud. Speciffically, as can be seen in the below figure, Aerialist can run multiple executions of the same test case in isolated Kubernets pods in parallel, and gather test results for further processing.
@@ -146,12 +153,14 @@ Aerialist can conect both to a cloud Kubernetes cluster, or a local instance (mo
 
 Aerialist uses a [NextCloud](https://nextcloud.com/) instance to share files between the main container, and the parallel test executers. You can get a free account in [a cloud provider](https://nextcloud.com/sign-up/) or deploy your own [dockerized instance](https://hub.docker.com/_/nextcloud).
 
-1. Set your NextCloud credentials and address in as a k8s-Secret: `kubectl create secret generic webdav --from-literal=host=https://[your-nextcloud-address]/remote.php/dav/files/[your-account-id]/ --from-literal=user=[username] --from-literal=pass=[password]`
+1. Set your NextCloud credentials and address in as a k8s-Secret:
+  `kubectl create secret generic webdav --from-literal=host=https://[your-nextcloud-address]/remote.php/dav/files/[your-account-id]/ --from-literal=user=[username] --from-literal=pass=[password]`
 
-2. Upload your [`k8s-config.yaml`](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) as a k8s-ConfigMap: `kubectl create configmap k8s-config --from-file k8s-config.yaml`
+2. Upload your [`k8s-config.yaml`](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) as a k8s-ConfigMap:
+  `kubectl create configmap k8s-config --from-file k8s-config.yaml`
 
-3. You can now use `--k8s` in the commands to run the simulations in your k8s-cluster.
-`python3 aerialist exec --id case0-manual --obstacle 1 1 1 -8.1 3.1 0 0 --path webdav:// --mission samples/flights/mission1.plan --log samples/flights/mission1.ulg --params samples/flights/mission1-params.csv --commands samples/flights/mission1-commands.csv --drone ros --simulator ros --agent k8s -n 5`
+3. You can now use `--agent k8s` in the commands to run the simulations in your k8s-cluster.
+  `python3 aerialist exec --test samples/tests/mission1.yaml --agent k8s -n 5 --id mission-test --path webdav://`
 
 ## Usage
 
@@ -180,33 +189,17 @@ simulation:
       w: 5
       h: 5
     position: # Object 1 position in x,y,z and it's rotation
-      x: 10
-      y: 5
+      x: -8
+      y: 3
       z: 0
-      angle: 0
-  - size: # Object 2 size in l,w,h
-      l: 5
-      w: 5
-      h: 5
-    position:  # Object 2 position in x,y,z and it's rotation
-      x: -20
-      y: 50
-      z: 4
       angle: 0
   # home_position: # home position to place the drone [lat,lon,alt]  
 test:
   commands_file: samples/flights/mission1-commands.csv # runtime commands file address
-  speed: 1 # the commands speed relative to real time
 
 assertion:
   log_file: samples/flights/mission1.ulg # reference log file address
   # variable: trajectory # reference variables to compare 
-
-agent:
-  engine: k8s # where to run the tests {k8s, docker, local}
-  count: 5 # no. of parallel runs (only for k8s)
-  path: webdav://test/ # cloud output path to copy logs (only for k8s)
-  id: yaml-test # k8s job id (only for k8s)
 
 ```
 
@@ -222,56 +215,16 @@ You can utilize the toolkit with following command line options:
 The simplest way to execute a UAV test by Aerialist is by following command:
 `python3 aerialsit exect --test [test-file.yaml]`
 
+- Replaying a pre-recorded manual flight (RC commands are extracted and replayed from a .ulg log)
+  `python3 aerialsit exect --test samples/tests/manual1.yaml --agent docker`
+
+- Exectuing an autonoous mission with a box-shaped obstacle in the environment
+  `python3 aerialsit exect --test samples/tests/mission1.yaml --agent docker`
+
+
 More sample tests can be found [here](samples/tests/)
 
-You can use `python3 aerialist exec --help` anywhere to get help on the command parameters.
-
-#### Other CLI Arguments
-
-Alternatively, the above test properties can also be set using commandline aruguments as below.
-
-|argument   | input type            | description                   |
-|-----------|-----------------------|------------------------------ |
-| --test    | path/to/file.yml      | test description yaml file    |
-| --drone   | {**sitl**, ros, cf}   | type of the drone to conect to|
-| --mission | path/to/file.plan     | input mission file address    |
-| --params  | path/to/file.csv      | params file address           |
-| --simulator| {**gazebo**,jmavsim,ros} | the simulator environment to run|
-| --obstacle| float [l,w,h,x,y,z,r] | obstacle size, position, and angle to put in simulation environment|
-| --obstacle2| float [l,w,h,x,y,z,r]| obstacle size, position, and angle to put in simulation environment|  
-| --headless| _                     | whether to run the simulator headless|
-| --speed   | float = 1.0           | the simulator speed relative to real time|
-| --home    | float [lat,lon,alt]   | home position to place the drone|
-| --commands| path/to/file.{ulg,csv}| runtime commands file address |
-| --log     | path/to/file.ulg      | reference log file address    |
-| --agent   |{local,docker,k8s}     | where to run the tests        |
-| -n        | int = 1               | no. of parallel runs          |
-| --path    | path/to/folder/       | cloud output path to copy logs|
-| --id      | string                | k8s job id                    |
-
-Some of the common combination of the following arguments are listed here as sample test cases:
-
-- Replaying a pre-recorded manual flight log:
-
-`python3 aerialist exec --commands samples/flights/manual1.ulg --simulator gazebo --drone sitl`
-
-- Running an existing series of manual commands stored in a csv file. Look [here](samples/flights/manual1-commands.csv) for an example (corresponding to previous .ulg file).
-
-`python3 aerialist exec --commands samples/flights/manual1-commands.csv --simulator gazebo --drone sitl`
-
-- Replaying a pre-recorded manual flight log with collission prevention enabled:
-
-`python3 aerialist exec --commands samples/flights/manual2.ulg --simulator ros --drone ros`
-
-- Executing a pre-planed autonomous flight log with obstacle avoidance enabled:
-
-`python3 aerialist exec --commands samples/flights/mission1-commands.csv --mission samples/flights/mission1.plan --params samples/flights/mission1-params.csv --log samples/flights/mission1.ulg --simulator ros --drone ros`
-
-<!-- - running a manual flight through keyboard commands:
-
-`python3 run.py experiment manual`
-
-Look [here](https://github.com/skhatiri/drone-experiments/blob/5b7950dc99318d08dacab61ea8686c6d65402438/px4/drone.py#L76) for possible commands to send -->
+You can use `python3 aerialist exec --help` anywhere to get help on [other possible arguments](./docs/CLI.md).
 
 #### Plotting Executed Test Cases
 

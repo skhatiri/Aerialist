@@ -26,6 +26,8 @@ class DroneTest:
         if simulation is not None and simulation.home_position is None:
             if assertion is not None and assertion.log_file is not None:
                 simulation.home_position = Trajectory.get_home(assertion.log_file)
+        if simulation is not None and test is not None:
+            self.test.speed = self.simulation.speed
 
     @classmethod
     def from_yaml(cls, address):

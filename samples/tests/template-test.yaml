@@ -15,7 +15,6 @@ simulation:
   # home_position: [lat,lon,alt]  
 test:
   commands_file: samples/flights/mission1-commands.csv
-  speed: 1
 
 assertion:
   log_file: samples/flights/mission1.ulg
