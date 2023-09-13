@@ -38,7 +38,7 @@ In the new terminal, you can see the conda base environment has been now activat
 You can switch to Aerialist environment by typing below command:
 
 ```
-conda activate Aerialist.
+conda activate Aerialist
 ```
 
 Now navigate into Aerialist directory which is located in your home directory by entering below command in the terminal.
