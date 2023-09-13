@@ -13,7 +13,7 @@ We have prepared a ready-to-use virtual machine ([download link](https://zhaw-my
 
 ## Installation Using bash script
 
-We have prepared a [bashsript](../setup_script/px4_avoidance_aerialist_setup.sh) to automate all the steps of installing PX4 and Aerialist in one shot. This has only been tested in a fresh Ubuntu 18.04, so may not fully work for your specific configurations.
+We have prepared a [bash script](../setup_script/px4_avoidance_aerialist_setup.sh) to automate all the steps of installing PX4 and Aerialist in one shot. This has only been tested in a fresh Ubuntu 18.04, so may not fully work for your specific configurations.
 
 We recommend you to use a fresh installed Ubuntu environment to set up Aerialist in order to avoid dependency issues.
 The script was tested in a virtual machine in VMWare.
@@ -22,7 +22,7 @@ You can use VMWare Workstation Player(free version) to set up the clean Ubuntu e
 
 #### Full Installation:
 
-We provide a way to install PX4, PX4 avoidance along with Aerialist in a single script. To do that, download all these three script [px4_avoidance](../setup_script/px4_avoidance_setup.sh), [aerialist](../setup_script/aerialist_setup.sh) and [installation script](../setup_script/px4_avoidance_aerialist_setup.sh) in the same place and run below command in the terminal:
+To install PX4, PX4 avoidance along with Aerialist in one shot, download all these three script [px4_avoidance](../setup_script/px4_avoidance_setup.sh), [aerialist](../setup_script/aerialist_setup.sh) and [installation script](../setup_script/px4_avoidance_aerialist_setup.sh) in the same folder and run below command in the terminal:
 
 ```
 chmod +x px4_avoidance_aerialist_setup.sh
