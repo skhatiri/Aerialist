@@ -90,12 +90,13 @@ This gives you more flexibility since the test results (flight logs) are directl
 1. Clone this repository and cd into its root directory
 2. `pip3 install -r requiremetns.txt`
 3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
-4. You can use the dockerfile to build a Docker image with all the requirements, or instead pull the latest image from the Image repository.
+4. Create a folder named `results` in the repository's root directory.
+5. You can use the dockerfile to build a Docker image with all the requirements, or instead pull the latest image from the Image repository.
 
 - `docker build . -t skhatiri/aerialist`
 - or `docker pull skhatiri/aerialist`
 
-5. you can now instruct Aerialist to execute test cases inside a docker container
+6. you can now instruct Aerialist to execute test cases inside a docker container
 
 - Just add `--agent docker` to the command line or update the test-description file (`agent.engine:docker`).
 - You can now use the [Command Line Interface](#command-line-interface) in your local bash.
