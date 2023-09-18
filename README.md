@@ -27,7 +27,7 @@ With Aerialist, we aim to provide researchers with an easy platform to automate 
 The below figure demonstrates Aerialist's software architecture, with the current implementation supporting UAVs powered by [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot) (a widely used open-source UAV firmware).
 
 The input is a [**Test Description**](#test-description-file) file which defines the UAV and environment configurations and the test steps.
-The **Test Runner** subsystem, which abstracts any dependencies to the actual UAV, its software platform, and the simulation environment prepares the environment for running the test case as described in the test description.  
+The **Test Runner** subsystem (that abstracts any dependencies to the actual UAV, its software platform, and the simulation environment) prepares the environment for running the test case as described in the test description.  
 After setting up the simulation environment (if testing a simulated UAV), the Test Runner connects to the (simulated or physical) UAV and configures it according to the startup instructions. Then, it sends runtime commands, monitors the UAV's state during the flight, and extracts flight logs at the end of the test for future analysis. Each module is detailed in the [Architecture Documents](docs/architecture.md).
 
 ![Aerialist Architecture](docs/architecture.png)
@@ -66,6 +66,7 @@ This option is only recommended if you are using Aerialist to conduct large-scal
 
 Using Docker containers with pre-configured PX4 dependencies to execute test cases is the simplest and recommended way of executing UAV tests with Aerialist.
 Aerialist's Docker image is hosted on [Dockerhub](https://hub.docker.com/r/skhatiri/aerialist).
+
 #### Using Docker Container's CLI
 
 - Requirements: [Docker](https://docs.docker.com/engine/install/)
@@ -100,8 +101,8 @@ This gives you more flexibility since the test results (flight logs) are directl
 
 - Just add `--agent docker` to the command line or update the test-description file (`agent.engine:docker`).
 - You can now use the [Command Line Interface](#command-line-interface) in your local bash.
-- check `python3 aerialist exec --help`
- 
+  - check `python3 aerialist exec --help`
+
 ### Local Test Execution
 
 **Note:** Installing [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot), [PX4-Avoidance](https://github.com/PX4/PX4-Avoidance) and their requirements including ROS and Gazebo could be problematic in many cases. We only suggest this full installation to users who need direct visual access to the simulator or are curious to visually monitor the UAVs during the flight. Otherwise, test execution, extracting the flight logs, and plotting them can be achieved by the [docker exection](#docker-test-execution) as well.
@@ -213,23 +214,33 @@ You can utilize the toolkit with the following command line options:
 1. Make sure you are at the root directory of the repository:
 `cd Aerialist/`
 
-The simplest way to execute a UAV test by Aerialist is by the following command:
-`python3 aerialsit exec --test [test-file.yaml]`
+2. The simplest way to execute a UAV test by Aerialist is by the following command:
+
+  `python3 aerialsit exec --test [test-file.yaml] --agent docker`
 
 - Replaying a pre-recorded manual flight (RC commands are extracted and replayed from a .ulg log)
+
   `python3 aerialist exec --test samples/tests/manual1.yaml --agent docker`
 
 - Executing an autonomous mission with a box-shaped obstacle in the environment
+
   `python3 aerialist exec --test samples/tests/mission1.yaml --agent docker`
 
+- More sample tests can be found [here](samples/tests/)
 
-More sample tests can be found [here](samples/tests/)
+3. When test exection is finished, you will have test results in `results/` folder:
+- Flight Log of the executed test (.ulg)
+- Plot of the flight trajectory, as seen below
 
 You can use `python3 aerialist exec --help` anywhere to get help on [other possible arguments](./docs/CLI.md).
 
 #### Plotting Executed Test Cases
 
-`python3 aerialist plot --test [test-file.yaml] --log [test-log.ulg]`
+You can plot flight trajectory of the executed test cases using the following comnmand. plots are stored in `results/` folder.
+
+  `python3 aerialist plot --test [test-file.yaml] --log [test-log.ulg]`
+
+<p align="center"><img src="docs/test_plot.png" alt="sample test plot" width="60%"/></p>
 
 ### Using Aerialist in Your Code
 
