@@ -26,7 +26,7 @@ With Aerialist, we aim to provide researchers with an easy platform to automate 
 <!-- **Aerialist** (unmanned AERIAL vehIcle teST bench) is a modular and extensible test bench for UAV software and it aims to facilitate and automate all the necessary steps of definition, generation, execution, and analysis of system-level test cases for UAVs. -->
 The below figure demonstrates Aerialist's software architecture, with the current implementation supporting UAVs powered by [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot) (a widely used open-source UAV firmware).
 
-The input is a [**Test Description**](#test-description-file) file which defines the UAV and environment configurations and the test steps.
+The input is a [**Test Description**](#test-description-file) file, which defines the UAV and environment configurations and the test steps.
 The **Test Runner** subsystem (that abstracts any dependencies to the actual UAV, its software platform, and the simulation environment) prepares the environment for running the test case as described in the test description.  
 After setting up the simulation environment (if testing a simulated UAV), the Test Runner connects to the (simulated or physical) UAV and configures it according to the startup instructions. Then, it sends runtime commands, monitors the UAV's state during the flight, and extracts flight logs at the end of the test for future analysis. Each module is detailed in the [Architecture Documents](docs/architecture.md).
 
@@ -35,28 +35,28 @@ After setting up the simulation environment (if testing a simulated UAV), the Te
 ### UAV Tests
 
 The de-facto testing standard of UAVs relies on *manually written system-level tests* to test UAVs *in the field*.
-These tests are defined as **software configurations** (using parameters, config files, etc.), in a specific **environment** setup (e.g., obstacles placement, lighting conditions), and a set of runtime **commands**.
+These tests are defined as **software configurations** (using parameters, config files, etc.) in a specific **environment** setup (e.g., obstacles placement, lighting conditions) and a set of runtime **commands**.
 The runtime commands received during the UAV flight (e.g., from a remote controller) make the UAV fly with a specific human observable **behavior** (e.g., trajectory, speed, distance to obstacles).
 
-Hence, Aerialist models a UAV test case with the following set of *test properties* and uses a *yaml* structure to describe the test.
+Hence, Aerialist models a UAV test case with the following set of *test properties* and uses a *YAML* structure to describe the test.
 
-- Drone: Software configurations of the UAV model, including all [Autopilot parameters](https://docs.px4.io/main/en/advanced_config/parameter_reference.html) and configuration files (e.g., mission plan) required to set up the drone for the test.
+- **Drone**: Software configurations of the UAV model, including all [Autopilot parameters](https://docs.px4.io/main/en/advanced_config/parameter_reference.html) and configuration files (e.g., mission plan) required to set up the drone for the test.
 
-- Environment: Simulation settings such as the used simulator, physics of the simulated UAV, simulation world (e.g., surface material, UAV’s initial position), surrounding objects (e.g., obstacles size, position), weather conditions (e.g., wind, lighting), etc.
+- **Environment**: Simulation settings such as the used simulator, physics of the simulated UAV, simulation world (e.g., surface material, UAV’s initial position), surrounding objects (e.g., obstacles size, position), weather conditions (e.g., wind, lighting), etc.
 
-- Commands: Timestamped external commands from the ground control station (GCS) or the remote controller (RC) to the UAV during the flight (e.g., change  flight mode, go in a specific direction, enter mission mode).
+- **Commands**: Timestamped external commands from the ground control station (GCS) or the remote controller (RC) to the UAV during the flight (e.g., change  flight mode, go in a specific direction, enter mission mode).
 
-- Expectation (optional): time series of certain sensor readings that the test flights are expected to follow closely.
+- **Expectation (optional)**: a time series of certain sensor readings that the test flights are expected to follow closely.
 
 ## Getting Started
 
 You can execute UAV test cases with Aerialist in three different ways:
 
-- [Docker Test Execution](#docker-test-execution) (**Recommended**): Execute Test Cases in pre-built Docker containers, without the need to install PX4 dependencies on your machine.
+- [Docker Test Execution](#docker-test-execution) (**Recommended**): Execute Test Cases in pre-built Docker containers without the need to install PX4 dependencies on your machine.
 This is the recommended option for most use cases and supports headless simulation (without the graphical interface).
 
 - [Local Test Execution](#local-test-execution): Execute Test Cases using PX4 dependencies installed on the same machine.
-This allows you to easily develop new functionalities, and run the UAV simulators with the graphical interface, so you can visually follow the UAV behavior.
+This allows you to easily develop new functionalities and run the UAV simulators with the graphical interface so you can visually follow the UAV behavior.
 This is only recommended if you prefer to get more insights into UAV behavior.
 
 - [Kubernetes Test Execution](#kubernetes-test-execution): You can also deploy your test execution to a Kubernetes cluster for more scale.
@@ -86,9 +86,9 @@ This gives you more flexibility since the test results (flight logs) are directl
 - Requirements:
   - [Docker](https://docs.docker.com/engine/install/)
   - Python ≥ 3.8
-  - Your user should be able to run docker commands without sudo. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
+  - Your user should be able to run docker commands without `sudo`. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
 
-1. Clone this repository and cd into its root directory
+1. Clone this repository and `cd` into its root directory
 2. `pip3 install -r requiremetns.txt`
 3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
 4. Create a folder named `results` in the repository's root directory.
@@ -97,7 +97,7 @@ This gives you more flexibility since the test results (flight logs) are directl
 - `docker build . -t skhatiri/aerialist`
 - or `docker pull skhatiri/aerialist`
 
-6. you can now instruct Aerialist to execute test cases inside a docker container
+6. You can now instruct Aerialist to execute test cases inside a docker container
 
 - Just add `--agent docker` to the command line or update the test-description file (`agent.engine:docker`).
 - You can now use the [Command Line Interface](#command-line-interface) in your local bash.
