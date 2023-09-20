@@ -1,57 +1,64 @@
 from __future__ import annotations
-from typing import List
+from typing import List, NamedTuple
 from shapely.geometry import box, LineString, Point
 from shapely import affinity
 import matplotlib.patches as mpatches
 from decouple import config
 import logging
-from .position import Position
-import munch
 
 logger = logging.getLogger(__name__)
 
 
 class Obstacle(object):
-    DIR = config("RESULTS_DIR", default="results/")
+    class Size(NamedTuple):
+        l: float
+        w: float
+        h: float
+
+    class Position(NamedTuple):
+        x: float
+        y: float
+        z: float = 0
+        r: float = 0
+
     BOX = "box"
     CENTER_POSITION = True
 
     def __init__(
         self,
-        size: Position,
+        size: Size,
         position: Position,
-        angle: float = 0,
         shape: str = BOX,
     ) -> None:
         super().__init__()
+
         if shape == self.BOX:
             if self.CENTER_POSITION:
-                rect = box(-size.x / 2, -size.y / 2, size.x / 2, size.y / 2)
+                rect = box(-size.l / 2, -size.w / 2, size.l / 2, size.w / 2)
             else:
-                rect = box(0, 0, size.x, size.y)
-            self.geometry = affinity.rotate(rect, angle, "centroid")
+                rect = box(0, 0, size.l, size.w)
+            self.geometry = affinity.rotate(rect, position.r, "centroid")
             self.geometry = affinity.translate(self.geometry, position.x, position.y)
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
             self.size = size
             self.position = position
-            self.angle = angle
 
     def center(self):
-        return Position(
+        return Obstacle.Position(
             self.geometry.centroid.coords[0][0],
             self.geometry.centroid.coords[0][1],
-            self.size.z / 2,
+            self.size.h / 2,
         )
 
     def anchor_point(self):
-        return Position(
+        return Obstacle.Position(
             self.unrotated_geometry.bounds[0],
             self.unrotated_geometry.bounds[1],
             0,
         )
 
     def corner(self):
-        return Position(
+        return Obstacle.Position(
             self.geometry.bounds[0],
             self.geometry.bounds[1],
             0,
@@ -59,13 +66,13 @@ class Obstacle(object):
 
     def to_params(self):
         return [
-            self.size.x,
-            self.size.y,
-            self.size.z,
+            self.size.l,
+            self.size.w,
+            self.size.h,
             self.position.x,
             self.position.y,
             self.position.z,
-            self.angle,
+            self.position.r,
         ]
 
     def plt_patch(self):
@@ -74,9 +81,9 @@ class Obstacle(object):
                 self.anchor_point().x,
                 self.anchor_point().y,
             ),
-            self.size.x,
-            self.size.y,
-            self.angle,
+            self.size.l,
+            self.size.w,
+            self.position.r,
             rotation_point="center",
             edgecolor="gray",
             facecolor="gray",
@@ -93,12 +100,12 @@ class Obstacle(object):
 
     def to_dict(self):
         return {
-            "size": {"l": self.size.x, "w": self.size.y, "h": self.size.z},
+            "size": {"l": self.size.l, "w": self.size.w, "h": self.size.h},
             "position": {
                 "x": self.position.x,
                 "y": self.position.y,
                 "z": self.position.z,
-                "angle": self.angle,
+                "r": self.position.r,
             },
         }
 
@@ -110,10 +117,11 @@ class Obstacle(object):
 
     @classmethod
     def from_coordinates(cls, coordinates: List[float]):
-        size = Position(coordinates[0], coordinates[1], coordinates[2])
-        position = Position(coordinates[3], coordinates[4], coordinates[5])
-        angle = coordinates[6]
-        return Obstacle(size, position, angle)
+        size = Obstacle.Position(coordinates[0], coordinates[1], coordinates[2])
+        position = Obstacle.Position(
+            coordinates[3], coordinates[4], coordinates[5], coordinates[6]
+        )
+        return Obstacle(size, position)
 
     @classmethod
     def from_coordinates_multiple(cls, coordinates: List[float]):
@@ -123,16 +131,16 @@ class Obstacle(object):
         return obst
 
     @classmethod
-    def from_obstacle_def(cls, obstacle: munch.DefaultMunch):
-        size_object = Position(obstacle.size.l, obstacle.size.w, obstacle.size.h)
-        position_object = Position(
-            obstacle.position.x, obstacle.position.y, obstacle.position.z
+    def from_dict(cls, obstacle: dict):
+        size = Obstacle.Size(obstacle.size.l, obstacle.size.w, obstacle.size.h)
+        position = Obstacle.Position(
+            obstacle.position.x,
+            obstacle.position.y,
+            obstacle.position.z,
+            obstacle.position.r,
         )
-        return Obstacle(size_object, position_object, obstacle.position.angle)
+        return Obstacle(size, position)
 
     @classmethod
-    def from_obstacle_list(cls, obstacle_list: List[munch.DefaultMunch]):
-        obst = []
-        for obstacle in obstacle_list:
-            obst.append(Obstacle.from_obstacle_def(obstacle))
-        return obst
+    def from_dict_multiple(cls, obstacles: List[dict]):
+        return [cls.from_dict(obs) for obs in obstacles]

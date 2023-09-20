@@ -16,7 +16,7 @@ simulation:
       x: -8
       y: 3
       z: 0
-      angle: 0
+      r: 0
   # home_position: [lat,lon,alt]  
 test:
   commands_file: samples/flights/mission1-commands.csv

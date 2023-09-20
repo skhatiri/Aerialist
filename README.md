@@ -194,7 +194,7 @@ simulation:
       x: -8
       y: 3
       z: 0
-      angle: 0
+      r: 0
   # home_position: # home position to place the drone [lat,lon,alt]  
 test:
   commands_file: samples/flights/mission1-commands.csv # runtime commands file address
@@ -276,8 +276,7 @@ The software we developed is distributed under MIT license. See the [license](./
 
 ## Contacts
 
-- Sajad Khatiri
-  - Zurich University of Applied Science (ZHAW), Switzerland - <mazr@zhaw.ch>
+- Sajad Khatiri (Zurich University of Applied Sciences) - <mazr@zhaw.ch>
 
 ## Contributing
 
