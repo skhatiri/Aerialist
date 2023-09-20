@@ -117,7 +117,7 @@ class Obstacle(object):
 
     @classmethod
     def from_coordinates(cls, coordinates: List[float]):
-        size = Obstacle.Position(coordinates[0], coordinates[1], coordinates[2])
+        size = Obstacle.Size(coordinates[0], coordinates[1], coordinates[2])
         position = Obstacle.Position(
             coordinates[3], coordinates[4], coordinates[5], coordinates[6]
         )
