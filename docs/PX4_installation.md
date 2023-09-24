@@ -19,8 +19,7 @@ We recommend you to use a fresh installed Ubuntu environment to set up Aerialist
 The script was tested in a virtual machine in VMWare.
 You can use VMWare Workstation Player(free version) to set up the clean Ubuntu environment..
 
-
-#### Full Installation:
+### Full Installation
 
 To install PX4, PX4 avoidance along with Aerialist in one shot, download all these three script [px4_avoidance](../setup_script/px4_avoidance_setup.sh), [aerialist](../setup_script/aerialist_setup.sh) and [installation script](../setup_script/px4_avoidance_aerialist_setup.sh) in the same folder and run below command in the terminal:
 
@@ -28,7 +27,6 @@ To install PX4, PX4 avoidance along with Aerialist in one shot, download all the
 chmod +x px4_avoidance_aerialist_setup.sh
 ./px4_avoidance_aerialist_setup.sh 
 ```
-
 
 Now the installation will continue for around half an hour to one hour depending on your Internet speed.
 
@@ -47,8 +45,8 @@ Now navigate into Aerialist directory which is located in your home directory by
 cd ~/Aerialist
 ```
 
-#### Separate Installation:
-We also provide a separate [script]((../setup_script/px4_avoidance_setup.sh)) to install only PX4 and PX4 avoidance. 
+### Separate Installation:
+We also provide a separate [script]((../setup_script/px4_avoidance_setup.sh)) to install only PX4 and PX4 avoidance.
 
 Download this script and run below command in the terminal to install:
 

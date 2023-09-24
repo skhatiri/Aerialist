@@ -11,16 +11,17 @@ With Aerialist, we aim to provide researchers with an easy platform to automate 
 - [Introduction](#introduction)
   - [UAV Tests](#uav-tests)
 - [Getting Started](#getting-started)
-  - [Local Test Execution](#local-test-execution)
   - [Docker Test Execution](#docker-test-execution)
+  - [Local Test Execution](#local-test-execution)
   - [Kubernetes Test Execution](#kubernetes-test-execution)
 - [Usage](#usage)
   - [Test Description File](#test-description-file)
   - [Command Line Interface](#command-line-interface)
   - [Python API](#using-aerialist-in-your-code)
 - [References](#references)
-- [Contributing](#contributing)
+<!-- - [Contributing](#contributing) -->
 - [License](#license)
+- [Contacts](#contacts)
 
 ## Introduction
 <!-- **Aerialist** (unmanned AERIAL vehIcle teST bench) is a modular and extensible test bench for UAV software and it aims to facilitate and automate all the necessary steps of definition, generation, execution, and analysis of system-level test cases for UAVs. -->
@@ -131,10 +132,10 @@ If you prefer to run the simulations and PX4 on your own machine, follow [PX4 in
 Aerialist can also deploy test executions on a Kubernetes cluster to facilitate running tests in the cloud. Specifically, as can be seen in the below figure, Aerialist can run multiple executions of the same test case in isolated Kubernets pods in parallel, and gather test results for further processing.
 
 This feature is specifically helpful when performing test generation tasks, where UAV's flight could be subject to non-determinism and multiple simulations are required.
+Follow our [K8S Deployment Guideline](./docs/k8s_setup.md).  
 
+<!-- 
 <p align="center"><img src="docs/deployment.png" alt="Kubernetes Deployment" width="60%"/></p>
-<!-- ![Kubernetes Deployment](docs/deployment.png) -->
-
 Aerialist can connect both to a cloud Kubernetes cluster, or a local instance (more useful during development).
 
 - Requirements:
@@ -162,7 +163,7 @@ Aerialist uses a [NextCloud](https://nextcloud.com/) instance to share files bet
   `kubectl create configmap k8s-config --from-file k8s-config.yaml`
 
 3. You can now use `--agent k8s` in the commands to run the simulations in your k8s-cluster.
-  `python3 aerialist exec --test samples/tests/mission1.yaml --agent k8s -n 5 --id mission-test --path webdav://`
+  `python3 aerialist exec --test samples/tests/mission1.yaml --agent k8s -n 5 --id mission-test --path webdav://` --> -->
 
 ## Usage
 
@@ -278,6 +279,6 @@ The software we developed is distributed under MIT license. See the [license](./
 
 - Sajad Khatiri (Zurich University of Applied Sciences) - <mazr@zhaw.ch>
 
-## Contributing
+<!-- ## Contributing
 
-TODO
+TODO -->
