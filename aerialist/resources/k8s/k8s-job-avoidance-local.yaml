@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch-test
+  labels:
+    {}
+spec:
+  selector:
+    matchLabels:
+  template:
+    metadata:
+      labels:
+        {}
+    spec:
+      volumes:
+        - name: host-path-volume
+          hostPath:
+            path: VOLUME
+        - configMap:
+            defaultMode: 420
+            name: k8s-config
+          name: vol-k8s-conf
+      containers:
+        - name: init
+          image: skhatiri/aerialist:k8s
+          imagePullPolicy: Always
+          stdin: true
+          stdinOnce: false
+          command:
+            - /bin/bash
+            - -c
+            - /bin/sleep 20  && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
+          env:
+            - name: COMMAND
+              value: "python3 aerialist --help"
+          volumeMounts:
+            - mountPath: /root/.kube/config
+              name: vol-k8s-conf
+              readOnly: true
+              subPath: k8s-config.yaml
+            - name: host-path-volume
+              mountPath: /src/aerialist/results
+          tty: true
+        - name: sim
+          image: skhatiri/aerialist
+          imagePullPolicy: Always
+          stdin: true
+          stdinOnce: true
+          command: 
+          tty: true            
+          volumeMounts:
+            - mountPath: /root/.kube/config
+              name: vol-k8s-conf
+              readOnly: true
+              subPath: k8s-config.yaml
+            - name: host-path-volume
+              mountPath: /src/aerialist/results
+      affinity:
+      imagePullSecrets:
+        - name: dockerhub
+      initContainers:
+      restartPolicy: Never
+      activeDeadlineSeconds: 600
+  completions: 1
+  suspend: false
+  # activeDeadlineSeconds: 1000
+  backoffLimit: 1
+  completionMode: NonIndexed
+  parallelism: 1
+  ttlSecondsAfterFinished: 60

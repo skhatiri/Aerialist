@@ -218,7 +218,7 @@ class Trajectory(object):
 
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
         if save:
-            filename = file_prefix + file_helper.time_filename()
+            filename = file_prefix + file_helper.time_filename(add_host=True)
             os.makedirs(cls.DIR, exist_ok=True)
             fig.savefig(f"{cls.DIR}{filename}.png")
             plt.close(fig)
