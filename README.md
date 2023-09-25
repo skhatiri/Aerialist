@@ -147,9 +147,26 @@ Aerialist can connect both to a cloud Kubernetes cluster, or a local instance (m
           chmod +x /usr/bin/yq
       ```
 
-#### Using Local Kubernetes Instance
+#### Setting Up a Local Kubernetes Instance with Docker Desktop
 
-**TODO**
+This guide explains how to set up a local Kubernetes instance using Docker Desktop for the purpose of running a specific task.
+
+1. **Install Docker Desktop**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) on your Ubuntu 20.04 machine.
+
+2. **Enable Local Kubernetes**: In Docker Desktop, enable local Kubernetes. You can find this option in the Docker Desktop settings.
+
+3. **Generate a Kubeconfig File**: Open a terminal and run the following command to generate a kubeconfig file for your local Kubernetes instance:
+   `kubectl config view --raw --minify > k8s-config.yaml`
+
+3. **Upload Kubeconfig as a ConfigMap**: Create a Kubernetes ConfigMap named k8s-config by uploading the kubeconfig file generated:
+   `kubectl config view --raw --minify > k8s-config.yaml`
+
+
+5. **Set Environment variable**: Set the environment variable `KUBE_USE_VOLUME` to `True` in your environment.
+
+6. **Specify Output Folder**: Edit the path in the `k8s-job-avoidance-local.yaml` or `k8s-job-local.yaml` file to specify the desired output folder within your project.
+
+7. **Run the Task**: `python3 aerialist exec --test samples/tests/mission1-k8s.yaml`
 
 #### Using Cloud Kubernetes Cluster
 
