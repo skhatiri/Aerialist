@@ -51,3 +51,4 @@ pydevd*.log
 nodeLanguageServer/**
 nodeLanguageServer.*/**
 .idea/
+k8s-config.yaml
