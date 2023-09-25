@@ -157,6 +157,8 @@ class Trajectory(object):
             if cls.PLOT_R:
                 r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="red")
             xy_plt.plot(data_frame[:, 1], data_frame[:, 2], color="red")
+        else:
+            ave_trajectory = trajectories[0]
 
         if goal != None:
             data_frame = goal.to_data_frame()
@@ -175,12 +177,12 @@ class Trajectory(object):
             #     [p.y for p in goal.positions],
             #     [p.z for p in goal.positions],
             # )
-        else:
-            ave_trajectory = trajectories[0]
 
+        if distance == True and obstacles is not None:
+            distance = ave_trajectory.distance_to_obstacles(obstacles)
+        else:
+            distance = None
         if distance is not None:
-            if distance == True and goal is not None:
-                distance = goal.distance(ave_trajectory)
             fig.text(
                 0.5,
                 0.03,

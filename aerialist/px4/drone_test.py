@@ -123,16 +123,21 @@ class DroneTest:
         return params
 
     @classmethod
-    def plot(cls, test: DroneTest, results: List[DroneTestResult]) -> None:
+    def plot(
+        cls, test: DroneTest, results: List[DroneTestResult], obstacle_distance=True
+    ) -> None:
+        distance = None
+        if obstacle_distance:
+            distance = True
+        elif test.assertion is not None and test.assertion.expectation is not None:
+            distance = median(
+                [r.record.distance(test.assertion.expectation) for r in results]
+            )
         if results is not None and len(results) >= 1:
             Trajectory.plot_multiple(
                 [r.record for r in results],
                 goal=None if test.assertion is None else test.assertion.expectation,
-                distance=None
-                if test.assertion is None or test.assertion.expectation is None
-                else median(
-                    [r.record.distance(test.assertion.expectation) for r in results]
-                ),
+                distance=distance,
                 obstacles=None
                 if test.simulation is None
                 else test.simulation.obstacles,
