@@ -10,6 +10,7 @@ With Aerialist, we aim to provide researchers with an easy platform to automate 
 
 - [Introduction](#introduction)
   - [UAV Tests](#uav-tests)
+  - [Demo Video](#demo-video)
 - [Getting Started](#getting-started)
   - [Docker Test Execution](#docker-test-execution)
   - [Local Test Execution](#local-test-execution)
@@ -49,9 +50,15 @@ Hence, Aerialist models a UAV test case with the following set of *test properti
 
 - **Expectation (optional)**: a time series of certain sensor readings that the test flights are expected to follow closely.
 
+### Demo Video
+
+Take a look at the [Demo Video](https://youtu.be/cIeUN8f00L0) to get more insights on the test execution methods introduced later.
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/cIeUN8f00L0/0.jpg)](https://www.youtube.com/watch?v=cIeUN8f00L0)
+
 ## Getting Started
 
-You can execute UAV test cases with Aerialist in three different ways:
+You can execute UAV test cases with Aerialist in three different ways.
 
 - [Docker Test Execution](#docker-test-execution) (**Recommended**): Execute Test Cases in pre-built Docker containers without the need to install PX4 dependencies on your machine.
 This is the recommended option for most use cases and supports headless simulation (without the graphical interface).
@@ -71,6 +78,8 @@ Aerialist's Docker image is hosted on [Dockerhub](https://hub.docker.com/r/skhat
 #### Using Docker Container's CLI
 
 - Requirements: [Docker](https://docs.docker.com/engine/install/)
+- This has been tested on **Windows, Ubuntu and macOS with x86-64 processors**.
+  - You may need to rebuild the docker image if you are using another OS or architecture.
 
 1. `docker run -it skhatiri/aerialist bash`
 
@@ -88,6 +97,8 @@ This gives you more flexibility since the test results (flight logs) are directl
   - [Docker](https://docs.docker.com/engine/install/)
   - Python ≥ 3.8
   - Your user should be able to run docker commands without `sudo`. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
+- This has been tested on **Ubuntu and macOS with x86-64 processors**.
+  - You may need to rebuild the docker image if you are using another OS or architecture.
 
 1. Clone this repository and `cd` into its root directory
 2. `pip3 install -r requiremetns.txt`
@@ -113,7 +124,7 @@ This gives you more flexibility since the test results (flight logs) are directl
 If you prefer to run the simulations and PX4 on your own machine, follow [PX4 installation guide](./docs/PX4_installation.md).
 
 - Requirements:
-  - Ubuntu 18
+  - **Ubuntu 18**
 
 1. We have prepared a [bashsript](./setup_script/full_setup.sh) to automate all the steps of installing PX4 and Aerialist in one shot. [Follow the instructions](./docs/PX4_installation.md#instalation-using-bash-script).
 

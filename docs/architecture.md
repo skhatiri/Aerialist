@@ -3,7 +3,7 @@
 Below figure demonstrates the overall architecture of Aerialist and it is described in mored details in the [later sections](#software-architecture).
 The implementation currently supports [PX4-Autopilot](https://github.com/PX4/PX4-Autopilot), but can be extended to support other UAV platforms as well.
 
-![Aerialist Architecture](docs/architecture.png)
+![Aerialist Architecture](architecture.png)
 
 To evaluate a test definition, we generate and execute the corresponding simulated test case automatically. The test case automates all necessary steps: setting up the test environment, building/running the firmware code, running/configuring the simulator with the simulated world properties, connecting the simulated UAV to the firmware, and applying the UAV configurations from the test case properties at startup.
 Then, the test case commands are scheduled and sent to the UAV, the flight is monitored for any issues, and after test completion, the flight log file is extracted.
