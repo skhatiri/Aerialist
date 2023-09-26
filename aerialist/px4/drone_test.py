@@ -26,6 +26,8 @@ class DroneTest:
         if simulation is not None and simulation.home_position is None:
             if assertion is not None and assertion.log_file is not None:
                 simulation.home_position = Trajectory.get_home(assertion.log_file)
+        if simulation is not None and test is not None:
+            self.test.speed = self.simulation.speed
 
     @classmethod
     def from_yaml(cls, address):
@@ -49,8 +51,22 @@ class DroneTest:
 
     def to_yaml(self, address):
         with open(address, "w") as file:
-            yaml.dump(self, file)
+            yaml.dump(self.to_dict(), file)
         return address
+
+    def to_dict(self):
+        dic = {}
+        if self.drone is not None:
+            dic["drone"] = self.drone.to_dict()
+        if self.simulation is not None:
+            dic["simulation"] = self.simulation.to_dict()
+        if self.test is not None:
+            dic["test"] = self.test.to_dict()
+        if self.agent is not None:
+            dic["agent"] = self.agent.to_dict()
+        if self.assertion is not None:
+            dic["assertion"] = self.assertion.to_dict()
+        return dic
 
     def cmd_params(self):
         # CMD must be updated if the interface in entry.py changes
@@ -106,6 +122,27 @@ class DroneTest:
 
         return params
 
+    @classmethod
+    def plot(
+        cls, test: DroneTest, results: List[DroneTestResult], obstacle_distance=True
+    ) -> None:
+        distance = None
+        if obstacle_distance:
+            distance = True
+        elif test.assertion is not None and test.assertion.expectation is not None:
+            distance = median(
+                [r.record.distance(test.assertion.expectation) for r in results]
+            )
+        if results is not None and len(results) >= 1:
+            Trajectory.plot_multiple(
+                [r.record for r in results],
+                goal=None if test.assertion is None else test.assertion.expectation,
+                distance=distance,
+                obstacles=None
+                if test.simulation is None
+                else test.simulation.obstacles,
+            )
+
 
 class DroneConfig:
     CF_PORT = 14550
@@ -141,6 +178,18 @@ class DroneConfig:
         if mission_file is not None:
             self.mission_file = file_helper.get_local_file(mission_file)
 
+    def to_dict(self):
+        dic = {}
+        if self.port is not None:
+            dic["port"] = self.port
+        if self.params is not None:
+            dic["params"] = self.params
+        elif self.params_file is not None:
+            dic["params_file"] = self.params_file
+        if self.mission_file is not None:
+            dic["mission_file"] = self.mission_file
+        return dic
+
 
 class SimulationConfig:
     JMAVSIM = "jmavsim"
@@ -167,7 +216,25 @@ class SimulationConfig:
             and len(obstacles) > 0
             and not isinstance(obstacles[0], Obstacle)
         ):
-            self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
+            if isinstance(obstacles[0], munch.DefaultMunch):
+                self.obstacles = Obstacle.from_dict_multiple(obstacles)
+            else:
+                self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
+
+    def to_dict(self):
+        dic = {}
+        if self.simulator is not None:
+            dic["simulator"] = self.simulator
+        if self.world != "default":
+            dic["world"] = self.world
+        if self.speed != 1:
+            dic["speed"] = self.speed
+        dic["headless"] = self.headless
+        if self.obstacles is not None:
+            dic["obstacles"] = [obs.to_dict() for obs in self.obstacles]
+        if self.home_position is not None:
+            dic["home_position"] = self.home_position
+        return dic
 
 
 class TestConfig:
@@ -180,8 +247,20 @@ class TestConfig:
         self.speed = speed
         self.commands = commands
         self.commands_file = commands_file
+        if commands is not None and type(commands[0]) != Command:
+            self.commands = [Command(**c) for c in commands]
         if commands is None and commands_file is not None:
             self.commands = Command.extract(file_helper.get_local_file(commands_file))
+
+    def to_dict(self):
+        dic = {}
+        if self.commands is not None and len(self.commands) < 10:
+            dic["commands"] = [c.to_dict() for c in self.commands]
+        elif self.commands_file is not None:
+            dic["commands_file"] = self.commands_file
+        if self.speed != 1:
+            dic["speed"] = self.speed
+        return dic
 
 
 class AssertionConfig:
@@ -203,6 +282,14 @@ class AssertionConfig:
                     file_helper.get_local_file(log_file)
                 )
 
+    def to_dict(self):
+        dic = {}
+        if self.log_file is not None:
+            dic["log_file"] = self.log_file
+        if self.variable is not None:
+            dic["variable"] = self.variable
+        return dic
+
 
 class AgentConfig:
     K8S = "k8s"
@@ -220,6 +307,17 @@ class AgentConfig:
         self.count = count
         self.path = path
         self.id = id
+
+    def to_dict(self):
+        dic = {}
+        dic["engine"] = self.engine
+        if self.count != 1:
+            dic["count"] = self.count
+        if self.path is not None:
+            dic["path"] = self.path
+        if self.id is not None:
+            dic["id"] = self.id
+        return dic
 
 
 class DroneTestResult:
@@ -245,17 +343,3 @@ class DroneTestResult:
         logs = file_helper.get_logs_address(logs_folder)
         results = [DroneTestResult(log, variable) for log in logs]
         return results
-
-
-def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:
-    if results is not None and len(results) >= 1:
-        Trajectory.plot_multiple(
-            [r.record for r in results],
-            goal=None if test.assertion is None else test.assertion.expectation,
-            distance=None
-            if test.assertion is None or test.assertion.expectation is None
-            else median(
-                [r.record.distance(test.assertion.expectation) for r in results]
-            ),
-            obstacles=None if test.simulation is None else test.simulation.obstacles,
-        )

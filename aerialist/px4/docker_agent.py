@@ -51,7 +51,7 @@ class DockerAgent(TestAgent):
         )
         return cmd
 
-    def run(self, config: DroneTest):
+    def run(self):
         logger.debug(self.docker_cmd)
         replay_cmd = subprocess.run(self.docker_cmd, shell=True, capture_output=True)
         self.process_output(
@@ -161,39 +161,3 @@ class DockerAgent(TestAgent):
             f"docker cp {self.container_id}:'{src}' '{dest}'",
             shell=True,
         )
-
-    # @classmethod
-    # def replay_parallel(
-    #     cls,
-    #     runs: int = 1,
-    #     drone: str = config("DRONE", default="sim"),
-    #     env: str = config("SIMULATOR", default="gazebo"),
-    #     headless: bool = True,
-    #     speed: float = config("SPEED", default=1, cast=int),
-    #     log: str = None,
-    #     is_jmavsim=False,
-    #     params_csv=None,
-    #     obstacles: List[float] = None,
-    #     mission_file: str = None,
-    # ):
-    #     experiments: List[DockerExperiment] = []
-    #     for i in range(runs):
-    #         experiments.append(
-    #             DockerExperiment(
-    #                 drone,
-    #                 env,
-    #                 headless,
-    #                 speed,
-    #                 log,
-    #                 is_jmavsim,
-    #                 params_csv,
-    #                 obstacles,
-    #                 mission_file,
-    #             )
-    #         )
-
-    #     loop = asyncio.get_event_loop()
-    #     loop.run_until_complete(
-    #         asyncio.gather(*[e.replay_async() for e in experiments])
-    #     )
-    #     return [e for e in experiments if hasattr(e, "trajectory")]

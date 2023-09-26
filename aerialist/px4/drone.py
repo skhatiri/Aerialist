@@ -2,8 +2,6 @@ import logging
 import time
 import sched
 from mavsdk import System, action, asyncio
-import keyboard
-from enum import Enum
 from decouple import config
 from .command import Command, FlightMode, DefaultCommands
 from .drone_test import DroneConfig, TestConfig
@@ -172,85 +170,3 @@ class Drone(object):
                 # logger.info("-- Global position state is ok")
                 break
         logger.info("Conected to the drone")
-
-    ###################### manual control
-    def manual(self):
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.manual_async())
-
-    async def manual_async(self):
-        """must run the script with sudo"""
-        logger.info("in keyboard control")
-        logger.info(
-            "esc:\tend\nspace:\tarm\nenter:\tdisarm\n\nt:\ttakeoff\nl:\tland\np:\tposition\nm:\tmanual\n\nwasd & up down left right: direction"
-        )
-        in_setpoint_mode = False
-        while True:
-            try:
-                command = None
-                if keyboard.is_pressed("esc"):
-                    return
-                if keyboard.is_pressed("space"):
-                    await self.run_long_async(
-                        DefaultCommands.Hover, 3.1 * self.SETPOINT_PERIOD
-                    )
-                    await self.run_async(DefaultCommands.Arm)
-                    logger.info("Armed")
-                    await self.run_long_async(
-                        DefaultCommands.Hover, 3.1 * self.SETPOINT_PERIOD
-                    )
-                    await self.run_async(DefaultCommands.Position)
-                    logger.info("in position mode")
-                    in_setpoint_mode = True
-                    continue
-                if keyboard.is_pressed("enter"):
-                    await self.run_async(DefaultCommands.Disarm)
-                    in_setpoint_mode = False
-                    break
-
-                if keyboard.is_pressed("t"):
-                    await self.run_async(DefaultCommands.Takeoff)
-                    in_setpoint_mode = False
-                if keyboard.is_pressed("l"):
-                    await self.run_async(DefaultCommands.Land)
-                    in_setpoint_mode = False
-
-                if keyboard.is_pressed("p"):
-                    await self.run_async(DefaultCommands.Position)
-                    in_setpoint_mode = True
-
-                if keyboard.is_pressed("m"):
-                    await self.run_async(DefaultCommands.Manual)
-                    in_setpoint_mode = True
-
-                if keyboard.is_pressed("w"):
-                    command = DefaultCommands.Up
-                if keyboard.is_pressed("s"):
-                    command = DefaultCommands.Down
-                if keyboard.is_pressed("a"):
-                    command = DefaultCommands.Spin_left
-                if keyboard.is_pressed("d"):
-                    command = DefaultCommands.Spin_right
-                if keyboard.is_pressed("up"):
-                    command = DefaultCommands.Fornt
-                if keyboard.is_pressed("down"):
-                    command = DefaultCommands.Back
-                if keyboard.is_pressed("left"):
-                    command = DefaultCommands.Left
-                if keyboard.is_pressed("right"):
-                    command = DefaultCommands.Right
-
-                if command != None:
-                    in_setpoint_mode = True
-
-                if in_setpoint_mode and command == None:
-                    command = DefaultCommands.Hover
-
-                if command != None:
-                    await self.run_async(command)
-
-                await asyncio.sleep(self.SETPOINT_PERIOD)
-
-            except Exception as e:
-                logger.error("Unexpected error:" + str(e))
-                continue

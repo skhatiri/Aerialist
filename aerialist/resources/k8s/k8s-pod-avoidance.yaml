@@ -9,7 +9,6 @@ spec:
   containers:
     - imagePullPolicy: Always
       name: sim
-      __active: true
       image: skhatiri/aerialist
       stdin: true
       stdinOnce: true
@@ -41,17 +40,16 @@ spec:
         requests: {}
     - imagePullPolicy: Always
       name: init
-      __active: true
       image: skhatiri/aerialist:k8s
       stdin: true
       stdinOnce: false
       command:
-        - /bin/bash 
-        - -c 
-        - /bin/sleep 5 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
+        # - /bin/bash 
+        # - -c 
+        # - /bin/sleep 5 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
       env:
         - name: COMMAND
-          value: "timeout 600 python3 aerialist exec --obst 15 0 2.5 1 10 5 --cloud --mission resources/logs/m0.plan --params resources/simulation/params_avoidance.csv --output ASE2022/obst/ --drone ros --env avoidance --headless experiment replay"
+          value: "python3 aerialist --help"
       tty: true
       resources:
         limits:

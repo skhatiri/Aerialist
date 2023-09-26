@@ -8,14 +8,7 @@ simulation:
 
 test:
   commands_file: samples/flights/manual1.ulg
-  speed: 1
 
 assertion:
   log_file: samples/flights/manual1.ulg
   variable: trajectory
-
-agent:
-  engine: k8s # {k8s, docker, local}
-  count: 5
-  path: https://filer.cloudlab.zhaw.ch/remote.php/webdav/test/
-  id: yaml-test

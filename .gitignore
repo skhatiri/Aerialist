@@ -1,7 +1,6 @@
 logs/
-tmp/**
+tmp/
 .env
-k8s-config.yaml
 venv/
 results/
 samples/flights/*_0.csv
@@ -51,3 +50,5 @@ debugpy*.log
 pydevd*.log
 nodeLanguageServer/**
 nodeLanguageServer.*/**
+.idea/
+k8s-config.yaml

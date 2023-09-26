@@ -12,7 +12,6 @@ from webdav3.client import Client
 import webdav3.exceptions
 from os import path
 import os
-import validators
 
 logger = logging.getLogger(__name__)
 MAX_WEBDAV_RETRIES = 5
@@ -20,7 +19,7 @@ RETRIES = 0
 
 
 def get_local_file(file_path: str):
-    if validators.url(file_path):
+    if is_webdav_address(file_path):
         local_add = download(file_path, config("WEBDAV_DL_FLD", default="tmp/"))
         return local_add
     elif path.exists(file_path):
@@ -29,8 +28,16 @@ def get_local_file(file_path: str):
         raise Exception("path does not exist")
 
 
+def is_webdav_address(address: str):
+    return address.startswith("webdav://")
+
+
+def get_webdav_path(address: str):
+    return address.replace("webdav://", "")
+
+
 def get_local_folder(folder_path: str):
-    if validators.url(folder_path):
+    if is_webdav_address(folder_path):
         if folder_path.endswith("/"):
             folder = folder_path.split("/")[-2]
         else:
@@ -103,8 +110,8 @@ def upload(src_file: str, dest_path: str) -> str:
     global RETRIES
     dest_path += path.basename(src_file)
     cloud_path = dest_path
-    if validators.url(dest_path):
-        cloud_path = dest_path.replace(config("WEBDAV_ROOT"), "")
+    if is_webdav_address(dest_path):
+        cloud_path = get_webdav_path(dest_path)
     try:
         webdav_client.upload_file(cloud_path, src_file)
         RETRIES = 0
@@ -123,8 +130,8 @@ def upload(src_file: str, dest_path: str) -> str:
 def download(src_file: str, dest_path: str) -> str:
     global RETRIES
     cloud_path = src_file
-    if validators.url(src_file):
-        cloud_path = src_file.replace(config("WEBDAV_ROOT"), "")
+    if is_webdav_address(src_file):
+        cloud_path = get_webdav_path(src_file)
     dest_path += path.basename(cloud_path)
     try:
         webdav_client.download_file(cloud_path, dest_path)
@@ -144,8 +151,8 @@ def download(src_file: str, dest_path: str) -> str:
 def download_dir(src_path: str, dest_path: str) -> str:
     global RETRIES
     cloud_path = src_path
-    if validators.url(src_path):
-        cloud_path = src_path.replace(config("WEBDAV_ROOT"), "")
+    if is_webdav_address(src_path):
+        cloud_path = get_webdav_path(src_path)
     try:
         webdav_client.download_directory(cloud_path, dest_path)
         RETRIES = 0
@@ -164,8 +171,8 @@ def download_dir(src_path: str, dest_path: str) -> str:
 def create_dir(path: str):
     global RETRIES
     cloud_path = path
-    if validators.url(path):
-        cloud_path = path.replace(config("WEBDAV_ROOT"), "")
+    if is_webdav_address(path):
+        cloud_path = get_webdav_path(path)
     try:
         if not webdav_client.check(cloud_path):
             webdav_client.mkdir(cloud_path)

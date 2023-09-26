@@ -17,7 +17,6 @@ try:
         SimulationConfig,
         TestConfig,
         AgentConfig,
-        Plot,
         DroneTestResult,
     )
 except:
@@ -31,7 +30,6 @@ except:
         SimulationConfig,
         TestConfig,
         AgentConfig,
-        Plot,
         DroneTestResult,
     )
 
@@ -133,12 +131,12 @@ def arg_parse():
         "-n",
         default=1,
         type=int,
-        help="no. of parallel runs (in Docker)",
+        help="no. of parallel runs (in k8s)",
     )
     parser.add_argument(
         "--path",
         default=None,
-        help="cloud output path to copy logs",
+        help="cloud output path to copy logs (in k8s)",
     )
     parser.add_argument(
         "--id",
@@ -168,6 +166,14 @@ def arg_parse():
 def run_experiment(args):
     if args.test is not None:
         test = DroneTest.from_yaml(args.test)
+        if test.agent is None:
+            test.agent = AgentConfig(
+                engine=args.agent,
+                count=args.n,
+                path=args.path,
+                id=args.id,
+            )
+
     else:
         drone_config = DroneConfig(
             port=args.drone,
@@ -204,7 +210,7 @@ def run_experiment(args):
         )
     test_results = execute_test(test)
     logger.info(f"LOG:{test_results[0].log_file}")
-    Plot(test, test_results)
+    DroneTest.plot(test, test_results)
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)
     #     print(f"LOG:{exp.log}")
@@ -220,7 +226,7 @@ def execute_test(test: DroneTest):
         agent = K8sAgent(test)
 
     logger.info("running the test...")
-    test_results = agent.run(test)
+    test_results = agent.run()
 
     logger.info("test finished...")
     return test_results
@@ -237,7 +243,7 @@ def plot_test(args):
         else:
             test_results = DroneTestResult.load_folder(args.log)
 
-    Plot(test, test_results)
+    DroneTest.plot(test, test_results)
 
 
 def config_loggers():

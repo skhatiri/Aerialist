@@ -20,5 +20,5 @@ assertion:
 agent:
   engine: k8s # test execution environment {k8s, docker, local}
   count: 5 # no. of parallel runs (only for k8s)
-  path: https://path/to/cloud/storage/ # shared cloud storage (only for k8s)
+  path: webdav://path/to/cloud/storage/ # shared cloud storage (only for k8s)
   id: k8s-id # k8s job id (only for k8s)

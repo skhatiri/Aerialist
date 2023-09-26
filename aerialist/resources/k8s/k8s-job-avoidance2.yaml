@@ -28,7 +28,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: webdav
-                  key: host            
+                  key: host          
             - name: WEBDAV_USER
               valueFrom:
                 secretKeyRef:
@@ -42,13 +42,12 @@ spec:
             - name: COMMAND
               value: "python3 aerialist --help"          
           resources:
-
             requests:
-              cpu: 750m
-              memory: 300Mi
+              cpu: 6000m
+              memory: 2000Mi
             limits:
-              cpu: 750m
-              memory: 300Mi
+              cpu: 6000m
+              memory: 4000Mi
       affinity:
       imagePullSecrets:
         - name: dockerhub

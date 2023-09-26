@@ -2,6 +2,7 @@ from __future__ import annotations
 import math
 from statistics import mean
 from typing import List
+from shapely.geometry import Point
 
 
 class Position(object):
@@ -12,7 +13,6 @@ class Position(object):
         z: float,
         r: float = None,
         timestamp: int = None,
-        is_jmavsim: bool = False,
     ) -> None:
         super().__init__()
         self.timestamp = timestamp
@@ -20,9 +20,6 @@ class Position(object):
         self.y = y
         self.z = z
         self.r = r
-
-        if is_jmavsim:
-            self.convert_jmavsim()
 
     def convert_jmavsim(self):
         jmav_x = self.x
@@ -34,6 +31,9 @@ class Position(object):
         delta_x = distance * math.cos(self.r)
         delta_y = distance * math.sin(self.r)
         return Position(self.x + delta_x, self.y + delta_y, self.z, self.r)
+
+    def to_geometry(self):
+        return Point(self.x, self.y)
 
     def to_dict(self):
         return {
@@ -56,5 +56,6 @@ class Position(object):
             x=mean([p.x for p in positions]),
             y=mean([p.y for p in positions]),
             z=mean([p.z for p in positions]),
+            r=mean([p.r for p in positions]),
             timestamp=mean([p.timestamp for p in positions]),
         )

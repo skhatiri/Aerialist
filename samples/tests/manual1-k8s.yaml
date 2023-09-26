@@ -4,17 +4,17 @@ drone:
 simulation:
   simulator: gazebo #{gazebo,jmavsim,ros} 
   speed: 1
-  headless: false
+  headless: true
 
 test:
-  commands_file: samples/flights/manual1-commands.csv
-  speed: 1
+  commands_file: samples/flights/manual1.ulg
 
 assertion:
   log_file: samples/flights/manual1.ulg
   variable: trajectory
 
 agent:
-  engine: local # {k8s, docker, local}
-  count: 1
-
+  engine: k8s # {k8s, docker, local}
+  count: 5
+  path: webdav://test/ # /home/git/Aerialist/results
+  id: yaml-test
