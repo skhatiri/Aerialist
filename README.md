@@ -174,7 +174,7 @@ Aerialist uses a [NextCloud](https://nextcloud.com/) instance to share files bet
   `kubectl create configmap k8s-config --from-file k8s-config.yaml`
 
 3. You can now use `--agent k8s` in the commands to run the simulations in your k8s-cluster.
-  `python3 aerialist exec --test samples/tests/mission1.yaml --agent k8s -n 5 --id mission-test --path webdav://` --> -->
+  `python3 aerialist exec --test samples/tests/mission1.yaml --agent k8s -n 5 --id mission-test --path webdav://` -->
 
 ## Usage
 
