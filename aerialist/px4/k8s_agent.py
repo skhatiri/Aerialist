@@ -15,8 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class K8sAgent(DockerAgent):
-    KUBE_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.volumes[0].hostPath.path = "{host_volume}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value = "{command}") | .spec.completions = {runs} | .spec.parallelism = {runs}\' {template} | kubectl apply -f - --validate=true'
-    
+    KUBE_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value = "{command}") | .spec.completions = {runs} | .spec.parallelism = {runs}\' {template} | kubectl apply -f - --validate=true'
+    KUBE_LOCAL_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.volumes[0].hostPath.path = "{host_volume}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value = "{command}") | .spec.completions = {runs} | .spec.parallelism = {runs}\' {template} | kubectl apply -f - --validate=true'
+
     CMD = "timeout {timeout} python3 aerialist exec --test {test_file}"
     WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
     DEFAULT_KUBE_TEMPLATE = config(
@@ -29,7 +30,8 @@ class K8sAgent(DockerAgent):
         "ROS_KUBE_TEMPLATE", default="aerialist/resources/k8s/k8s-job-avoidance.yaml"
     )
     ROS_LOCAL_KUBE_TEMPLATE = config(
-        "ROS_LOCAL_KUBE_TEMPLATE", default="aerialist/resources/k8s/k8s-job-avoidance-local.yaml"
+        "ROS_LOCAL_KUBE_TEMPLATE",
+        default="aerialist/resources/k8s/k8s-job-avoidance-local.yaml",
     )
     USE_VOLUME = config("KUBE_USE_VOLUME", cast=bool, default=False)
     VOLUME_PATH = config("KUBE_VOLUME_PATH", default="/src/aerialist/results/")
@@ -46,27 +48,36 @@ class K8sAgent(DockerAgent):
         )
         logger.debug("docker command:" + cmd)
 
-        host_volume_prefix = ''
-        if self.config.simulation.simulator == SimulationConfig.ROS:
-            if self.USE_VOLUME:
-                host_volume_prefix = '/host_mnt'
+        host_volume_prefix = ""
+
+        if self.USE_VOLUME:
+            if self.config.simulation.simulator == SimulationConfig.ROS:
                 template = self.ROS_LOCAL_KUBE_TEMPLATE
             else:
-                template = self.ROS_KUBE_TEMPLATE
-        else:
-            if self.USE_VOLUME:
-                host_volume_prefix = '/host_mnt'
                 template = self.DEFAULT_LOCAL_KUBE_TEMPLATE
-            else: 
+
+            host_volume_prefix = "/host_mnt"
+            kube_cmd = self.KUBE_LOCAL_CMD.format(
+                name=self.config.agent.id,
+                command=cmd,
+                host_volume=host_volume_prefix + self.config.agent.path,
+                runs=self.config.agent.count,
+                template=template,
+            )
+
+        else:
+            if self.config.simulation.simulator == SimulationConfig.ROS:
+                template = self.ROS_KUBE_TEMPLATE
+            else:
                 template = self.DEFAULT_KUBE_TEMPLATE
-        
-        kube_cmd = self.KUBE_CMD.format(
-            name=self.config.agent.id,
-            command=cmd,
-            host_volume=host_volume_prefix+self.config.agent.path,
-            runs=self.config.agent.count,
-            template=template,
-        )
+
+            kube_cmd = self.KUBE_CMD.format(
+                name=self.config.agent.id,
+                command=cmd,
+                runs=self.config.agent.count,
+                template=template,
+            )
+
         logger.debug("k8s command:" + kube_cmd)
         logger.info("creating k8s job")
         kube_prc = subprocess.run(kube_cmd, shell=True)
