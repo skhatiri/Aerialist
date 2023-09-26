@@ -226,9 +226,14 @@ You can utilize the toolkit with the following command line options:
 1. Make sure you are at the root directory of the repository:
 `cd Aerialist/`
 
-2. The simplest way to execute a UAV test by Aerialist is by the following command:
+2. **IMPORTANT NOTE**: The following commands are assuming that you are using Aerialist directly on your machine (not inside a docker container).
 
-  `python3 aerialsit exec --test [test-file.yaml] --agent docker`
+- `--agent docker` is asking Aerialist to create a docker container and execute test cases there as detailed [above](#using-hosts-cli).
+- If you are executing the command [inside a docker container](#using-docker-containers-cli), exclude `--agent docker` to let the test run locally there.
+
+3. The simplest way to execute a UAV test by Aerialist is by the following command:
+
+    `python3 aerialsit exec --test [test-file.yaml] --agent docker`
 
 - Replaying a pre-recorded manual flight (RC commands are extracted and replayed from a .ulg log)
 
@@ -240,7 +245,8 @@ You can utilize the toolkit with the following command line options:
 
 - More sample tests can be found [here](samples/tests/)
 
-3. When test exection is finished, you will have test results in `results/` folder:
+4. When test exection is finished, you will have test results in `results/` folder:
+
 - Flight Log of the executed test (.ulg)
 - Plot of the flight trajectory, as seen below
 
