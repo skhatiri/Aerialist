@@ -19,6 +19,8 @@ class Simulator(object):
     PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
     ROS_LOG_DIR = config("ROS_HOME")
     GAZEBO_GUI_AVOIDANCE = True
+    BOX_PATH = config("AERIALIST_HOME") + config("BOX_PATH")
+    WORLD_PATH = config("AERIALIST_HOME")+config("WORLD_PATH")
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
         "AVOIDANCE_LAUNCH",
@@ -60,7 +62,7 @@ class Simulator(object):
                 'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
                 + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} "
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.BOX_PATH} "
             if self.config.obstacles != None and len(self.config.obstacles) > 0:
                 sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.y} obst_w:={self.config.obstacles[0].size.x} obst_h:={self.config.obstacles[0].size.z} obst_yaw:={math.radians(-self.config.obstacles[0].angle)} "
                 if len(self.config.obstacles) > 1:
