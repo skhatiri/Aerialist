@@ -28,7 +28,7 @@ def spawn_tree():
     <?xml version="1.0" ?>
     <sdf version="1.4">
      <include>
-      <name>pine_tree_1</name>
+      <name>{3}</name>
       <uri>model://pine_tree</uri>
       <pose>{0} {1} {2}  0 0 0</pose>
     </include>

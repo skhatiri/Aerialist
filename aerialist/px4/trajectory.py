@@ -36,18 +36,18 @@ class Trajectory(object):
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
 
     def __init__(
-        self, positions: List[Position], highlights: List[tuple[int, int]] = []
+            self, positions: List[Position], highlights: List[tuple[int, int]] = []
     ) -> None:
         super().__init__()
         self.positions = positions
         self.highlights = highlights
 
     def plot(
-        self,
-        goal: Trajectory = None,
-        save: bool = True,
-        obstacles: List[Obstacle] = None,
-        file_prefix="",
+            self,
+            goal: Trajectory = None,
+            save: bool = True,
+            obstacles: List[Obstacle] = None,
+            file_prefix="",
     ):
         distance = None
         if goal is not None:
@@ -63,15 +63,17 @@ class Trajectory(object):
 
     @classmethod
     def plot_multiple(
-        cls,
-        trajectories: List[Trajectory],
-        goal: Trajectory = None,
-        save: bool = True,
-        distance: float | bool = None,
-        highlights: bool = None,
-        obstacles: List[Obstacle] = None,
-        file_prefix="",
-        ave_trajectory: Trajectory = None,
+            cls,
+            trajectories: List[Trajectory],
+            goal: Trajectory = None,
+            save: bool = True,
+            distance: float | bool = None,
+            highlights: bool = None,
+            obstacles: List[Obstacle] = None,
+            file_prefix="",
+            ave_trajectory: Trajectory = None,
+            wind: int = 0,
+            light: float = 0.4
     ):
         fig = plt.figure(tight_layout=True)
         gs = fig.add_gridspec(3, 4)
@@ -94,10 +96,32 @@ class Trajectory(object):
         xy_plt.set_xlabel("X (m)")
         xy_plt.set_aspect("equal", "datalim")
         circle_legend = None
+        wind_legend = None
+
+        if wind != 0:
+            fig.text(
+                0.85,
+                0.97,
+                f"wind:{wind}km/hr",
+                ha="left",
+                va="top",
+                bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
+            )
+
+        if light > 0:
+            fig.text(
+                0.15,
+                0.97,
+                f"Light:{light}",
+                ha="right",
+                va="top",
+                bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
+            )
 
         if obstacles is not None:
             labeled = False
             labeled_tree = False
+            labeled_apartment = False
             for obst in obstacles:
                 if obst.shape == "BOX":
                     obst_patch = obst.plt_patch()
@@ -105,12 +129,21 @@ class Trajectory(object):
                         obst_patch.set_label("Box")
                         labeled = True
                 elif obst.shape == "TREE":
-                    obst_patch = obst.plt_patch_circle()
+                    radius = 1.0
+                    color = 'green'
+                    obst_patch = obst.plt_patch_circle(radius,color)
                     if not labeled_tree:
-                        # obst_patch.set_label("Trees")
-                        circle_legend = Line2D([0], [0], marker='o', color='w', markersize=10, markerfacecolor='g',
-                                               label='Trees')
+                        obst_patch.set_label("Trees")
+                        # circle_legend = Line2D([0], [0], marker='o', color='w', markersize=10, markerfacecolor='g',
+                        #                        label='Trees')
                         labeled_tree = True
+                elif obst.shape == "APARTMENT":
+                    radius = 8.0
+                    color = 'blue'
+                    obst_patch = obst.plt_patch_circle(radius, color)
+                    if not labeled_apartment:
+                        obst_patch.set_label("Apartment")
+                        labeled_apartment = True
 
                 xy_plt.add_patch(obst_patch)
 
@@ -214,7 +247,7 @@ class Trajectory(object):
             fig.text(
                 0.5,
                 0.03,
-                f"distance:{round(distance,2)}",
+                f"distance:{round(distance, 2)}",
                 ha="center",
                 bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
             )
@@ -243,6 +276,8 @@ class Trajectory(object):
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
         if circle_legend is not None:
             fig.legend(handles=[circle_legend], loc="upper right")
+        if wind_legend is not None:
+            fig.legend(handles=[wind_legend], loc="upper left")
         if save:
             filename = file_prefix + file_helper.time_filename()
             os.makedirs(cls.DIR, exist_ok=True)
@@ -316,7 +351,7 @@ class Trajectory(object):
                 p
                 for p in positions
                 if p.timestamp >= self.TIME_RANGE[0]
-                and p.timestamp <= self.TIME_RANGE[1]
+                   and p.timestamp <= self.TIME_RANGE[1]
             ]
 
         data = np.zeros(
@@ -347,8 +382,8 @@ class Trajectory(object):
         while i < len(self.positions):
             period_points: List[Position] = []
             while (
-                i < len(self.positions)
-                and self.positions[i].timestamp <= period_start + period
+                    i < len(self.positions)
+                    and self.positions[i].timestamp <= period_start + period
             ):
                 period_points.append(self.positions[i])
                 i += 1
@@ -395,11 +430,11 @@ class Trajectory(object):
 
     @classmethod
     def extract_from_log(
-        cls,
-        log_address: str,
-        ignore_automodes=False,
-        is_jmavsim=False,
-        load_CP_activations=True,
+            cls,
+            log_address: str,
+            ignore_automodes=False,
+            is_jmavsim=False,
+            load_CP_activations=True,
     ):
         """extracts and returns trajectory logs from the input log"""
         positions: List[Position] = []
@@ -469,8 +504,8 @@ class Trajectory(object):
                     filtered_positions += list(
                         filter(
                             lambda p: (
-                                p.timestamp >= period_start
-                                and p.timestamp <= period_end
+                                    p.timestamp >= period_start
+                                    and p.timestamp <= period_end
                             ),
                             positions,
                         )
@@ -509,7 +544,7 @@ class Trajectory(object):
         change_idx = [0] + alg.predict(pen=5)
         segments: List[Trajectory] = []
         for i in range(len(change_idx) - 1):
-            seg_pos = self.positions[change_idx[i] : change_idx[i + 1]]
+            seg_pos = self.positions[change_idx[i]: change_idx[i + 1]]
             segments.append(Trajectory(seg_pos))
 
         return segments
@@ -526,8 +561,8 @@ class Trajectory(object):
         for ind, row in collision_constraints.iterrows():
             # skip the rows where CP did not change setpoints (where in-active)
             if (
-                row["original_setpoint[0]"] != row["adapted_setpoint[0]"]
-                or row["original_setpoint[1]"] != row["adapted_setpoint[1]"]
+                    row["original_setpoint[0]"] != row["adapted_setpoint[0]"]
+                    or row["original_setpoint[1]"] != row["adapted_setpoint[1]"]
             ):
                 if period_start < 0:
                     period_start = int(row["timestamp"])

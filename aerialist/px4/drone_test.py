@@ -182,6 +182,7 @@ class SimulationConfig:
             obstacles: List[Obstacle] | List[float] = None,
             pattern_design: List[str] = None,
             wind=0,
+            light=0.4,
             home_position: List[float] = None,
     ) -> None:
         self.simulator = simulator
@@ -193,6 +194,7 @@ class SimulationConfig:
         self.pattern_design = pattern_design
         self.pattern = pattern
         self.wind = wind
+        self.light = light
         self.world_file_name = None
         if (
                 obstacles is not None
@@ -302,4 +304,6 @@ def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:
                 [r.record.distance(test.assertion.expectation) for r in results]
             ),
             obstacles=test.simulation.obstacles,
+            wind=test.simulation.wind,
+            light=test.simulation.light
         )

@@ -12,6 +12,10 @@ import sys
 sys.path.append('/aerialist')
 from external_subprocess import run_tree_subprocess
 from external_subprocess import run_box_subprocess
+from external_subprocess import spawn_apartment_subprocess
+from wind_handler import add_wind
+from wind_handler import remove_wind
+from light_handler import modify_light
 from . import file_helper
 from .drone_test import SimulationConfig
 import math
@@ -69,12 +73,13 @@ class Simulator(object):
                     'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
                     + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            print("***+++")
+            # print("***+++")
             # print(self.config.obstacles[0].size.x)
-            pprint(vars(self.config.obstacles[0]))
+            # pprint(vars(self.config.obstacles[0]))
             sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.BOX_PATH} "
             pattern_box_count = 0
             tree_count = 0
+            apartment_count = 0
             box_count = 0
             if self.config.obstacles is not None and len(self.config.obstacles) > 0:
                 for obstacle in self.config.obstacles:
@@ -101,31 +106,24 @@ class Simulator(object):
                                             str(obstacle.position.x),
                                             str(obstacle.position.y),
                                             str(obstacle.position.z))
-                # this
-                # sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.y} obst_w:={self.config.obstacles[0].size.x} obst_h:={self.config.obstacles[0].size.z} obst_yaw:={math.radians(-self.config.obstacles[0].angle)} "
-                # if len(self.config.obstacles) > 1 and config.obstacles[1].shape == "BOX":
-                #     sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
-                # if len(self.config.obstacles) > 2 and self.config.obstacles[2].shape == "TREE":
-                #     # sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[3].position.x} obst3_z:={self.config.obstacles[2].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
-                #     run_tree_subprocess("tree_1", str(self.config.obstacles[2].position.x),
-                #                         str(self.config.obstacles[2].position.y),
-                #                         str(self.config.obstacles[2].position.z))
-                # if len(self.config.obstacles) > 3 and self.config.obstacles[3].shape == "TREE":
-                #     # sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[3].position.x} obst3_z:={self.config.obstacles[2].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
-                #     run_tree_subprocess("tree_2", str(self.config.obstacles[3].position.x),
-                #                         str(self.config.obstacles[3].position.y),
-                #                         str(self.config.obstacles[3].position.z))
-            # if self.config.pattern is not None and len(self.config.pattern) > 0:
-            #     if self.config.pattern[0] != '_':
-            #         sim_command += f"pattern:=true "
-            #     if len(self.config.pattern) > 1:
-            #         if self.config.pattern[1] != '_':
-            #             sim_command += f"pattern2:=true "
-            # this
-            # if self.config.pattern_design is not None and len(self.config.pattern_design) > 0:
-            #     sim_command += f"pattern_design:={self.config.pattern_design[0]} "
-            #     if len(self.config.pattern_design) > 1:
-            #         sim_command += f"pattern_design2:={self.config.pattern_design[1]} "
+                    if obstacle.shape == "APARTMENT":
+                        apartment_count += 1
+                        apartment_name = "apartment_" + str(apartment_count)
+                        # print(f'apartment address is x={obstacle.position.x}, y={obstacle.position.y}')
+                        spawn_apartment_subprocess(apartment_name,
+                                            str(obstacle.position.x),
+                                            str(obstacle.position.y),
+                                            str(obstacle.position.z))
+
+        world_file_path = self.WORLD_PATH + self.config.world_file_name[0]+".world"
+        if self.config.wind != 0:
+            remove_wind(world_file_path)
+            add_wind(world_file_path, self.config.wind)
+        else:
+            remove_wind(world_file_path)
+        if self.config.light > 0:
+            modify_light(world_file_path, self.config.light)
+
         logger.info("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
             sim_command,

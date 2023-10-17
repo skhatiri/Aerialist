@@ -8,6 +8,7 @@ simulation:
   speed: 1
   headless: true
   wind: 5
+  light: 0.95
   obstacles:
     - size:
         l: 6
@@ -71,6 +72,26 @@ simulation:
         z: 0
         angle: 0
       shape: TREE
+#    - size:
+#        l: 0
+#        w: 0
+#        h: 0
+#      position:
+#        x: -20
+#        y: 50
+#        z: 0
+#        angle: 0
+#      shape: APARTMENT
+    - size:
+        l: 0
+        w: 0
+        h: 0
+      position:
+        x: 23
+        y: 15
+        z: 0
+        angle: 0
+      shape: APARTMENT
 #  pattern_design:
 #    - chequered
 #    - chequered

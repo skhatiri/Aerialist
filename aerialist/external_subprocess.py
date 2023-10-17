@@ -10,6 +10,7 @@ box_pattern_file = "modify_pattern_box.py"
 tree_file = "modify_tree.py"
 wind_file = "wind_handler.py"
 light_file = "light_handler.py"
+apartment_file = "spawn_apartment.py"
 
 CATKIN_DIR = config("CATKIN_HOME")
 path = CATKIN_DIR + "src/avoidance/histogram_image/scripts/"
@@ -34,13 +35,12 @@ def run_subprocess(histogram_folder, pointcloud_folder, disparity_folder, raw_fo
 
 
 def run_tree_subprocess(tree_count, x, y, z):
-    tree_proc = subprocess.Popen(["python2", path2 + tree_file, tree_count, x, y, z])
-    # tree_2 = subprocess.Popen(["python2", path2 + tree_file, "tree_2", "15", "-2", "0"])
+    subprocess.Popen(["python2", path2 + tree_file, tree_count, x, y, z])
 
 
 def run_box_subprocess(box_count, l, w, h, x, y, z):
     subprocess.Popen(["python2", path2 + box_file, box_count, l, w, h, x, y, z])
 
 
-# def spawn_box_with_pattern(box_count, l, w, h, x, y):
-#     subprocess.Popen(["python2", path2 + box_pattern_file, "box_5", "6", "6", "6", "-20", "50", "0"])
+def spawn_apartment_subprocess(apartment_count, x, y, z):
+    subprocess.Popen(["python2", path2 + apartment_file, apartment_count, x, y, z])

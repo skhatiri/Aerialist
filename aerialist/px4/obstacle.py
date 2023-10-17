@@ -27,7 +27,7 @@ class Obstacle(object):
             pattern_design: str = None,
     ) -> None:
         super().__init__()
-        print(f'***Checking the input received here {size} {position} {angle} {shape}')
+        # print(f'***Checking the input received here {size} {position} {angle} {shape}')
         if shape == "BOX":
             if self.CENTER_POSITION:
                 rect = box(-size.x / 2, -size.y / 2, size.x / 2, size.y / 2)
@@ -41,7 +41,7 @@ class Obstacle(object):
             self.angle = angle
             self.shape = shape
             self.pattern_design = pattern_design
-        elif shape == "TREE":
+        elif shape == "TREE" or shape == "APARTMENT":
             self.size = size
             self.position = position
             self.angle = angle
@@ -98,8 +98,12 @@ class Obstacle(object):
         )
         return obst_patch
 
-    def plt_patch_circle(self):
-        obst_patch = mpatches.Circle((self.position.x, self.position.y), 1.0, color='green', alpha=0.5)
+    def plt_patch_circle(self, radius, color):
+        obst_patch = mpatches.Circle((self.position.x, self.position.y), radius, color=color, alpha=0.5)
+        return obst_patch
+
+    def plt_patch_triangle(self):
+        obst_patch = mpatches
         return obst_patch
 
     def intersects(self, other: Obstacle):
@@ -134,24 +138,23 @@ class Obstacle(object):
 
     @classmethod
     def from_obstacle_def(cls, obstacle: munch.DefaultMunch):
-        print(f'Printing the obstacles shape here {obstacle.shape}')
-        print(f'Printing the obstacle pattern here {obstacle.pattern_design}')
+        # print(f'Printing the obstacles shape here {obstacle.shape}')
         size_object = Position(obstacle.size.l, obstacle.size.w, obstacle.size.h)
-        pprint(f'This is the size object--> {vars(size_object)}')
+        # pprint(f'This is the size object--> {vars(size_object)}')
         position_object = Position(obstacle.position.x, obstacle.position.y, obstacle.position.z)
-        pprint(f'This is the position object--> {vars(position_object)}')
+        # pprint(f'This is the position object--> {vars(position_object)}')
         if obstacle.pattern_design is not None:
             obstacle_obj = Obstacle(size_object, position_object, obstacle.position.angle, obstacle.shape,
                                     obstacle.pattern_design)
         else:
             obstacle_obj = Obstacle(size_object, position_object, obstacle.position.angle, obstacle.shape)
-        pprint(f'The created obstacle object is --> {vars(obstacle_obj)}')
+        # pprint(f'The created obstacle object is --> {vars(obstacle_obj)}')
         return obstacle_obj
 
     @classmethod
     def from_obstacle_list(cls, obstacle_list: List[munch.DefaultMunch]):
         obst = []
         for obstacle in obstacle_list:
-            print(f"Printing the obstacle here {obstacle}")
+            # print(f"Printing the obstacle here {obstacle}")
             obst.append(Obstacle.from_obstacle_def(obstacle))
         return obst
