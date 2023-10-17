@@ -174,6 +174,7 @@ def get_logs_address(path):
 def zip_folder(file_path_list):
     zip_list = []
     for temp_file_path in file_path_list:
-        shutil.make_archive(temp_file_path, 'zip', root_dir=temp_file_path)
-        zip_list.append(temp_file_path + ".zip")
+        temp_file_path_ts = temp_file_path + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
+        shutil.make_archive(temp_file_path_ts, 'zip', root_dir=temp_file_path)
+        zip_list.append(temp_file_path_ts + ".zip")
     return zip_list

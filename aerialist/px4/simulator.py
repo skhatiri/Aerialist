@@ -6,9 +6,16 @@ import os
 import threading
 from decouple import config
 import logging
+
+import sys
+
+sys.path.append('/aerialist')
+from external_subprocess import run_tree_subprocess
+from external_subprocess import run_box_subprocess
 from . import file_helper
 from .drone_test import SimulationConfig
 import math
+from pprint import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +27,7 @@ class Simulator(object):
     ROS_LOG_DIR = config("ROS_HOME")
     GAZEBO_GUI_AVOIDANCE = True
     BOX_PATH = config("AERIALIST_HOME") + config("BOX_PATH")
-    WORLD_PATH = config("AERIALIST_HOME")+config("WORLD_PATH")
+    WORLD_PATH = config("AERIALIST_HOME") + config("WORLD_PATH")
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
         "AVOIDANCE_LAUNCH",
@@ -37,8 +44,8 @@ class Simulator(object):
             sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
         self.log_file = None
         if (
-            self.config.simulator == SimulationConfig.GAZEBO
-            or self.config.simulator == SimulationConfig.JMAVSIM
+                self.config.simulator == SimulationConfig.GAZEBO
+                or self.config.simulator == SimulationConfig.JMAVSIM
         ):
             self.log_dir = self.PX4_LOG_DIR
             if self.config.headless:
@@ -55,31 +62,70 @@ class Simulator(object):
             sim_command += f". {self.PX4_DIR}Tools/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
             # sim_command += f". {self.PX4_DIR}Tools/simulation/gazebo/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
             sim_command += (
-                "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:"
-                + f"{self.PX4_DIR[:-1]}; "
+                    "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:"
+                    + f"{self.PX4_DIR[:-1]}; "
             )
             sim_command += (
-                'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
-                + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
+                    'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
+                    + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
+            print("***+++")
+            # print(self.config.obstacles[0].size.x)
+            pprint(vars(self.config.obstacles[0]))
             sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.BOX_PATH} "
-            if self.config.obstacles != None and len(self.config.obstacles) > 0:
-                sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.y} obst_w:={self.config.obstacles[0].size.x} obst_h:={self.config.obstacles[0].size.z} obst_yaw:={math.radians(-self.config.obstacles[0].angle)} "
-                if len(self.config.obstacles) > 1:
-                    sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
-                if len(self.config.obstacles) > 2:
-                    sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[3].position.x} obst3_z:={self.config.obstacles[2].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
-
+            pattern_box_count = 0
+            tree_count = 0
+            box_count = 0
+            if self.config.obstacles is not None and len(self.config.obstacles) > 0:
+                for obstacle in self.config.obstacles:
+                    if obstacle.shape == "BOX":
+                        if obstacle.pattern_design is not None:
+                            if pattern_box_count == 0:
+                                sim_command += f"obst:=true obst_x:={obstacle.position.y} obst_y:={obstacle.position.x} obst_z:={obstacle.position.z} obst_l:={obstacle.size.y} obst_w:={obstacle.size.x} obst_h:={obstacle.size.z} obst_yaw:={math.radians(-obstacle.angle)} pattern_design:={obstacle.pattern_design} "
+                                pattern_box_count += 1
+                            if pattern_box_count == 1:
+                                sim_command += f"obst2:=true obst2_x:={obstacle.position.y} obst2_y:={obstacle.position.x} obst2_z:={obstacle.position.z} obst2_l:={obstacle.size.y} obst2_w:={obstacle.size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-obstacle.angle)} pattern_design2:={obstacle.pattern_design} "
+                        else:
+                            box_count += 1
+                            box_name = "box_" + str(box_count)
+                            run_box_subprocess(box_name, str(obstacle.size.x),
+                                               str(obstacle.size.y),
+                                               str(obstacle.size.z),
+                                               str(obstacle.position.x),
+                                               str(obstacle.position.y),
+                                               str(obstacle.position.z))
+                    if obstacle.shape == "TREE":
+                        tree_count += 1
+                        tree_name = "tree_" + str(tree_count)
+                        run_tree_subprocess(tree_name,
+                                            str(obstacle.position.x),
+                                            str(obstacle.position.y),
+                                            str(obstacle.position.z))
+                # this
+                # sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.y} obst_w:={self.config.obstacles[0].size.x} obst_h:={self.config.obstacles[0].size.z} obst_yaw:={math.radians(-self.config.obstacles[0].angle)} "
+                # if len(self.config.obstacles) > 1 and config.obstacles[1].shape == "BOX":
+                #     sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
+                # if len(self.config.obstacles) > 2 and self.config.obstacles[2].shape == "TREE":
+                #     # sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[3].position.x} obst3_z:={self.config.obstacles[2].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
+                #     run_tree_subprocess("tree_1", str(self.config.obstacles[2].position.x),
+                #                         str(self.config.obstacles[2].position.y),
+                #                         str(self.config.obstacles[2].position.z))
+                # if len(self.config.obstacles) > 3 and self.config.obstacles[3].shape == "TREE":
+                #     # sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[3].position.x} obst3_z:={self.config.obstacles[2].position.z} obst2_l:={self.config.obstacles[1].size.y} obst2_w:={self.config.obstacles[1].size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-self.config.obstacles[1].angle)} "
+                #     run_tree_subprocess("tree_2", str(self.config.obstacles[3].position.x),
+                #                         str(self.config.obstacles[3].position.y),
+                #                         str(self.config.obstacles[3].position.z))
             # if self.config.pattern is not None and len(self.config.pattern) > 0:
             #     if self.config.pattern[0] != '_':
             #         sim_command += f"pattern:=true "
             #     if len(self.config.pattern) > 1:
             #         if self.config.pattern[1] != '_':
             #             sim_command += f"pattern2:=true "
-            if self.config.pattern_design is not None and len(self.config.pattern_design)>0:
-                sim_command += f"pattern_design:={self.config.pattern_design[0]} "
-                if len(self.config.pattern_design) > 1:
-                    sim_command += f"pattern_design2:={self.config.pattern_design[1]} "
+            # this
+            # if self.config.pattern_design is not None and len(self.config.pattern_design) > 0:
+            #     sim_command += f"pattern_design:={self.config.pattern_design[0]} "
+            #     if len(self.config.pattern_design) > 1:
+            #         sim_command += f"pattern_design2:={self.config.pattern_design[1]} "
         logger.info("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
             sim_command,
@@ -116,13 +162,13 @@ class Simulator(object):
                     )
                     logger.debug(f"logging started: {self.log_file}")
                     if (
-                        self.config.simulator == SimulationConfig.GAZEBO
-                        or self.config.simulator == SimulationConfig.JMAVSIM
+                            self.config.simulator == SimulationConfig.GAZEBO
+                            or self.config.simulator == SimulationConfig.JMAVSIM
                     ):
                         return True
 
                 if self.config.simulator == SimulationConfig.ROS and output.endswith(
-                    "INFO  [tone_alarm] home set"
+                        "INFO  [tone_alarm] home set"
                 ):
                     logger.info("Avoidance is ready (waiting 10 seconds to wrap up)")
                     time.sleep(10)
@@ -153,8 +199,8 @@ class Simulator(object):
                 self.handle_errors(output)
 
                 if (
-                    land_time is not None
-                    and time.perf_counter() - land_time > self.LAND_TIMEOUT
+                        land_time is not None
+                        and time.perf_counter() - land_time > self.LAND_TIMEOUT
                 ):
                     self.kill()
                     raise Exception(

@@ -111,6 +111,12 @@ def arg_parse():
         default=[],
     )
     parser.add_argument(
+        "--wind",
+        nargs=1,
+        help="wind speed",
+        default=0,
+    )
+    parser.add_argument(
         "--world_file_name",
         nargs=1,
         help="name of the world file name",
@@ -282,6 +288,11 @@ def main():
             config("POINTCLOUD_IMAGE"),
             config("DISPARITY_IMAGE"),
             config("RAW_IMAGE"))
+        # histogram_pro, disparity_pro, raw_pro, disparity_m_pro = run_subprocess(
+        #     config("HISTOGRAM_IMAGE"),
+        #     config("POINTCLOUD_IMAGE"),
+        #     config("DISPARITY_IMAGE"),
+        #     config("RAW_IMAGE"))
         logger.info(f"preparing the test ...{args}")
         # command = "exec roslaunch inter_images test.launch"
         # sub_proc = subprocess.run(command, shell=True)

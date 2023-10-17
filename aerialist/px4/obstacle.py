@@ -7,6 +7,7 @@ from decouple import config
 import logging
 from .position import Position
 import munch
+from pprint import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -14,17 +15,20 @@ logger = logging.getLogger(__name__)
 class Obstacle(object):
     DIR = config("RESULTS_DIR", default="results/")
     BOX = "box"
+    TREE = "tree"
     CENTER_POSITION = True
 
     def __init__(
-        self,
-        size: Position,
-        position: Position,
-        angle: float = 0,
-        shape: str = BOX,
+            self,
+            size: Position,
+            position: Position,
+            angle: float = 0,
+            shape: str = BOX,
+            pattern_design: str = None,
     ) -> None:
         super().__init__()
-        if shape == self.BOX:
+        print(f'***Checking the input received here {size} {position} {angle} {shape}')
+        if shape == "BOX":
             if self.CENTER_POSITION:
                 rect = box(-size.x / 2, -size.y / 2, size.x / 2, size.y / 2)
             else:
@@ -35,6 +39,15 @@ class Obstacle(object):
             self.size = size
             self.position = position
             self.angle = angle
+            self.shape = shape
+            self.pattern_design = pattern_design
+        elif shape == "TREE":
+            self.size = size
+            self.position = position
+            self.angle = angle
+            self.shape = shape
+            self.geometry = Point(position.x, position.y)
+            self.unrotated_geometry = Point(position.x, position.y)
 
     def center(self):
         return Position(
@@ -85,6 +98,10 @@ class Obstacle(object):
         )
         return obst_patch
 
+    def plt_patch_circle(self):
+        obst_patch = mpatches.Circle((self.position.x, self.position.y), 1.0, color='green', alpha=0.5)
+        return obst_patch
+
     def intersects(self, other: Obstacle):
         return self.geometry.intersects(other.geometry)
 
@@ -117,13 +134,24 @@ class Obstacle(object):
 
     @classmethod
     def from_obstacle_def(cls, obstacle: munch.DefaultMunch):
+        print(f'Printing the obstacles shape here {obstacle.shape}')
+        print(f'Printing the obstacle pattern here {obstacle.pattern_design}')
         size_object = Position(obstacle.size.l, obstacle.size.w, obstacle.size.h)
+        pprint(f'This is the size object--> {vars(size_object)}')
         position_object = Position(obstacle.position.x, obstacle.position.y, obstacle.position.z)
-        return Obstacle(size_object, position_object, obstacle.position.angle)
+        pprint(f'This is the position object--> {vars(position_object)}')
+        if obstacle.pattern_design is not None:
+            obstacle_obj = Obstacle(size_object, position_object, obstacle.position.angle, obstacle.shape,
+                                    obstacle.pattern_design)
+        else:
+            obstacle_obj = Obstacle(size_object, position_object, obstacle.position.angle, obstacle.shape)
+        pprint(f'The created obstacle object is --> {vars(obstacle_obj)}')
+        return obstacle_obj
 
     @classmethod
     def from_obstacle_list(cls, obstacle_list: List[munch.DefaultMunch]):
         obst = []
         for obstacle in obstacle_list:
+            print(f"Printing the obstacle here {obstacle}")
             obst.append(Obstacle.from_obstacle_def(obstacle))
         return obst

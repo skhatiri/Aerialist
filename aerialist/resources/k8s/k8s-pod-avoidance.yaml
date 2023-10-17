@@ -40,7 +40,7 @@ spec:
         requests: {}
     - imagePullPolicy: Always
       name: sim
-      image: prasun20/aerialist
+      image: sarr20/aerialist
       stdin: true
       stdinOnce: true
       command:

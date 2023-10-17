@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import ruptures as rpt
 from shapely.geometry import LineString
+from matplotlib.lines import Line2D
 from decouple import config
 from .obstacle import Obstacle
 from .position import Position
@@ -92,14 +93,25 @@ class Trajectory(object):
         xy_plt.yaxis.tick_right()
         xy_plt.set_xlabel("X (m)")
         xy_plt.set_aspect("equal", "datalim")
+        circle_legend = None
 
         if obstacles is not None:
             labeled = False
+            labeled_tree = False
             for obst in obstacles:
-                obst_patch = obst.plt_patch()
-                if not labeled:
-                    obst_patch.set_label("obstacle")
-                    labeled = True
+                if obst.shape == "BOX":
+                    obst_patch = obst.plt_patch()
+                    if not labeled:
+                        obst_patch.set_label("Box")
+                        labeled = True
+                elif obst.shape == "TREE":
+                    obst_patch = obst.plt_patch_circle()
+                    if not labeled_tree:
+                        # obst_patch.set_label("Trees")
+                        circle_legend = Line2D([0], [0], marker='o', color='w', markersize=10, markerfacecolor='g',
+                                               label='Trees')
+                        labeled_tree = True
+
                 xy_plt.add_patch(obst_patch)
 
                 # obst_patch = mpatches.Rectangle(
@@ -229,6 +241,8 @@ class Trajectory(object):
                 )
 
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
+        if circle_legend is not None:
+            fig.legend(handles=[circle_legend], loc="upper right")
         if save:
             filename = file_prefix + file_helper.time_filename()
             os.makedirs(cls.DIR, exist_ok=True)

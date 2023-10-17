@@ -181,6 +181,7 @@ class SimulationConfig:
             world_file_name: List[str] = None,
             obstacles: List[Obstacle] | List[float] = None,
             pattern_design: List[str] = None,
+            wind=0,
             home_position: List[float] = None,
     ) -> None:
         self.simulator = simulator
@@ -191,6 +192,7 @@ class SimulationConfig:
         self.home_position = home_position
         self.pattern_design = pattern_design
         self.pattern = pattern
+        self.wind = wind
         self.world_file_name = None
         if (
                 obstacles is not None
@@ -199,6 +201,7 @@ class SimulationConfig:
         ):
             if isinstance(obstacles[0], munch.DefaultMunch):
                 self.obstacles = Obstacle.from_obstacle_list(obstacles)
+                print(self.obstacles)
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
 

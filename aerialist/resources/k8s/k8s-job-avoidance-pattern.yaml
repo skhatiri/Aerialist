@@ -45,7 +45,7 @@ spec:
         - imagePullPolicy: Always
           name: sim
           __active: true
-          image: prasun20/aerialist
+          image: sarr20/aerialist
           stdin: true
           stdinOnce: true
           command: 

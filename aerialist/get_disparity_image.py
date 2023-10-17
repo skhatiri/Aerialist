@@ -12,8 +12,9 @@ import subprocess
 folder = ""
 sub_folder = ""
 # path = config("IMAGE_PATH")
-path = "/src/"
-# path = "/home/prasun/"
+# path = "/src/"
+path = "/home/prasun/"
+
 
 def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
     dim = None

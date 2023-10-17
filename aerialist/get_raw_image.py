@@ -11,8 +11,8 @@ from datetime import datetime
 # load_dotenv()
 folder = ""
 sub_folder = ""
-path = "/src/"
-# path = "/home/prasun/"
+# path = "/src/"
+path = "/home/prasun/"
 # # path = config("IMAGE_PATH")
 # path = os.getenv("IMAGE_PATH")
 
