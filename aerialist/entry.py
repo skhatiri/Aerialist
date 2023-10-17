@@ -6,7 +6,6 @@ import os
 import sys
 from decouple import config
 from external_subprocess import run_subprocess
-from ext_proc import run_proc
 
 try:
     from .px4.k8s_agent import K8sAgent
