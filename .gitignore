@@ -1,5 +1,6 @@
 logs/
 tmp/
+dist/
 .env
 venv/
 results/

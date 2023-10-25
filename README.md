@@ -88,6 +88,14 @@ Aerialist's Docker image is hosted on [Dockerhub](https://hub.docker.com/r/skhat
 
 **Note:** The .env for the docker image comes from [template.env](template.env). You can customize them using [environment variables](https://docs.docker.com/engine/reference/commandline/run/#env) for the Docker container.
 
+**Experimental:** You can access the simulation window (Gazebo) running inside the docker container using an [X server](https://gursimarsm.medium.com/run-gui-applications-in-a-docker-container-ca625bad4638):
+
+- On an Ubuntu machine:
+  
+  `xhost +`
+  
+  `docker run -it -e DISPLAY -v "/tmp/.X11-unix:/tmp/.X11-unix:rw" skhatiri/aerialist bash`
+
 #### Using Host's CLI
 
 Alternatively, you can use the CLI on your local machine and instruct Aerialist to execute test cases inside a docker container.
