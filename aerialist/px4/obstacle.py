@@ -3,7 +3,6 @@ from typing import List, NamedTuple
 from shapely.geometry import box, LineString, Point
 from shapely import affinity
 import matplotlib.patches as mpatches
-from decouple import config
 import logging
 
 logger = logging.getLogger(__name__)
@@ -96,7 +95,17 @@ class Obstacle(object):
         return self.geometry.intersects(other.geometry)
 
     def distance(self, geometry):
-        return self.geometry.distance(geometry)
+        # TODO: implement proper 3D distance
+        # distance in (x,y) plane
+        dist = self.geometry.distance(geometry)
+        if dist == 0 and geometry.has_z:
+            # it is 3D and they intersect in x,y plane
+            intersection = self.geometry.intersection(geometry)
+            min_z = min(p[2] for p in intersection.coords)
+            if min_z > self.size.h:
+                # flight trajectory is above the obstacle
+                dist = min_z - self.size.h
+        return dist
 
     def to_dict(self):
         return {

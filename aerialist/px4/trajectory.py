@@ -189,7 +189,7 @@ class Trajectory(object):
             # )
 
         if distance == True and obstacles is not None:
-            distance = ave_trajectory.distance_to_obstacles(obstacles)
+            distance = ave_trajectory.min_distance_to_obstacles(obstacles)
         else:
             distance = None
         if distance is not None:
@@ -336,11 +336,15 @@ class Trajectory(object):
             period_start += period
         return Trajectory(down_sampled)
 
+    def min_distance_to_obstacles(self, obstacles: List[Obstacle]):
+        line = self.to_line()
+        return min(obst.distance(line) for obst in obstacles)
+
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
         return Obstacle.distance_to_many(obstacles, self.to_line())
 
     def to_line(self) -> LineString:
-        points = self.to_data_frame()[:, 1:3]
+        points = self.to_data_frame()[:, 1:4]
         line = LineString(points)
         return line
 
