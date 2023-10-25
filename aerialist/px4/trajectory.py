@@ -46,12 +46,21 @@ class Trajectory(object):
         obstacles: List[Obstacle] = None,
         file_prefix="",
         highlights: List[float] = None,
+        filename=None,
     ):
         distance = None
         if goal is not None:
             distance = self.distance(goal)
         self.plot_multiple(
-            [self], goal, save, distance, highlights, obstacles, file_prefix
+            [self],
+            goal,
+            save,
+            distance,
+            highlights,
+            obstacles,
+            file_prefix,
+            None,
+            filename,
         )
 
     def save_csv(self, address: str) -> None:
@@ -70,6 +79,7 @@ class Trajectory(object):
         obstacles: List[Obstacle] = None,
         file_prefix="",
         ave_trajectory: Trajectory = None,
+        filename=None,
     ):
         fig = plt.figure(tight_layout=True)
 
@@ -220,7 +230,8 @@ class Trajectory(object):
 
         fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
         if save:
-            filename = file_prefix + file_helper.time_filename(add_host=True)
+            if filename is None:
+                filename = file_prefix + file_helper.time_filename(add_host=True)
             os.makedirs(cls.DIR, exist_ok=True)
             fig.savefig(f"{cls.DIR}{filename}.png")
             plt.close(fig)
