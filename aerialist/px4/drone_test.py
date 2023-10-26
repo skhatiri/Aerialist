@@ -334,9 +334,9 @@ def find_threshold_limit(results: List[DroneTestResult]):
 def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
     result_dir = config("RESULTS_DIR", default="results/")
     dataset_file_combined = config("DATASET_FILE", default="dataset_file_combined")
-    dataset_file_edit_mode = config("DATA_FILE_EDIT_MODE", default="w")
+    dataset_file_edit_mode = config("DATA_FILE_EDIT_MODE", default="a")
     cpu_file = config("CPU_FILE", default="cpu_file")
-    cpu_file_edit_mode = config("CPU_FILE_EDIT_MODE", default="w")
+    cpu_file_edit_mode = config("CPU_FILE_EDIT_MODE", default="a")
     file_extension = config("FILE_EXTENSION", default=".csv")
     default_separation = config("DEFAULT_SEPARATION", default=",")
     file_ts = str(datetime.now().strftime("%Y%m%d%H%M%S"))
@@ -351,18 +351,20 @@ def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
     ram_usage = cpu_data.data['ram_usage']
     cpu_timestamp = cpu_data.data['timestamp']
     cpu_timestamp_list = []
-    cpu_row_list = []
+    cpu_header = False
     print(f'**keys are {cpu_data.data.keys()}')
     print(f'cpu load and ram usage length are {len(cpu_load)},{len(ram_usage)}')
     for temp_cpu_load, temp_ram_usage, temp_cpu_timestamp in zip_longest(cpu_load, ram_usage, cpu_timestamp):
-        cpu_row_list.append([temp_cpu_timestamp, temp_cpu_load, temp_ram_usage])
+        cpu_row = [temp_cpu_timestamp, temp_cpu_load, temp_ram_usage]
         cpu_timestamp_list.append(temp_cpu_timestamp)
-    f = open(result_dir + cpu_file + "_" + file_ts + file_extension,
-             cpu_file_edit_mode)
-    writer = csv.writer(f)
-    writer.writerow(["timestamp", "cpu_usage", "ram_usage"])
-    writer.writerow(cpu_row_list)
-    f.close()
+        f = open(result_dir + cpu_file + "_" + file_ts + file_extension,
+                 cpu_file_edit_mode)
+        writer = csv.writer(f)
+        if not cpu_header:
+            writer.writerow(["timestamp", "cpu_usage", "ram_usage"])
+            cpu_header = True
+        writer.writerow(cpu_row)
+        f.close()
 
     trajectories: List[Trajectory] = [r.record for r in results]
     for trajectory in trajectories:
@@ -463,7 +465,7 @@ def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
                 if not header_flag:
                     header_final = csv_header
                 row = [x, y, z, r, timestamp, wind, light, obstacles_present]
-            f = open(result_dir + dataset_file_combined + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S")) + file_extension, dataset_file_edit_mode)
+            f = open(result_dir + dataset_file_combined + "_" + file_ts + file_extension, dataset_file_edit_mode)
             write = csv.writer(f)
             if not header_flag:
                 write.writerow(header_final)
@@ -471,7 +473,7 @@ def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
             write.writerow(row)
             f.close()
 
-        position_data = log.get_dataset('vehicle_local_position')
+        '''position_data = log.get_dataset('vehicle_local_position')
         print(f'**keys of are {position_data.data.keys()}')
         x_position = position_data.data['x']
         y_position = position_data.data['y']
@@ -514,4 +516,4 @@ def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
                     f = open('/home/prasun/Aerialist/results/csvLog2.csv', 'a')
                     write = csv.writer(f)
                     write.writerow(temp_row)
-                    f.close()
+                    f.close()'''
