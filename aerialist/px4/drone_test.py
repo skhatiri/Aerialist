@@ -2,11 +2,17 @@ from __future__ import annotations
 from statistics import median
 from typing import List
 import munch
+import pyulog
 import yaml
+import csv
 from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
 from . import file_helper
+from pprint import pprint
+from itertools import zip_longest
+from decouple import config
+from datetime import datetime
 
 
 class DroneTest:
@@ -32,7 +38,7 @@ class DroneTest:
         with open(address) as file:
             data_dict = munch.DefaultMunch.fromYAML(file, None)
             # data_dict = yaml.safe_load(file)
-        print(f'##data_dict{data_dict}')
+        # print(f'##data_dict{data_dict}')
         config = cls()
         if data_dict.drone is not None:
             config.drone = DroneConfig(**data_dict.drone)
@@ -92,8 +98,8 @@ class DroneTest:
                 params += "--obstacle2 "
                 for p in self.simulation.obstacles[1].to_params():
                     params += f"{p} "
-            if(
-                self.simulation.world_file_name is not None
+            if (
+                    self.simulation.world_file_name is not None
             ):
                 params += "--world_file_name "
                 params += self.simulation.world_file_name[0]
@@ -218,9 +224,9 @@ class SimulationConfig:
                 and len(pattern_design) > 0
         ):
             self.pattern_design = pattern_design
-        if(
-            world_file_name is not None
-            and len(world_file_name) > 0
+        if (
+                world_file_name is not None
+                and len(world_file_name) > 0
         ):
             self.world_file_name = world_file_name
 
@@ -307,3 +313,205 @@ def Plot(test: DroneTest, results: List[DroneTestResult]) -> None:
             wind=test.simulation.wind,
             light=test.simulation.light
         )
+
+    find_threshold_limit(results)
+    log_csv(test, results)
+
+
+def find_threshold_limit(results: List[DroneTestResult]):
+    result_dir = config("RESULTS_DIR", default="results/")
+    threshold_file = config("THRESHOLD_FILE", default="threshold.csv")
+    threshold_file_edit_mode = config("THRESHOLD_FILE_EDIT_MODE", default="a")
+    average_traj = Trajectory.average([r.record for r in results])
+    distance_list = [r.record.distance(average_traj) for r in results]
+    print(f'The distance printed in the threshold is {distance_list}')
+    f = open(result_dir + threshold_file, threshold_file_edit_mode)
+    writer = csv.writer(f)
+    writer.writerow(distance_list)
+    f.close()
+
+
+def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
+    result_dir = config("RESULTS_DIR", default="results/")
+    dataset_file_combined = config("DATASET_FILE", default="dataset_file_combined")
+    dataset_file_edit_mode = config("DATA_FILE_EDIT_MODE", default="w")
+    cpu_file = config("CPU_FILE", default="cpu_file")
+    cpu_file_edit_mode = config("CPU_FILE_EDIT_MODE", default="w")
+    file_extension = config("FILE_EXTENSION", default=".csv")
+    default_separation = config("DEFAULT_SEPARATION", default=",")
+    file_ts = str(datetime.now().strftime("%Y%m%d%H%M%S"))
+    wind = test.simulation.wind
+    light = test.simulation.light
+    print(f"***LOG:{results[0].log_file}")
+    log = pyulog.ULog(results[0].log_file)
+    print("**Printing cpu data list")
+    cpu_data = log.get_dataset('cpuload')
+    print(cpu_data)
+    cpu_load = cpu_data.data['load']
+    ram_usage = cpu_data.data['ram_usage']
+    cpu_timestamp = cpu_data.data['timestamp']
+    cpu_timestamp_list = []
+    cpu_row_list = []
+    print(f'**keys are {cpu_data.data.keys()}')
+    print(f'cpu load and ram usage length are {len(cpu_load)},{len(ram_usage)}')
+    for temp_cpu_load, temp_ram_usage, temp_cpu_timestamp in zip_longest(cpu_load, ram_usage, cpu_timestamp):
+        cpu_row_list.append([temp_cpu_timestamp, temp_cpu_load, temp_ram_usage])
+        cpu_timestamp_list.append(temp_cpu_timestamp)
+    f = open(result_dir + cpu_file + "_" + file_ts + file_extension,
+             cpu_file_edit_mode)
+    writer = csv.writer(f)
+    writer.writerow(["timestamp", "cpu_usage", "ram_usage"])
+    writer.writerow(cpu_row_list)
+    f.close()
+
+    trajectories: List[Trajectory] = [r.record for r in results]
+    for trajectory in trajectories:
+        positions = trajectory.positions
+        obstacle_flag = False
+        obstacles_present = 0
+        obstacle_list = []
+        # number_of_obstacles = -1
+        number_of_trees = 0
+        number_of_apartments = 0
+        number_of_boxes = 0
+        tree_cumm_list = []
+        apt_cumm_list = []
+        box_cumm_list = []
+        box_min_distance = []
+        tree_min_distance = []
+        apt_min_distance = []
+        obstacle_header_distance = []
+        tree_count = apt_count = box_count = 0
+        for obs in test.simulation.obstacles:
+            min_distance, returned_list = trajectory.distance_to_obstacles([obs])
+            if obs.shape == "TREE":
+                tree_cumm_list.append(returned_list)
+                tree_count += 1
+                tree_index = "tree_" + str(tree_count) + "_min_distance"
+                obstacle_header_distance.append(tree_index)
+                tree_min_distance.append(min_distance)
+            elif obs.shape == "APARTMENT":
+                apt_cumm_list.append(returned_list)
+                apt_count += 1
+                apartment_index = "apt_" + str(apt_count) + "_min_distance"
+                obstacle_header_distance.append(apartment_index)
+                apt_min_distance.append(min_distance)
+            elif obs.shape == "BOX":
+                box_cumm_list.append(returned_list)
+                box_count += 1
+                box_index = "box_" + str(box_count) + "_min_distance"
+                obstacle_header_distance.append(box_index)
+                box_min_distance.append(min_distance)
+
+        sum_tree = [sum(elts) for elts in zip(*tree_cumm_list)]
+        sum_apt = [sum(elts) for elts in zip(*apt_cumm_list)]
+        sum_box = [sum(elts) for elts in zip(*box_cumm_list)]
+        avg_tree = [divmod(x, len(tree_cumm_list))[0] for x in sum_tree]
+        avg_apt = [divmod(x, len(apt_cumm_list))[0] for x in sum_apt]
+        avg_box = [divmod(x, len(box_cumm_list))[0] for x in sum_box]
+        i = 0
+        # print("*****Average tree****")
+        # print(avg_tree)
+        # print("Whole obstacle distance")
+        # print([trajectory.distance_to_obstacles([obs]) for obs in test.simulation.obstacles])
+        # print(f'distances and list are {distances} and {distance_list}')
+        # x = y = z = r = wind = light = 0.0
+
+        csv_header = ["x", "y", "z", "r", "timestamp", "wind", "light",
+                      "obstacle_present"]
+        csv_header_obstacles = ["no_of_obst", "no_of_boxes", "no_of_trees", "no_of_apt", "avg_dist_boxes",
+                                "avg_dist_trees", "avg_dist_apt"]
+        csv_header_obst_end = ["obst_details"]
+        header_flag = False
+        if len(test.simulation.obstacles) > 0:
+            obstacle_flag = True
+            obstacles_present = 1
+            for obstacle in test.simulation.obstacles:
+                if obstacle.shape == "TREE":
+                    number_of_trees += 1
+                elif obstacle.shape == "APARTMENT":
+                    number_of_apartments += 1
+                elif obstacle.shape == "BOX":
+                    number_of_boxes += 1
+                obstacle_type = obstacle.shape
+                obst_x = obstacle.position.x
+                obst_y = obstacle.position.y
+                obst_z = obstacle.position.z
+                obst_r = obstacle.position.r
+                temp_obst_row = (obstacle_type, obst_x, obst_y, obst_z, obst_r)
+                obstacle_list.append(temp_obst_row)
+        for position in positions:
+            x = position.x
+            y = position.y
+            z = position.z
+            r = position.r
+            timestamp = position.timestamp
+            average_tree_distance = avg_tree[i]
+            average_box_distance = avg_box[i]
+            average_apt_distance = avg_apt[i]
+            i += 1
+            header_final = []
+            if obstacle_flag:
+                number_of_obstacles = len(obstacle_list)
+                if not header_flag:
+                    header_final = csv_header + csv_header_obstacles + obstacle_header_distance + csv_header_obst_end
+                row = [x, y, z, r, timestamp, wind, light, obstacles_present, number_of_obstacles, number_of_trees,
+                       number_of_boxes,
+                       number_of_apartments, average_box_distance, average_tree_distance,
+                       average_apt_distance] + tree_min_distance + box_min_distance + apt_min_distance + [obstacle_list]
+            else:
+                if not header_flag:
+                    header_final = csv_header
+                row = [x, y, z, r, timestamp, wind, light, obstacles_present]
+            f = open(result_dir + dataset_file_combined + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S")) + file_extension, dataset_file_edit_mode)
+            write = csv.writer(f)
+            if not header_flag:
+                write.writerow(header_final)
+                header_flag = True
+            write.writerow(row)
+            f.close()
+
+        position_data = log.get_dataset('vehicle_local_position')
+        print(f'**keys of are {position_data.data.keys()}')
+        x_position = position_data.data['x']
+        y_position = position_data.data['y']
+        z_position = position_data.data['z']
+        heading = position_data.data['heading']
+        timestamp = position_data.data['timestamp']
+        print(f'****Printing position data')
+        print(len(x_position))
+        time_nav = 0
+        for x_pos, y_pos, z_pos, heading, timestamp in zip_longest(x_position, y_position, z_position, heading,
+                                                                   timestamp):
+            if timestamp in cpu_timestamp_list:
+                if time_nav < len(cpu_timestamp_list):
+                    time_nav += 1
+                if obstacle_flag:
+                    number_of_obstacles = len(obstacle_list)
+                    temp_row = [x_pos, y_pos, z_pos, timestamp, heading, wind, light, obstacles_present,
+                                number_of_obstacles, number_of_trees, number_of_boxes,
+                                number_of_apartments] + tree_min_distance + box_min_distance + apt_min_distance + [
+                                   obstacle_list]
+                else:
+                    temp_row = [x_pos, y_pos, z_pos, timestamp, heading, wind, light, obstacles_present]
+
+                f = open('/home/prasun/Aerialist/results/csvLog2.csv', 'a')
+                write = csv.writer(f)
+                write.writerow(temp_row)
+                f.close()
+            elif timestamp > cpu_timestamp[time_nav]:
+                if timestamp - 4000 in cpu_timestamp_list:
+                    number_of_obstacles = len(obstacle_list)
+                    if time_nav < len(cpu_timestamp_list):
+                        time_nav += 1
+                    if obstacle_flag:
+                        temp_row = [x_pos, y_pos, z_pos, timestamp, heading, wind, light, obstacles_present,
+                                    number_of_obstacles, number_of_trees, number_of_boxes,
+                                    number_of_apartments, obstacle_list]
+                    else:
+                        temp_row = [x_pos, y_pos, z_pos, timestamp, heading, wind, light, obstacles_present]
+
+                    f = open('/home/prasun/Aerialist/results/csvLog2.csv', 'a')
+                    write = csv.writer(f)
+                    write.writerow(temp_row)
+                    f.close()

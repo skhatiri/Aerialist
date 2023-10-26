@@ -82,7 +82,6 @@ class Trajectory(object):
         z_plt = fig.add_subplot(gs[2, :2])
         xy_plt = fig.add_subplot(gs[:, 2:])
         # xyz_plt = fig.add_subplot(gs[:, 2:], projection="3d")
-
         # annotations
         fig.suptitle(" ")
 
@@ -273,7 +272,7 @@ class Trajectory(object):
                     alpha=0.5,
                 )
 
-        fig.legend(loc="upper center", ncol=3 if obstacles is None else 4)
+        fig.legend(loc="upper center", ncol=3 if obstacles is None else 3)
         if circle_legend is not None:
             fig.legend(handles=[circle_legend], loc="upper right")
         if wind_legend is not None:

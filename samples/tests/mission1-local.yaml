@@ -15,7 +15,7 @@ simulation:
         w: 6
         h: 10
       position:
-        x: -20
+        x: 20
         y: 50
         z: 0
         angle: 0

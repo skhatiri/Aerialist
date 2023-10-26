@@ -120,7 +120,9 @@ class Obstacle(object):
         #         if boxes[i].intersects(boxes[j]):
         #             return 1000
         dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
-        return dist
+        dist_list = [sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords]
+        dist_avg = (sum(dist_list)/len(dist_list))
+        return dist, dist_list
 
     @classmethod
     def from_coordinates(cls, coordinates: List[float]):
