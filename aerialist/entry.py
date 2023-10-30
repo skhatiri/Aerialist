@@ -85,6 +85,20 @@ def arg_parse():
         default=[],
     )
     parser.add_argument(
+        "--obstacle3",
+        nargs=7,
+        type=float,
+        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
+        "--obstacle4",
+        nargs=7,
+        type=float,
+        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
         "--headless",
         action="store_true",
         default=config("HEADLESS", default=False, cast=bool),
@@ -185,7 +199,7 @@ def run_experiment(args):
             world="default",
             speed=args.speed,
             headless=args.headless,
-            obstacles=args.obstacle + args.obstacle2,
+            obstacles=args.obstacle + args.obstacle2 + args.obstacle3 + args.obstacle4,
             home_position=args.home,
         )
         test_config = TestConfig(

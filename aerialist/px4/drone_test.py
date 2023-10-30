@@ -88,20 +88,23 @@ class DroneTest:
             if self.simulation.home_position is not None:
                 params += f"--home {self.simulation.home_position[0]} {self.simulation.home_position[1]} {self.simulation.home_position[2]} "
 
-            if (
-                self.simulation.obstacles is not None
-                and len(self.simulation.obstacles) >= 1
-            ):
-                params += "--obstacle "
-                for p in self.simulation.obstacles[0].to_params():
-                    params += f"{p} "
-            if (
-                self.simulation.obstacles is not None
-                and len(self.simulation.obstacles) >= 2
-            ):
-                params += "--obstacle2 "
-                for p in self.simulation.obstacles[1].to_params():
-                    params += f"{p} "
+            if self.simulation.obstacles is not None:
+                if len(self.simulation.obstacles) >= 1:
+                    params += "--obstacle "
+                    for p in self.simulation.obstacles[0].to_params():
+                        params += f"{p} "
+                if len(self.simulation.obstacles) >= 2:
+                    params += "--obstacle2 "
+                    for p in self.simulation.obstacles[1].to_params():
+                        params += f"{p} "
+                if len(self.simulation.obstacles) >= 3:
+                    params += "--obstacle3 "
+                    for p in self.simulation.obstacles[2].to_params():
+                        params += f"{p} "
+                if len(self.simulation.obstacles) >= 4:
+                    params += "--obstacle4 "
+                    for p in self.simulation.obstacles[3].to_params():
+                        params += f"{p} "
 
         if self.test is not None:
             if self.test.commands_file is not None:

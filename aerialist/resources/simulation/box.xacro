@@ -4,6 +4,10 @@
   <xacro:arg name="l" default = "1" />
   <xacro:arg name="w" default = "1"/>
   <xacro:arg name="h" default = "1" />
+  <xacro:arg name="mass" default="1000" /> 
+  <!-- <xacro:property name="volume" value="$(arg l) * $(arg w) * $(arg h)" />
+  <xacro:property name="mass" value="$(arg density) * ${volume}" /> -->
+  
   <link name="$(arg name)">
     <static>true</static>
     <collision>
@@ -19,8 +23,8 @@
       <!-- <origin xyz="${-$(arg l)/2} ${-$(arg w)/2} ${$(arg h)/2}"/> -->
     </visual>
     <inertial>
-      <mass value="1"/>
-      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+      <mass value="$(arg mass)"/>
+      <inertia ixx="${0.083*$(arg mass)*($(arg w)*$(arg w)+$(arg h)*$(arg h))}" ixy="0" ixz="0" iyy="${0.083*$(arg mass)*($(arg l)*$(arg l)+$(arg h)*$(arg h))}" iyz="0" izz="${0.083*$(arg mass)*($(arg l)*$(arg l)+$(arg w)*$(arg w))}"/>
     </inertial>
   </link>
 </robot>
