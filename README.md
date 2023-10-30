@@ -109,7 +109,7 @@ This gives you more flexibility since the test results (flight logs) are directl
   - You may need to rebuild the docker image if you are using another OS or architecture.
 
 1. Clone this repository and `cd` into its root directory
-2. `pip3 install -r requiremetns.txt`
+2. `pip3 install -r requirements.txt`
 3. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
 4. Create a folder named `results` in the repository's root directory.
 5. You can use the dockerfile to build a Docker image with all the requirements, or instead pull the latest image from the Image repository.
@@ -139,7 +139,7 @@ If you prefer to run the simulations and PX4 on your own machine, follow [PX4 in
 - You can also follow a [step-by-step guide](./docs/PX4_installation.md#step-by-step-instlation) if needed.
 
 2. Clone this repository and cd into its root directory
-3. `pip3 install -r requiremetns.txt`
+3. `pip3 install -r requirements.txt`
 4. Create a file named `.env` in the repository's root directory. Then copy and customize the contents of [`template.env`](template.env) into it.
 
 - Update *PX4_HOME* and *RESULTS_DIR* variables according to your installation.
