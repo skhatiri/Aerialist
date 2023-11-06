@@ -12,15 +12,13 @@
     <static>true</static>
     <collision>
       <geometry>
-        <box size="$(arg l) $(arg w) $(arg h)"/>
+        <box size="${0.8*$(arg l)} ${0.8*$(arg w)} $(arg h)"/>
       </geometry>
-      <!-- <origin xyz="${-$(arg l)/2} ${-$(arg w)/2} ${$(arg h)/2}"/> -->
     </collision>
     <visual>
       <geometry>
         <box size="$(arg l) $(arg w) $(arg h)"/>
       </geometry>
-      <!-- <origin xyz="${-$(arg l)/2} ${-$(arg w)/2} ${$(arg h)/2}"/> -->
     </visual>
     <inertial>
       <mass value="$(arg mass)"/>
