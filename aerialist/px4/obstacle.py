@@ -101,10 +101,20 @@ class Obstacle(object):
         if dist == 0 and geometry.has_z:
             # it is 3D and they intersect in x,y plane
             intersection = self.geometry.intersection(geometry)
-            min_z = min(p[2] for p in intersection.coords)
-            if min_z > self.size.h:
-                # flight trajectory is above the obstacle
-                dist = min_z - self.size.h
+            intersection_points = []
+            try:  # single part intersection
+                intersection_points = intersection.coords
+            except:
+                try:  # multipart intersection
+                    for geom in intersection.geoms:
+                        intersection_points.extend(geom.coords)
+                except:
+                    pass
+            if len(intersection_points) > 0:
+                min_z = min(p[2] for p in intersection_points)
+                if min_z > self.size.h:
+                    # flight trajectory is above the obstacle
+                    dist = min_z - self.size.h
         return dist
 
     def to_dict(self):
