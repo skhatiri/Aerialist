@@ -22,7 +22,7 @@ class DockerAgent(TestAgent):
     def __init__(self, config: DroneTest) -> None:
         super().__init__(config)
         create_cmd = subprocess.run(
-            f"docker run -td {self.DOCKER_IMG}", shell=True, capture_output=True
+            f"docker run --rm -td {self.DOCKER_IMG}", shell=True, capture_output=True
         )
         if create_cmd.returncode == 0:
             self.container_id = create_cmd.stdout.decode("ascii").strip()
