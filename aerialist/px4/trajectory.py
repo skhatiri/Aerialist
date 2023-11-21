@@ -48,10 +48,10 @@ class Trajectory(object):
         highlights: List[float] = None,
         filename=None,
     ):
-        distance = None
+        distance = True
         if goal is not None:
             distance = self.distance(goal)
-        self.plot_multiple(
+        return self.plot_multiple(
             [self],
             goal,
             save,
@@ -233,11 +233,12 @@ class Trajectory(object):
             if filename is None:
                 filename = file_prefix + file_helper.time_filename(add_host=True)
             os.makedirs(cls.DIR, exist_ok=True)
-            fig.savefig(f"{cls.DIR}{filename}.png")
+            plot_file = f"{cls.DIR}{filename}.png"
+            fig.savefig(plot_file)
             plt.close(fig)
             if cls.WEBDAV_DIR is not None:
                 file_helper.upload(f"{cls.DIR}{filename}.png", cls.WEBDAV_DIR)
-
+            return plot_file
         else:
             plt.ion()
             plt.show()
@@ -252,6 +253,19 @@ class Trajectory(object):
                 p.timestamp -= origin.timestamp
             if origin.r is not None:
                 p.r -= origin.r
+
+    def handle_rotation(self, threshold=np.pi):
+        for i in range(1, len(self.positions)):
+            diff = self.positions[i].r - self.positions[i - 1].r
+            if diff > threshold:
+                self.positions[i].r -= 2 * np.pi
+                # for p in self.positions[i:]:
+                #     p.r -= 2 * np.pi
+            elif diff < -threshold:
+                self.positions[i].r += 2 * np.pi
+                # for p in self.positions[i:]:
+                #     p.r += 2 * np.pi
+        return
 
     def distance(self, other: Trajectory) -> float:
         """quantify the difference between the two trajectoryies using Dynamic Time Warping and normalized datapoints"""

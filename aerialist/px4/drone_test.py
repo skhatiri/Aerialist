@@ -128,7 +128,7 @@ class DroneTest:
     @classmethod
     def plot(
         cls, test: DroneTest, results: List[DroneTestResult], obstacle_distance=True
-    ) -> None:
+    ) -> str:
         distance = None
         if obstacle_distance:
             distance = True
@@ -137,7 +137,7 @@ class DroneTest:
                 [r.record.distance(test.assertion.expectation) for r in results]
             )
         if results is not None and len(results) >= 1:
-            Trajectory.plot_multiple(
+            return Trajectory.plot_multiple(
                 [r.record for r in results],
                 goal=None if test.assertion is None else test.assertion.expectation,
                 distance=distance,
