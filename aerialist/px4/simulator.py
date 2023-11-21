@@ -24,6 +24,9 @@ class Simulator(object):
         "AVOIDANCE_LAUNCH",
         default="aerialist/resources/simulation/collision_prevention.launch",
     )
+    AVOIDANCE_BOX = config(
+        "AVOIDANCE_BOX", default="aerialist/resources/simulation/box.xacro"
+    )
     COPY_DIR = config("LOGS_COPY_DIR", None)
     LAND_TIMEOUT = 20
 
@@ -60,7 +63,7 @@ class Simulator(object):
                 'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
                 + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(False and not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} "
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(False and not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} box_path:={self.AVOIDANCE_BOX} "
             if self.config.obstacles != None:
                 if len(self.config.obstacles) > 0:
                     sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.w} obst_w:={self.config.obstacles[0].size.l} obst_h:={self.config.obstacles[0].size.h} obst_yaw:={math.radians(-self.config.obstacles[0].position.r)} "

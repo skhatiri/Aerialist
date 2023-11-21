@@ -1,4 +1,5 @@
 <launch>
+    <arg name="box_path" default="aerialist/resources/simulation/box.xacro" />
     <arg name="world_file_name"    default="simple_obstacle" />
     <arg name="world_path" default="$(find avoidance)/sim/worlds/$(arg world_file_name).world" />
     <arg name="pointcloud_topics" default="[/camera/depth/points]"/>
@@ -57,7 +58,7 @@
     <!-- add obstacles -->
     <group if="$(arg obst)">
         <!-- Convert xacro and put on parameter server -->
-        <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h)" />
+        <param name="box_description" command="$(find xacro)/xacro.py $(arg box_path) name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h)" />
         
         <node name="spawn_obstacle" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description -urdf -x $(arg obst_x) -y $(arg obst_y) -z $(arg obst_z) -Y $(arg obst_yaw) -model box/">
@@ -65,7 +66,7 @@
     </group>
     <group if="$(arg obst2)">
         <!-- Convert xacro and put on parameter server -->
-        <param name="box_description2" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h)" />
+        <param name="box_description2" command="$(find xacro)/xacro.py $(arg box_path) name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h)" />
         
         <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model box2/">
@@ -73,7 +74,7 @@
     </group>
     <group if="$(arg obst3)">
         <!-- Convert xacro and put on parameter server -->
-        <param name="box_description3" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box3 l:=$(arg obst3_l) w:=$(arg obst3_w) h:=$(arg obst3_h)" />
+        <param name="box_description3" command="$(find xacro)/xacro.py $(arg box_path) name:=box3 l:=$(arg obst3_l) w:=$(arg obst3_w) h:=$(arg obst3_h)" />
         
         <node name="spawn_obstacle3" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description3 -urdf -x $(arg obst3_x) -y $(arg obst3_y) -z $(arg obst3_z) -Y $(arg obst3_yaw) -model box3/">
@@ -81,7 +82,7 @@
     </group>
     <group if="$(arg obst4)">
         <!-- Convert xacro and put on parameter server -->
-        <param name="box_description4" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box4 l:=$(arg obst4_l) w:=$(arg obst4_w) h:=$(arg obst4_h)" />
+        <param name="box_description4" command="$(find xacro)/xacro.py $(arg box_path) name:=box4 l:=$(arg obst4_l) w:=$(arg obst4_w) h:=$(arg obst4_h)" />
         
         <node name="spawn_obstacle4" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description4 -urdf -x $(arg obst4_x) -y $(arg obst4_y) -z $(arg obst4_z) -Y $(arg obst4_yaw) -model box4/">
