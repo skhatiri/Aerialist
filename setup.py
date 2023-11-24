@@ -20,7 +20,7 @@ setuptools.setup(
     install_requires=[
         "numpy==1.23.2",
         "similaritymeasures==0.5.0",
-        "matplotlib>=3.6.0",
+        "matplotlib==3.6.1",
         "pyulog==0.9.0",
         "mavsdk==1.4.1",
         "keyboard==0.13.5",
