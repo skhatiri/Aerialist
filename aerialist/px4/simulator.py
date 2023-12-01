@@ -24,6 +24,7 @@ class Simulator(object):
         "AVOIDANCE_LAUNCH",
         default="aerialist/resources/simulation/collision_prevention.launch",
     )
+    SIMULATION_TIME = config("SIMULATION_TIME", default=600)
     AVOIDANCE_BOX = config(
         "AVOIDANCE_BOX", default="aerialist/resources/simulation/box.xacro"
     )
@@ -137,6 +138,7 @@ class Simulator(object):
     def sim_thread(self):
         try:
             land_time = None
+            start_time = time.time()
             while True:
                 output = self.sim_process.stdout.readline().strip()
                 if output.startswith("ERROR"):
@@ -154,6 +156,17 @@ class Simulator(object):
                     raise Exception(
                         "timeout expired after land - Killing the process..."
                     )
+
+                if time.time() - start_time > float(self.SIMULATION_TIME):
+                    logger.info("Simulator time is up. Your execution has been stopped. Check logs..")
+                    command = "rosnode kill -a"
+                    try:
+                        subprocess.run(command, shell=True, check=True)
+                        print("Simulator stopped successfully.")
+                    except subprocess.CalledProcessError as e:
+                        print(f"Error while killing the simulator with the command: {e}")
+
+                    return False
 
                 if output.find("Landing detected") >= 0:
                     land_time = time.perf_counter()
