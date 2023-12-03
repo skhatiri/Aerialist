@@ -21,7 +21,8 @@ class LocalAgent(TestAgent):
 
     def run(self):
         try:
-            self.drone.run_scheduled()
+            if self.drone is not None:
+                self.drone.run_scheduled()
             log = self.simulator.get_log()
             if self.config.agent is not None and self.config.agent.path is not None:
                 file_helper.upload(log, self.config.agent.path)

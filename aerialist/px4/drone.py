@@ -31,6 +31,8 @@ class Drone(object):
         if self.config.mission_file != None:
             self.upload_mission(self.config.mission_file)
 
+        self.scheduler = None
+
     def schedule_test(self, test: TestConfig, offset_sync=False) -> None:
         """sets an schedular object with input control commands to be replayed accurately"""
         self.scheduler = sched.scheduler(time.time, time.sleep)
@@ -66,6 +68,9 @@ class Drone(object):
                 )
 
     def run_scheduled(self) -> None:
+        if self.scheduler is None:
+            logging.info("no commands are scheduled, skipping ....")
+            return
         logger.info(
             f"**SCHEDULER STARTED** running {len(self.scheduler.queue)} commands "
         )

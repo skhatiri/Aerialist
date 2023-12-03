@@ -190,9 +190,7 @@ class Trajectory(object):
 
         if distance == True and obstacles is not None:
             distance = ave_trajectory.min_distance_to_obstacles(obstacles)
-        else:
-            distance = None
-        if distance is not None:
+        if distance is not None and distance != False:
             fig.text(
                 0.5,
                 0.03,
