@@ -15,7 +15,7 @@ setuptools.setup(
     project_urls={"Bug Tracker": "https://github.com/skhatiri/Aerialist/issues"},
     license="MIT",
     packages=setuptools.find_packages(),
-    python_requires=">=3.7",
+    python_requires=">=3.7, <=3.9",
     include_package_data=True,
     install_requires=[
         "numpy==1.23.2",
