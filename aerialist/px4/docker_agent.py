@@ -13,17 +13,21 @@ logger = logging.getLogger(__name__)
 
 
 class DockerAgent(TestAgent):
-    CMD = "timeout {timeout} python3 aerialist {params}"
+    CMD = "python3 aerialist {params}"
     DOCKER_CMD = "docker exec -it {id} "
     DOCKER_IMG = config("DOCKER_IMG", default="skhatiri/aerialist")
     COPY_DIR = config("LOGS_COPY_DIR", "results/logs/")
     DOCKER_TIMEOUT = config("DOCKER_TIMEOUT", default=1000, cast=int)
+    SIMULATION_TIMEOUT = config("SIMULATION_TIMEOUT", cast=int, default=-1)
 
     def __init__(self, config: DroneTest) -> None:
         super().__init__(config)
-        create_cmd = subprocess.run(
-            f"docker run --rm -td {self.DOCKER_IMG}", shell=True, capture_output=True
-        )
+        envs = ""
+        if self.SIMULATION_TIMEOUT > 0:
+            envs = f"-e SIMULATION_TIMEOUT={self.SIMULATION_TIMEOUT} "
+        cmd = f"docker run --rm {envs}-td {self.DOCKER_IMG}"
+        create_cmd = subprocess.run(cmd, shell=True, capture_output=True)
+
         if create_cmd.returncode == 0:
             self.container_id = create_cmd.stdout.decode("ascii").strip()
             logger.info(f"new container:{self.container_id[:12]}")
@@ -45,10 +49,9 @@ class DockerAgent(TestAgent):
         params = DroneTest(
             config.drone, config.simulation, config.test, None, config.agent
         ).cmd_params()
-        cmd = self.CMD.format(
-            params=params,
-            timeout=self.DOCKER_TIMEOUT,
-        )
+        cmd = self.CMD.format(params=params)
+        if self.DOCKER_TIMEOUT is not None:
+            cmd = f"timeout {self.DOCKER_TIMEOUT} " + cmd
         return cmd
 
     def run(self):
@@ -88,10 +91,13 @@ class DockerAgent(TestAgent):
             self.export_file(docker_log, log_add)
             self.results.append(DroneTestResult(log_add))
             if print_logs:
+                logger.info("************************************")
+                logger.info("Logs from the Docker container:")
                 if stdout:
-                    logger.debug(stdout)
+                    logger.info(stdout)
                 if stderr:
-                    logger.warning(stderr)
+                    logger.error(stderr)
+                logger.info("************************************")
         except:
             if stdout:
                 logger.info(stdout)
