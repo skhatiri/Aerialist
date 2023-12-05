@@ -72,17 +72,45 @@ def arg_parse():
         help="the simulator environment to run",
     )
     parser.add_argument(
-        "--obstacle",
-        nargs=7,
-        type=float,
-        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        "--obstacle1",
+        nargs=8,
+        help="obstacle position, size & shape to put in simulation environment: [l,w,h,x,y,z,r] in order",
         default=[],
     )
     parser.add_argument(
         "--obstacle2",
-        nargs=7,
-        type=float,
-        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        nargs=8,
+        help="obstacle position, size & shape to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
+        "--obstacle3",
+        nargs=8,
+        help="obstacle position, size & shape to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
+        "--obstacle4",
+        nargs=8,
+        help="obstacle position, size & shape to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
+        "--obstacle5",
+        nargs=8,
+        help="obstacle position, size & shape to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
+        "--obstacle6",
+        nargs=8,
+        help="obstacle position, size & shape to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
+        "--obstacle7",
+        nargs=8,
+        help="obstacle position, size & shape to put in simulation environment: [l,w,h,x,y,z,r] in order",
         default=[],
     )
     parser.add_argument(
@@ -200,7 +228,7 @@ def run_experiment(args):
             world="default",
             speed=args.speed,
             headless=args.headless,
-            obstacles=args.obstacle + args.obstacle2,
+            obstacles=args.obstacle1 + args.obstacle2,
             pattern=args.pattern + args.pattern2,
             pattern_design=args.pattern_design + args.pattern_design2,
             home_position=args.home,

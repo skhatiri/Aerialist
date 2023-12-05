@@ -79,30 +79,35 @@ class DroneTest:
             if self.simulation.home_position is not None:
                 params += f"--home {self.simulation.home_position[0]} {self.simulation.home_position[1]} {self.simulation.home_position[2]} "
             # print(f'********{self.simulation.obstacles[0].size.x}')
+            count_obs = 0
             if (
                     self.simulation.obstacles is not None
                     and len(self.simulation.obstacles) >= 1
             ):
-                params += "--obstacle "
+                no_of_obstacles = len(self.simulation.obstacles)
+                for i in range(0, no_of_obstacles):
+                    count_obs += 1
+                    params += f"--obstacle{count_obs} "
+                    # print(f"obstacle present is {self.simulation.obstacles[count_obs-1]}")
                 # temp = [self.simulation.obstacles[0].size.x, self.simulation.obstacles[0].size.y,
                 #         self.simulation.obstacles[0].size.z, self.simulation.obstacles[0].position.x,
                 #         self.simulation.obstacles[0].position.y, self.simulation.obstacles[0].position.z,
                 #         self.simulation.obstacles[0].angle]
                 # for p in temp:
-                for p in self.simulation.obstacles[0].to_params():
-                    params += f"{p} "
-            if (
-                    self.simulation.obstacles is not None
-                    and len(self.simulation.obstacles) >= 2
-            ):
-                params += "--obstacle2 "
-                for p in self.simulation.obstacles[1].to_params():
-                    params += f"{p} "
+                    for p in self.simulation.obstacles[count_obs-1].to_params():
+                        params += f"{p} "
+            # if (
+            #         self.simulation.obstacles is not None
+            #         and len(self.simulation.obstacles) >= 2
+            # ):
+            #     params += "--obstacle2 "
+            #     for p in self.simulation.obstacles[1].to_params():
+            #         params += f"{p} "
             if (
                     self.simulation.world_file_name is not None
             ):
                 params += "--world_file_name "
-                params += self.simulation.world_file_name[0]
+                params += f"{self.simulation.world_file_name[0]} "
 
             if (
                     self.simulation.pattern_design is not None
@@ -352,6 +357,7 @@ def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
     cpu_timestamp = cpu_data.data['timestamp']
     cpu_timestamp_list = []
     cpu_header = False
+    unsafe_flag = 0
     print(f'**keys are {cpu_data.data.keys()}')
     print(f'cpu load and ram usage length are {len(cpu_load)},{len(ram_usage)}')
     for temp_cpu_load, temp_ram_usage, temp_cpu_timestamp in zip_longest(cpu_load, ram_usage, cpu_timestamp):
@@ -386,6 +392,8 @@ def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
         tree_count = apt_count = box_count = 0
         for obs in test.simulation.obstacles:
             min_distance, returned_list = trajectory.distance_to_obstacles([obs])
+            if min_distance < 1.5:
+                unsafe_flag = 1
             if obs.shape == "TREE":
                 tree_cumm_list.append(returned_list)
                 tree_count += 1
@@ -423,7 +431,7 @@ def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
                       "obstacle_present"]
         csv_header_obstacles = ["no_of_obst", "no_of_boxes", "no_of_trees", "no_of_apt", "avg_dist_boxes",
                                 "avg_dist_trees", "avg_dist_apt"]
-        csv_header_obst_end = ["obst_details"]
+        csv_header_obst_end = ["obst_details", "unsafe"]
         header_flag = False
         if len(test.simulation.obstacles) > 0:
             obstacle_flag = True
@@ -460,7 +468,7 @@ def log_csv(test: DroneTest, results: List[DroneTestResult]) -> None:
                 row = [x, y, z, r, timestamp, wind, light, obstacles_present, number_of_obstacles, number_of_trees,
                        number_of_boxes,
                        number_of_apartments, average_box_distance, average_tree_distance,
-                       average_apt_distance] + tree_min_distance + box_min_distance + apt_min_distance + [obstacle_list]
+                       average_apt_distance] + tree_min_distance + box_min_distance + apt_min_distance + [obstacle_list] + [unsafe_flag]
             else:
                 if not header_flag:
                     header_final = csv_header

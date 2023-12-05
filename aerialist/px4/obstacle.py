@@ -79,6 +79,7 @@ class Obstacle(object):
             self.position.y,
             self.position.z,
             self.angle,
+            self.shape
         ]
 
     def plt_patch(self):
@@ -129,13 +130,14 @@ class Obstacle(object):
         size = Position(coordinates[0], coordinates[1], coordinates[2])
         position = Position(coordinates[3], coordinates[4], coordinates[5])
         angle = coordinates[6]
-        return Obstacle(size, position, angle)
+        shape = coordinates[7]
+        return Obstacle(size, position, angle, shape)
 
     @classmethod
     def from_coordinates_multiple(cls, coordinates: List[float]):
         obst = []
-        for i in range(0, len(coordinates), 7):
-            obst.append(Obstacle.from_coordinates(coordinates[i: i + 7]))
+        for i in range(0, len(coordinates), 8):
+            obst.append(Obstacle.from_coordinates(coordinates[i: i + 8]))
         return obst
 
     @classmethod

@@ -1,5 +1,6 @@
 from . import file_helper
-from .intermediate_representation import check_intermediate_representation
+from .get_file_path import check_intermediate_representation
+from .get_file_path import get_result_path
 from .test_agent import TestAgent
 from .drone import Drone
 from .simulator import Simulator
@@ -26,6 +27,8 @@ class LocalAgent(TestAgent):
             if self.config.agent is not None and self.config.agent.path is not None:
                 file_helper.upload(log, self.config.agent.path)
                 returned_val = check_intermediate_representation()
+                result_zip = file_helper.zip_folder(get_result_path())
+                file_helper.upload(result_zip, self.config.agent.path)
                 if returned_val[0] != "False":
                     zip_list = file_helper.zip_folder(returned_val)
                     if len(zip_list) > 0:
