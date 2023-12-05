@@ -12,6 +12,10 @@ spec:
       labels:
         {}
     spec:
+      volumes:
+        - name: host-path-volume
+          hostPath:
+            path: VOLUME
       containers:
         - imagePullPolicy: Always
           name: container-0
@@ -24,25 +28,12 @@ spec:
             - "$(COMMAND)" 
           tty: true
           env:
-            - name: WEBDAV_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: webdav
-                  key: host            
-            - name: WEBDAV_USER
-              valueFrom:
-                secretKeyRef:
-                  name: webdav
-                  key: user           
-            - name: WEBDAV_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: webdav
-                  key: pass
             - name: COMMAND
-              value: "python3 aerialist --help"          
+              value: "python3 aerialist --help"
+          volumeMounts:
+            - name: host-path-volume
+              mountPath: /src/aerialist/results
           resources:
-
             requests:
               cpu: 750m
               memory: 300Mi
@@ -56,7 +47,6 @@ spec:
       restartPolicy: Never
   completions: 1
   suspend: false
-#  activeDeadlineSeconds: int
   backoffLimit: 5
   completionMode: NonIndexed
   parallelism: 1

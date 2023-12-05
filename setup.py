@@ -5,7 +5,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="aerialist",
+<<<<<<< HEAD
     version="0.1.1",
+=======
+    version="0.2.02",
+>>>>>>> master
     author="Sajad Khatiri",
     author_email="s.khatiri@gmail.com",
     description="UAV Test Bench",
@@ -20,7 +24,7 @@ setuptools.setup(
     install_requires=[
         "numpy==1.23.2",
         "similaritymeasures==0.5.0",
-        "matplotlib>=3.6.0",
+        "matplotlib==3.6.1",
         "pyulog==0.9.0",
         "mavsdk==1.4.1",
         "keyboard==0.13.5",
@@ -36,6 +40,7 @@ setuptools.setup(
         "rospkg==1.4.0",
         "defusedxml==0.7.1",
         "tslearn== 0.5.2",
+        "h5py==3.9.0",
     ],
     entry_points={"console_scripts": ["aerialist=aerialist.entry:main"]},
 )

@@ -6,20 +6,11 @@ drone:
 simulation:
   simulator: ros #{gazebo, jmavsim, ros}
   speed: 1
-  headless: false
-  obstacles: [6,6,10,  -9,35,4,  0] # size,position,orientation of a box
-  pattern_design: ["chequered"]
-  world_file_name: ["simple_obstacle_scenario1"]
+  headless: true
 
 test:
-  commands_file: samples/flights/auto_commands.csv
-  speed: 1
+  commands_file: samples/flights/manual1.ulg
 
 assertion:
   # log_file: samples/flights/log-test_case_2-normal-5m.ulg
   variable: trajectory
-
-agent:
-  engine: local # {k8s, docker, local}
-  count: 1
-

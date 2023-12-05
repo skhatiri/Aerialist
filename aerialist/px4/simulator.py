@@ -1,4 +1,5 @@
 from __future__ import annotations
+import select
 import time
 import subprocess
 import signal
@@ -36,6 +37,10 @@ class Simulator(object):
     AVOIDANCE_LAUNCH = config(
         "AVOIDANCE_LAUNCH",
         default="aerialist/resources/simulation/collision_prevention.launch",
+    )
+    SIMULATION_TIMEOUT = config("SIMULATION_TIMEOUT", cast=int, default=-1)
+    AVOIDANCE_BOX = config(
+        "AVOIDANCE_BOX", default="aerialist/resources/simulation/box.xacro"
     )
     COPY_DIR = config("LOGS_COPY_DIR", None)
     LAND_TIMEOUT = 20
@@ -158,7 +163,7 @@ class Simulator(object):
                     self.log_file = output.replace(
                         "INFO  [logger] Opened full log file: ./", self.log_dir
                     )
-                    logger.debug(f"logging started: {self.log_file}")
+                    logger.info(f"logging started: {self.log_file}")
                     if (
                             self.config.simulator == SimulationConfig.GAZEBO
                             or self.config.simulator == SimulationConfig.JMAVSIM
@@ -186,9 +191,17 @@ class Simulator(object):
 
     def sim_thread(self):
         try:
+            poll_obj = select.poll()
+            poll_obj.register(self.sim_process.stdout, select.POLLIN)
+            start_time = time.perf_counter()
             land_time = None
             while True:
-                output = self.sim_process.stdout.readline().strip()
+                poll_result = poll_obj.poll(5000)
+                if poll_result:
+                    output = self.sim_process.stdout.readline().strip()
+                else:
+                    output = ""
+
                 if output.startswith("ERROR"):
                     logger.error(output)
                 elif output:
@@ -204,6 +217,25 @@ class Simulator(object):
                     raise Exception(
                         "timeout expired after land - Killing the process..."
                     )
+
+                if (
+                    self.SIMULATION_TIMEOUT > 0
+                    and time.perf_counter() - start_time > self.SIMULATION_TIMEOUT
+                ):
+                    logger.error(
+                        "Simulation Timeout. Terminating the rest of the execution..."
+                    )
+                    self.kill()
+                    logger.debug(f"logging finished: {self.log_file}")
+                    if self.COPY_DIR is not None:
+                        copy_path = file_helper.copy(
+                            self.log_file,
+                            self.COPY_DIR + file_helper.time_filename(True) + ".ulg",
+                        )
+                        if copy_path is not None:
+                            self.log_file = os.path.abspath(copy_path)
+                            logger.debug(f"log copied: {self.log_file}")
+                    return
 
                 if output.find("Landing detected") >= 0:
                     land_time = time.perf_counter()

@@ -4,6 +4,7 @@ from .test_agent import TestAgent
 from .drone import Drone
 from .simulator import Simulator
 from .drone_test import AssertionConfig, DroneTest, DroneTestResult
+from . import tools
 
 
 class LocalAgent(TestAgent):
@@ -19,9 +20,10 @@ class LocalAgent(TestAgent):
             if self.config.test is not None:
                 self.drone.schedule_test(self.config.test)
 
-    def run(self, config: DroneTest):
+    def run(self):
         try:
-            self.drone.run_scheduled()
+            if self.drone is not None:
+                self.drone.run_scheduled()
             log = self.simulator.get_log()
             if self.config.agent is not None and self.config.agent.path is not None:
                 file_helper.upload(log, self.config.agent.path)
@@ -38,5 +40,5 @@ class LocalAgent(TestAgent):
             raise (e)
 
     def manual(self):
-        self.drone.manual()
+        tools.manual_flight(self.drone)
         self.log = Simulator.get_log()

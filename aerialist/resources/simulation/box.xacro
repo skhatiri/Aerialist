@@ -9,24 +9,28 @@
   <xacro:arg name="path" default=""/>
  <!-- <xacro:property name="path" value="/src/aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_"/> -->
   <xacro:property name="extension" value=".dae"/>
+  <xacro:arg name="mass" default="1000" /> 
+  <!-- <xacro:property name="volume" value="$(arg l) * $(arg w) * $(arg h)" />
+  <xacro:property name="mass" value="$(arg density) * ${volume}" /> -->
+  
   <link name="$(arg name)">
     <static>true</static>
     <collision>
       <geometry>
-        <box size="$(arg l) $(arg w) $(arg h)"/>
+        <box size="${0.8*$(arg l)} ${0.8*$(arg w)} $(arg h)"/>
       </geometry>
-      <!-- <origin xyz="${-$(arg l)/2} ${-$(arg w)/2} ${$(arg h)/2}"/> -->
     </collision>
     <visual>
       <geometry>
         <mesh filename = "$(arg path)$(arg pattern)${extension}" scale="6.0 6.0 10.0"/>
         <!-- <box size="$(arg l) $(arg w) $(arg h)"/> -->
       </geometry>
-      <!-- <origin xyz="${-$(arg l)/2} ${-$(arg w)/2} ${$(arg h)/2}"/> -->
     </visual>
     <inertial>
       <mass value="100"/>
       <inertia ixx="1088.0" ixy="0.0" ixz="0.0" iyy="550.0" iyz="0.0" izz="1088.0"/>
+      <!-- <mass value="$(arg mass)"/>
+      <inertia ixx="${0.083*$(arg mass)*($(arg w)*$(arg w)+$(arg h)*$(arg h))}" ixy="0" ixz="0" iyy="${0.083*$(arg mass)*($(arg l)*$(arg l)+$(arg h)*$(arg h))}" iyz="0" izz="${0.083*$(arg mass)*($(arg l)*$(arg l)+$(arg w)*$(arg w))}"/> -->
     </inertial>
   </link>
 </robot>

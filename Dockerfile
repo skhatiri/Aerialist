@@ -30,7 +30,7 @@ RUN pip3 install roslibpy
 COPY . .
 RUN chmod +x ./aerialist/__main__.py
 COPY ./template.env ./.env
-RUN mkdir -p /io/ ./results/logs/
+RUN mkdir -p /io/ ./results/logs/ tmp/
 
 RUN cd /home &&\
     git clone https://github.com/saurabhprasun20/gazebo.git &&\

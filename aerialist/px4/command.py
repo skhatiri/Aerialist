@@ -1,10 +1,8 @@
 from __future__ import annotations
 from statistics import mean
-import numpy as np
 import pandas as pd
 from enum import Enum
 from typing import List
-import ruptures as rpt
 from . import file_helper
 
 
@@ -41,7 +39,10 @@ class Command(object):
         self.y = y
         self.z = z
         self.r = r
-        self.mode = mode
+        if type(mode) == FlightMode:
+            self.mode = mode
+        else:
+            self.mode = FlightMode(mode)
 
     def __str__(self) -> str:
         return f"{int(self.timestamp)}\t{self.mode.name}\t({self.x},{self.y},{self.z},{self.r})\n"
@@ -71,22 +72,6 @@ class Command(object):
             return proj
         else:
             return self
-
-    @classmethod
-    def extract_segments(cls, commands: List[Command]) -> List[List[Command]]:
-        data = np.array([[c.x, c.y, c.z, c.r] for c in commands])
-        alg = rpt.Pelt(model="rbf").fit(data)
-        change_idx = alg.predict(pen=2)
-        auto_idx = [i for i, c in enumerate(commands) if c.mode != FlightMode.Setpoint]
-        auto_idx += [i + 1 for i in auto_idx if i < len(commands) - 1]
-        split_idx = list(set(change_idx + auto_idx + [0]))
-        split_idx.sort()
-        segments: List[Command] = []
-        for i in range(len(split_idx) - 1):
-            seg = commands[split_idx[i] : split_idx[i + 1]]
-            segments.append(seg)
-
-        return segments
 
     @classmethod
     def extract_params_from_csv(cls, address: str) -> dict:
@@ -142,7 +127,7 @@ class Command(object):
                     row.y,
                     row.z,
                     row.r,
-                    FlightMode(row.mode),
+                    row.mode,
                 )
             )
         return commands
