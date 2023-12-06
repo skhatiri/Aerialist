@@ -18,11 +18,7 @@ try:
         SimulationConfig,
         TestConfig,
         AgentConfig,
-<<<<<<< HEAD
-        Plot,
-=======
         DroneTestResult,
->>>>>>> master
     )
 except:
     from px4.k8s_agent import K8sAgent
@@ -35,11 +31,7 @@ except:
         SimulationConfig,
         TestConfig,
         AgentConfig,
-<<<<<<< HEAD
-        Plot,
-=======
         DroneTestResult,
->>>>>>> master
     )
 
 
@@ -94,7 +86,6 @@ def arg_parse():
         default=[],
     )
     parser.add_argument(
-<<<<<<< HEAD
         "--pattern",
         nargs=1,
         help="flag to put a patten on the obstacle 1 being spawned",
@@ -131,22 +122,6 @@ def arg_parse():
         default="collision_prevention",
     )
     parser.add_argument(
-=======
-        "--obstacle3",
-        nargs=7,
-        type=float,
-        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
-        default=[],
-    )
-    parser.add_argument(
-        "--obstacle4",
-        nargs=7,
-        type=float,
-        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
-        default=[],
-    )
-    parser.add_argument(
->>>>>>> master
         "--headless",
         action="store_true",
         default=config("HEADLESS", default=False, cast=bool),
