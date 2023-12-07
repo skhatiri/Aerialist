@@ -91,16 +91,16 @@ class Simulator(object):
                     if obstacle.shape == "BOX":
                         if obstacle.pattern_design is not None:
                             if pattern_box_count == 0:
-                                sim_command += f"obst:=true obst_x:={obstacle.position.y} obst_y:={obstacle.position.x} obst_z:={obstacle.position.z} obst_l:={obstacle.size.y} obst_w:={obstacle.size.x} obst_h:={obstacle.size.z} obst_yaw:={math.radians(-obstacle.angle)} pattern_design:={obstacle.pattern_design} "
+                                sim_command += f"obst:=true obst_x:={obstacle.position.y} obst_y:={obstacle.position.x} obst_z:={obstacle.position.z} obst_l:={obstacle.size.w} obst_w:={obstacle.size.l} obst_h:={obstacle.size.h} obst_yaw:={math.radians(-obstacle.position.r)} pattern_design:={obstacle.pattern_design} "
                                 pattern_box_count += 1
                             if pattern_box_count == 1:
-                                sim_command += f"obst2:=true obst2_x:={obstacle.position.y} obst2_y:={obstacle.position.x} obst2_z:={obstacle.position.z} obst2_l:={obstacle.size.y} obst2_w:={obstacle.size.x} obst2_h:={self.config.obstacles[1].size.z} obst2_yaw:={math.radians(-obstacle.angle)} pattern_design2:={obstacle.pattern_design} "
+                                sim_command += f"obst2:=true obst2_x:={obstacle.position.y} obst2_y:={obstacle.position.x} obst2_z:={obstacle.position.z} obst2_l:={obstacle.size.w} obst2_w:={obstacle.size.l} obst2_h:={obstacle.size.h} obst2_yaw:={math.radians(-obstacle.position.r)} pattern_design2:={obstacle.pattern_design} "
                         else:
                             box_count += 1
                             box_name = "box_" + str(box_count)
-                            run_box_subprocess(box_name, str(obstacle.size.x),
-                                               str(obstacle.size.y),
-                                               str(obstacle.size.z),
+                            run_box_subprocess(box_name, str(obstacle.size.w), #TODO: Need to put the angle of the box too.
+                                               str(obstacle.size.l),
+                                               str(obstacle.size.h),
                                                str(obstacle.position.x),
                                                str(obstacle.position.y),
                                                str(obstacle.position.z))

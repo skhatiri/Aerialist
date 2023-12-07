@@ -20,7 +20,7 @@ path2 = AERIALIST_DIR + "aerialist/"
 
 def run_subprocess(histogram_folder, pointcloud_folder, disparity_folder, raw_folder):
     # histogram_pro = subprocess.Popen(["python2", path2 + histogram_file, histogram_folder])
-    pointcloud_pro = subprocess.Popen(["python2", path2 + pointcloud_file, pointcloud_folder])
+    # pointcloud_pro = subprocess.Popen(["python2", path2 + pointcloud_file, pointcloud_folder])
     # box_1 = subprocess.Popen(["python2", path2 + box_pattern_file, "box_5", "1", "1", "1", "5", "8", "0"])
     # box_2 = subprocess.Popen(["python2", path2 + box_file, "box_4", "1", "1", "1", "-20", "50", "0"])
     # box_2 = subprocess.Popen(["python2", path2 + box_file, "box_4", "1", "1", "1", "5", "8", "0"])

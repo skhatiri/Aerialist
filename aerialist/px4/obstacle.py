@@ -4,7 +4,7 @@ from shapely.geometry import box, LineString, Point
 from shapely import affinity
 import matplotlib.patches as mpatches
 import logging
-from .position import Position
+# from .position import Position
 import munch
 from pprint import pprint
 
@@ -29,14 +29,14 @@ class Obstacle(object):
 
     def __init__(
             self,
-            size: Position,
+            size: Size,
             position: Position,
-            angle: float = 0,
+            # angle: float = 0,
             shape: str = BOX,
             pattern_design: str = None,
     ) -> None:
         super().__init__()
-        # print(f'***Checking the input received here {size} {position} {angle} {shape}')
+        print(f'***Checking the input received here {size} {position} {shape}')
         if shape == "BOX":
             if self.CENTER_POSITION:
                 rect = box(-size.l / 2, -size.w / 2, size.l / 2, size.w / 2)
@@ -47,13 +47,13 @@ class Obstacle(object):
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
             self.size = size
             self.position = position
-            self.angle = angle
+            # self.angle = angle
             self.shape = shape
             self.pattern_design = pattern_design
         elif shape == "TREE" or shape == "APARTMENT":
             self.size = size
             self.position = position
-            self.angle = angle
+            # self.angle = angle
             self.shape = shape
             self.geometry = Point(position.x, position.y)
             self.unrotated_geometry = Point(position.x, position.y)
@@ -175,38 +175,48 @@ class Obstacle(object):
             obst.append(Obstacle.from_coordinates(coordinates[i: i + 7]))
         return obst
 
-    @classmethod
-    def from_obstacle_def(cls, obstacle: munch.DefaultMunch):
-        # print(f'Printing the obstacles shape here {obstacle.shape}')
-        size_object = Position(obstacle.size.l, obstacle.size.w, obstacle.size.h)
-        # pprint(f'This is the size object--> {vars(size_object)}')
-        position_object = Position(obstacle.position.x, obstacle.position.y, obstacle.position.z)
-        # pprint(f'This is the position object--> {vars(position_object)}')
-        if obstacle.pattern_design is not None:
-            obstacle_obj = Obstacle(size_object, position_object, obstacle.position.angle, obstacle.shape,
-                                    obstacle.pattern_design)
-        else:
-            obstacle_obj = Obstacle(size_object, position_object, obstacle.position.angle, obstacle.shape)
-        # pprint(f'The created obstacle object is --> {vars(obstacle_obj)}')
-        return obstacle_obj
+    # @classmethod
+    # def from_obstacle_def(cls, obstacle: munch.DefaultMunch):
+    #     # print(f'Printing the obstacles shape here {obstacle.shape}')
+    #     size_object = Obstacle.Size(obstacle.size.l, obstacle.size.w, obstacle.size.h)
+    #     # pprint(f'This is the size object--> {vars(size_object)}')
+    #     position_object = Obstacle.Position(obstacle.position.x, obstacle.position.y, obstacle.position.z)
+    #     # pprint(f'This is the position object--> {vars(position_object)}')
+    #     if obstacle.pattern_design is not None:
+    #         obstacle_obj = Obstacle(size_object, position_object, obstacle.position.angle, obstacle.shape,
+    #                                 obstacle.pattern_design)
+    #     else:
+    #         obstacle_obj = Obstacle(size_object, position_object, obstacle.position.angle, obstacle.shape)
+    #     # pprint(f'The created obstacle object is --> {vars(obstacle_obj)}')
+    #     return obstacle_obj
 
-    @classmethod
-    def from_obstacle_list(cls, obstacle_list: List[munch.DefaultMunch]):
-        obst = []
-        for obstacle in obstacle_list:
-            # print(f"Printing the obstacle here {obstacle}")
-            obst.append(Obstacle.from_obstacle_def(obstacle))
-        return obst
+    # @classmethod
+    # def from_obstacle_list(cls, obstacle_list: List[munch.DefaultMunch]):
+    #     obst = []
+    #     for obstacle in obstacle_list:
+    #         # print(f"Printing the obstacle here {obstacle}")
+    #         obst.append(Obstacle.from_obstacle_def(obstacle))
+    #     return obst
     
+    @classmethod
     def from_dict(cls, obstacle: dict):
         size = Obstacle.Size(obstacle.size.l, obstacle.size.w, obstacle.size.h)
         position = Obstacle.Position(
             obstacle.position.x,
             obstacle.position.y,
             obstacle.position.z,
-            obstacle.position.r,
+            obstacle.position.angle,
         )
-        return Obstacle(size, position)
+        if obstacle.pattern_design is not None:
+            obstacle_obj = Obstacle(size, position, obstacle.shape,
+                                    obstacle.pattern_design)
+        else:
+            obstacle_obj = Obstacle(size, position, obstacle.shape)
+        
+        pprint(f'****The created obstacle object is --> {vars(obstacle_obj)}')
+        
+        return obstacle_obj
+        
 
     @classmethod
     def from_dict_multiple(cls, obstacles: List[dict]):

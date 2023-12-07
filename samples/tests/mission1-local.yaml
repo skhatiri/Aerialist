@@ -105,7 +105,7 @@ assertion:
   log_file: samples/flights/ambient_0.4.ulg
   variable: trajectory
 
-agent:
-  engine: local # {k8s, docker, local}
-  count: 1
+#agent:
+#  engine: local # {k8s, docker, local}
+#  count: 1
 
