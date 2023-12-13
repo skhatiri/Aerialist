@@ -126,6 +126,23 @@ def upload(src_file: str, dest_path: str) -> str:
             raise (e)
     return dest_path
 
+def upload_dir(src_dir: str, dest_dir: str) -> str:
+    global RETRIES
+    if is_webdav_address(dest_dir):
+        cloud_dir = get_webdav_path(dest_dir)
+        try:
+            webdav_client.upload_sync(local_path=src_dir, remote_path=cloud_dir)
+        except webdav3.exceptions.NoConnection as e:
+            logger.error(f"webdav connection lost: retrying {RETRIES}")
+            sleep(20)
+            RETRIES += 1
+            if RETRIES <= MAX_WEBDAV_RETRIES:
+                init_webdav()
+                return upload_dir(src_dir, dest_dir)
+            else:
+                raise (e)
+    return dest_dir
+
 
 def download(src_file: str, dest_path: str) -> str:
     global RETRIES
