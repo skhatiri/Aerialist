@@ -184,7 +184,6 @@ def download_dir(src_path: str, dest_path: str) -> str:
             raise (e)
     return dest_path
 
-
 def create_dir(path: str):
     global RETRIES
     cloud_path = path
@@ -192,7 +191,13 @@ def create_dir(path: str):
         cloud_path = get_webdav_path(path)
     try:
         if not webdav_client.check(cloud_path):
-            webdav_client.mkdir(cloud_path)
+            current_path = ''
+            folders = cloud_path.split('/')
+            # Iterate through each folder and create it if it doesn't exist
+            for folder in folders:
+                current_path = os.path.join(current_path, folder)
+                if not webdav_client.check(current_path):
+                    webdav_client.mkdir(current_path)
         RETRIES = 0
     except webdav3.exceptions.NoConnection as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")
