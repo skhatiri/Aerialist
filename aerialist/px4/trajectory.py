@@ -192,7 +192,7 @@ class Trajectory(object):
             #     [p.z for p in goal.positions],
             # )
 
-        if distance is True and obstacles is not None:
+        if distance is True and obstacles is not None and len(obstacles) > 0:
             distance = ave_trajectory.min_distance_to_obstacles(obstacles)
         if distance is not None and distance is not False:
             fig.text(
