@@ -1,8 +1,9 @@
 from datetime import datetime
 from time import sleep
+from typing import List
 from decouple import config
 from pandas.core.frame import DataFrame
-from pyulog import ulog2csv
+from pyulog import ULog
 import pandas as pd
 import os.path
 import shutil
@@ -69,18 +70,16 @@ def init_webdav():
 init_webdav()
 
 
-def extract(log_address: str, topic: str, use_cache=True) -> DataFrame:
-    """extracts specific messages from the input log and returns the csv object"""
-
-    csv_add = f"{log_address[:-4]}_{topic}_0.csv"
-    if not (use_cache and os.path.isfile(csv_add)):
-        ulog2csv.convert_ulog2csv(log_address, topic, None, ",")
-
-    if os.path.isfile(csv_add):
-        data = pd.read_csv(csv_add)
-        return data
-    else:
+def extract(log_address: str, topic: str, columns: List[str] = None) -> DataFrame:
+    """extracts specific messages from the input log and returns the dataframe object"""
+    ulog = ULog(log_address, topic, True)
+    if len(ulog.data_list) == 0:
         return None
+    if columns is None:
+        df = pd.DataFrame(ulog.data_list[0].data)
+    else:
+        df = pd.DataFrame({c: ulog.data_list[0].data[c] for c in columns})
+    return df
 
 
 def copy(src_file: str, dest_file: str) -> bool:
@@ -126,6 +125,24 @@ def upload(src_file: str, dest_path: str) -> str:
         else:
             raise (e)
     return dest_path
+
+
+def upload_dir(src_dir: str, dest_dir: str) -> str:
+    global RETRIES
+    if is_webdav_address(dest_dir):
+        cloud_dir = get_webdav_path(dest_dir)
+        try:
+            webdav_client.upload_sync(local_path=src_dir, remote_path=cloud_dir)
+        except webdav3.exceptions.NoConnection as e:
+            logger.error(f"webdav connection lost: retrying {RETRIES}")
+            sleep(20)
+            RETRIES += 1
+            if RETRIES <= MAX_WEBDAV_RETRIES:
+                init_webdav()
+                return upload_dir(src_dir, dest_dir)
+            else:
+                raise (e)
+        return dest_dir
 
 
 def download(src_file: str, dest_path: str) -> str:

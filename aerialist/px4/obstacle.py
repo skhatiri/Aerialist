@@ -28,12 +28,12 @@ class Obstacle(object):
     CENTER_POSITION = True
 
     def __init__(
-            self,
-            size: Size,
-            position: Position,
-            # angle: float = 0,
-            shape: str = BOX,
-            pattern_design: str = None,
+        self,
+        size: Size,
+        position: Position,
+        # angle: float = 0,
+        shape: str = BOX,
+        pattern_design: str = None,
     ) -> None:
         super().__init__()
         print(f'***Checking the input received here {size} {position} {shape}')
@@ -213,7 +213,7 @@ class Obstacle(object):
         else:
             obstacle_obj = Obstacle(size, position, obstacle.shape)
         
-        pprint(f'****The created obstacle object is --> {vars(obstacle_obj)}')
+        # pprint(f'****The created obstacle object is --> {vars(obstacle_obj)}')
         
         return obstacle_obj
         

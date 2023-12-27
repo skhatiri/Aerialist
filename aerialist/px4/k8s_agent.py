@@ -78,7 +78,7 @@ class K8sAgent(DockerAgent):
                 template=template,
             )
 
-        logger.debug("k8s command:" + kube_cmd)
+        logger.info("k8s command:" + kube_cmd)
         logger.info("creating k8s job")
         kube_prc = subprocess.run(kube_cmd, shell=True)
         if kube_prc.returncode == 0:
@@ -137,8 +137,16 @@ class K8sAgent(DockerAgent):
     def copy_files_cloud(self):
         cloud_folder = self.config.agent.path
 
+        folders = cloud_folder.split('/')
+
+        # Initialize the current path
+        current_path = ''
+
         k8s_config = deepcopy(self.config)
-        file_helper.create_dir(cloud_folder)
+
+        for folder in folders:
+            current_path = os.path.join(current_path, folder)
+            file_helper.create_dir(current_path)
 
         # Drone Config
         if self.config.drone is not None:
