@@ -1,6 +1,5 @@
 from __future__ import annotations
 import copy
-from ctypes import cast
 import math
 import os
 from typing import List
@@ -8,10 +7,8 @@ import numpy as np
 import pandas as pd
 import similaritymeasures
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import ruptures as rpt
 from shapely.geometry import LineString
-from matplotlib.lines import Line2D
 from decouple import config
 from tslearn.barycenters import softdtw_barycenter
 import warnings
@@ -37,6 +34,8 @@ class Trajectory(object):
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
     HIGHLIGHT_COLOR = "red"
+    HIGHLIGHT_ALPHA = 0.25
+    HIGHLIGHT_SIZE = 25
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()
@@ -109,10 +108,10 @@ class Trajectory(object):
             r_plt.set_xlabel("flight time (s)")
         else:
             z_plt.set_xlabel("flight time (s)")
-        xy_plt.set_ylabel("Y (m)")
+        xy_plt.set_ylabel("Y (m)", loc="bottom")
         xy_plt.yaxis.set_label_position("right")
         xy_plt.yaxis.tick_right()
-        xy_plt.set_xlabel("X (m)")
+        xy_plt.set_xlabel("X (m)", loc="right")
         xy_plt.set_aspect("equal", "datalim")
         circle_legend = None
         wind_legend = None
@@ -168,7 +167,6 @@ class Trajectory(object):
 
         alpha = 1 if len(trajectories) <= 1 else 0.25
         for i in range(len(trajectories)):
-
             data_frame = trajectories[i].to_data_frame()
 
             if len(trajectories) <= 1 or cls.PLOT_TESTS_XYZ:
@@ -180,7 +178,7 @@ class Trajectory(object):
 
             label = None
             if i == 0:
-                label = "tests"
+                label = "tests" if len(trajectories) > 1 else "test"
 
             xy_plt.plot(
                 data_frame[:, 1],
@@ -194,7 +192,12 @@ class Trajectory(object):
                         abs(data_frame[:, 0] - (timestamp / 1000000.0)).argsort()[0]
                     ]
                     xy_plt.scatter(
-                        [point[1]], [point[2]], color=cls.HIGHLIGHT_COLOR, alpha=0.3
+                        [point[1]],
+                        [point[2]],
+                        color=cls.HIGHLIGHT_COLOR,
+                        alpha=cls.HIGHLIGHT_ALPHA,
+                        s=cls.HIGHLIGHT_SIZE,
+                        label="uncertainty",
                     )
             # xyz_plt.plot3D(
             #     [p.x for p in trj.positions],
@@ -235,11 +238,11 @@ class Trajectory(object):
             #     [p.z for p in goal.positions],
             # )
 
-        if distance == True and obstacles is not None:
+        if distance is True and obstacles is not None and len(obstacles) > 0:
             distance = ave_trajectory.min_distance_to_obstacles(obstacles)
-        if distance is not None and distance != False:
+        if distance is not None and distance is not False:
             fig.text(
-                0.5,
+                0.71,
                 0.03,
                 f"distance:{round(distance, 2)}",
                 ha="center",
@@ -250,34 +253,36 @@ class Trajectory(object):
                 x_plt.axvline(
                     timestamp / 1000000.0,
                     color=cls.HIGHLIGHT_COLOR,
-                    alpha=0.3,
+                    alpha=cls.HIGHLIGHT_ALPHA,
                     linewidth=1.75,
                 )
                 y_plt.axvline(
                     timestamp / 1000000.0,
                     color=cls.HIGHLIGHT_COLOR,
-                    alpha=0.3,
+                    alpha=cls.HIGHLIGHT_ALPHA,
                     linewidth=1.75,
                 )
                 z_plt.axvline(
                     timestamp / 1000000.0,
                     color=cls.HIGHLIGHT_COLOR,
-                    alpha=0.3,
+                    alpha=cls.HIGHLIGHT_ALPHA,
                     linewidth=1.75,
                 )
                 if cls.PLOT_R:
                     r_plt.axvline(
                         timestamp / 1000000.0,
                         color=cls.HIGHLIGHT_COLOR,
-                        alpha=0.3,
+                        alpha=cls.HIGHLIGHT_ALPHA,
                         linewidth=1.75,
                     )
-
-        fig.legend(loc="upper center", ncol=3 if obstacles is None else 3)
-        if circle_legend is not None:
-            fig.legend(handles=[circle_legend], loc="upper right")
-        if wind_legend is not None:
-            fig.legend(handles=[wind_legend], loc="upper left")
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        fig.legend(
+            by_label.values(),
+            by_label.keys(),
+            loc="upper center",
+            ncol=3 if obstacles is None else 4,
+        )
         if save:
             if filename is None:
                 filename = file_prefix + file_helper.time_filename(add_host=True)
@@ -389,8 +394,8 @@ class Trajectory(object):
         while i < len(self.positions):
             period_points: List[Position] = []
             while (
-                    i < len(self.positions)
-                    and self.positions[i].timestamp <= period_start + period
+                i < len(self.positions)
+                and self.positions[i].timestamp <= period_start + period
             ):
                 period_points.append(self.positions[i])
                 i += 1
@@ -514,8 +519,8 @@ class Trajectory(object):
                     filtered_positions += list(
                         filter(
                             lambda p: (
-                                    p.timestamp >= period_start
-                                    and p.timestamp <= period_end
+                                p.timestamp >= period_start
+                                and p.timestamp <= period_end
                             ),
                             positions,
                         )

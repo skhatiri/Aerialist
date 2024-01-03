@@ -49,6 +49,8 @@ spec:
           command: 
           tty: true
           env:
+            - name: SIMULATION_TIMEOUT
+              value: '500'
             - name: WEBDAV_HOST
               valueFrom:
                 secretKeyRef:
