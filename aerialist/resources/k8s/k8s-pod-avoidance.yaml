@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: avoid-2
+  name: avoid-k8s
   labels:
     {}
 
@@ -40,7 +40,7 @@ spec:
         requests: {}
     - imagePullPolicy: Always
       name: sim
-      image: sarr20/aerialist
+      image: prasun20/aerialist-test
       stdin: true
       stdinOnce: true
       command:

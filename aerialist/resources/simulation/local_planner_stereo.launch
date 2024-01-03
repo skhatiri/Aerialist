@@ -32,11 +32,8 @@
     <arg name="obst2_w" default = "1"/>
     <arg name="obst2_h" default = "1"/>
 
-    <arg name="obst3" default = "false"/>
-    <arg name="obst3_x" default = "1"/>
-    <arg name="obst3_y" default = "1"/>
-    <arg name="obst3_z" default = "1"/>
-    <arg name="obst3_yaw" default = "0"/>
+    <arg name="obstacle_info" default="[]" />
+    <arg name="obstacle_list" default="$(arg obstacle_info.split(','))" />
 
 
   <arg name="pattern" default="false"/>
@@ -88,6 +85,21 @@
         <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model box2/">
         </node>
+    </group>
+
+    <group ns="obstacles" if="$(eval len(obstacle_list) > 0)">
+        <for_each cmd="echo" param="obstacle" items="$(arg obstacle_list)">
+            <param name="x" value="$(eval item[0])" />
+            <param name="y" value="$(eval item[1])" />
+            <param name="z" value="$(eval item[2])" />
+            <param name="type" value="$(eval item[3])" />
+
+            <include file="$(find your_package)/launch/spawn_$(arg type)_obstacle.launch">
+                <arg name="x" value="$(arg x)" />
+                <arg name="y" value="$(arg y)" />
+                <arg name="z" value="$(arg z)" />
+          </include>
+        </for_each>
     </group>
 <!--     <group if="$(arg obst2)"> -->
 <!--         <param name="oak_tree_description" command="xacro /home/prasun/Aerialist/aerialist/resources/simulation/oak_tree.xacro" /> -->

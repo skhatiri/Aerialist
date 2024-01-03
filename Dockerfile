@@ -21,6 +21,10 @@ WORKDIR /src/catkin_ws/src/avoidance/intermediate_image_save/src
 RUN mkdir -p nodes
 WORKDIR /src/catkin_ws/src/avoidance/intermediate_image_save/src/nodes
 COPY aerialist/intermediate_image_script/scripts/ .
+COPY aerialist/modify_tree.py .
+COPY aerialist/modify_box.py .
+COPY aerialist/modify_pattern_box.py .
+COPY aerialist/spawn_apartment.py .
 RUN catkin build -w /src/catkin_ws &&\
     echo "source /src/catkin_ws/devel/setup.bash" >> ~/.bashrc  
 WORKDIR /src/aerialist/
