@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: avoid-k8s
+  name: avoid-2
   labels:
     {}
 
