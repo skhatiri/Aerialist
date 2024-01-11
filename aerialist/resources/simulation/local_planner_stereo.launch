@@ -32,9 +32,7 @@
     <arg name="obst2_w" default = "1"/>
     <arg name="obst2_h" default = "1"/>
 
-    <arg name="obstacle_info" default="[]" />
-    <arg name="obstacle_list" default="$(arg obstacle_info.split(','))" />
-
+    <arg name="obstacle_string" default=""/>
 
   <arg name="pattern" default="false"/>
   <arg name="pattern_design" default=""/>
@@ -87,20 +85,40 @@
         </node>
     </group>
 
-    <group ns="obstacles" if="$(eval len(obstacle_list) > 0)">
-        <for_each cmd="echo" param="obstacle" items="$(arg obstacle_list)">
-            <param name="x" value="$(eval item[0])" />
-            <param name="y" value="$(eval item[1])" />
-            <param name="z" value="$(eval item[2])" />
-            <param name="type" value="$(eval item[3])" />
-
-            <include file="$(find your_package)/launch/spawn_$(arg type)_obstacle.launch">
-                <arg name="x" value="$(arg x)" />
-                <arg name="y" value="$(arg y)" />
-                <arg name="z" value="$(arg z)" />
-          </include>
-        </for_each>
+    <group if="$(eval len(obstacle_string) > 0)">
+        <node pkg="spawn_obstacles" type="spawn_dynamic_obstacles.py" name="dynamic_obstacle_launcher">
+            <param name="obstacle_string" value="$(arg obstacle_string)"/>
+        </node>
+<!--         <node name="raw_image_listener" type="get_raw_image.py" pkg="intermediate_image_save" /> -->
     </group>
+
+<!--         <for_each cmd="echo" param="obstacle" items="$(arg obstacle_list)"> -->
+<!--         <foreach item="arg" list="$(arg obstacle_list)" param="item"> -->
+<!--             <param name="x" type="int" value="$(eval item[0])" /> -->
+<!--             <param name="y" value="$(eval item[1])" /> -->
+<!--             <param name="z" value="$(eval item[2])" /> -->
+<!--             <param name="type" value="$(eval item[3])" /> -->
+<!--             <param name="name" value="$(eval item[4])" /> -->
+
+<!--             <param if="$(eval item[3] == 'box')" name="l" value="$(eval item[4])" /> -->
+<!--                 <param if="$(eval item[3] == 'box')" name="l" value="$(eval item[4])" />
+            <param if="$(eval item[3] == 'box')" name="w" value="$(eval item[5])" />
+            <param if="$(eval item[3] == 'box')" name="h" value="$(eval item[6])" />        <param if="$(eval item[3] == 'box')" name="w" value="$(eval item[5])" /> -->
+<!--             <param if="$(eval item[3] == 'box')" name="h" value="$(eval item[6])" /> -->
+
+
+<!--             <node name="spawn_$(arg type)" type="spawn_$(arg type).py" pkg="spawn_obstacles" > -->
+<!--                 <param name="x" value="$(arg x)" /> -->
+<!--                 <param name="y" value="$(arg y)" /> -->
+<!--                 <param name="z" value="$(arg z)" /> -->
+<!--                 <param name="name" value="$(arg name)"> -->
+
+<!--                 <param if="$(eval item[3] == 'box')" name="l" value="$(eval item[4])" /> -->
+<!--                 <param if="$(eval item[3] == 'box')" name="w" value="$(eval item[5])" /> -->
+<!--                 <param if="$(eval item[3] == 'box')" name="h" value="$(eval item[6])" /> -->
+<!--           </node> -->
+<!--         </foreach> -->
+
 <!--     <group if="$(arg obst2)"> -->
 <!--         <param name="oak_tree_description" command="xacro /home/prasun/Aerialist/aerialist/resources/simulation/oak_tree.xacro" /> -->
 <!--         <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen" -->

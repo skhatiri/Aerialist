@@ -86,6 +86,8 @@ class Simulator(object):
             tree_count = 0
             apartment_count = 0
             box_count = 0
+            obstacle_string = ""
+            # obstacle_box = []
             if self.config.obstacles is not None and len(self.config.obstacles) > 0:
                 for obstacle in self.config.obstacles:
                     if obstacle.shape == "BOX":
@@ -98,29 +100,36 @@ class Simulator(object):
                         else:
                             box_count += 1
                             box_name = "box_" + str(box_count)
-                            run_box_subprocess(box_name, str(obstacle.size.w), #TODO: Need to put the angle of the box too.
-                                               str(obstacle.size.l),
-                                               str(obstacle.size.h),
-                                               str(obstacle.position.x),
-                                               str(obstacle.position.y),
-                                               str(obstacle.position.z))
+                            # run_box_subprocess(box_name, str(obstacle.size.w), #TODO: Need to put the angle of the box too.
+                            #                    str(obstacle.size.l),
+                            #                    str(obstacle.size.h),
+                            #                    str(obstacle.position.x),
+                            #                    str(obstacle.position.y),
+                            #                    str(obstacle.position.z))
+                            obstacle_string += f"{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},box,{box_name},{obstacle.size.l},{obstacle.size.w},{obstacle.size.h},end,"
                     if obstacle.shape == "TREE":
                         tree_count += 1
                         tree_name = "tree_" + str(tree_count)
-                        run_tree_subprocess(tree_name,
-                                            str(obstacle.position.x),
-                                            str(obstacle.position.y),
-                                            str(obstacle.position.z))
+                        # run_tree_subprocess(tree_name,
+                        #                     str(obstacle.position.x),
+                        #                     str(obstacle.position.y),
+                        #                     str(obstacle.position.z))
+                        obstacle_string += f'{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},tree,{tree_name},end,'
+
                     if obstacle.shape == "APARTMENT":
                         apartment_count += 1
                         apartment_name = "apartment_" + str(apartment_count)
                         # print(f'apartment address is x={obstacle.position.x}, y={obstacle.position.y}')
-                        spawn_apartment_subprocess(apartment_name,
-                                            str(obstacle.position.x),
-                                            str(obstacle.position.y),
-                                            str(obstacle.position.z))
+                        # spawn_apartment_subprocess(apartment_name,
+                        #                            str(obstacle.position.x),
+                        #                            str(obstacle.position.y),
+                        #                            str(obstacle.position.z))
+                        obstacle_string += f'{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},"apartment",{apartment_name},end,'
 
-        world_file_path = self.WORLD_PATH + self.config.world_file_name[0]+".world"
+            if obstacle_string != "":
+                sim_command += f"obstacle_string:={obstacle_string} "
+
+        world_file_path = self.WORLD_PATH + self.config.world_file_name[0] + ".world"
         if self.config.wind != 0:
             remove_wind(world_file_path)
             add_wind(world_file_path, self.config.wind)
@@ -219,8 +228,8 @@ class Simulator(object):
                     )
 
                 if (
-                    self.SIMULATION_TIMEOUT > 0
-                    and time.perf_counter() - start_time > self.SIMULATION_TIMEOUT
+                        self.SIMULATION_TIMEOUT > 0
+                        and time.perf_counter() - start_time > self.SIMULATION_TIMEOUT
                 ):
                     logger.error(
                         "Simulation Timeout. Terminating the rest of the execution..."
