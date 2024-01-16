@@ -127,7 +127,11 @@ class DroneTest:
 
     @classmethod
     def plot(
-        cls, test: DroneTest, results: List[DroneTestResult], obstacle_distance=True
+        cls,
+        test: DroneTest,
+        results: List[DroneTestResult],
+        obstacle_distance=True,
+        filename=None,
     ) -> str:
         distance = None
         if obstacle_distance:
@@ -144,6 +148,7 @@ class DroneTest:
                 obstacles=None
                 if test.simulation is None
                 else test.simulation.obstacles,
+                filename=filename,
             )
 
 

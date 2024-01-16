@@ -82,7 +82,7 @@ spec:
   completions: 1
   suspend: false
   # activeDeadlineSeconds: 1000
-  backoffLimit: 5
+  backoffLimit: 2
   completionMode: NonIndexed
   parallelism: 1
   ttlSecondsAfterFinished: 60
