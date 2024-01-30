@@ -235,7 +235,8 @@ def run_experiment(args):
             agent=agent_config,
         )
     test_results = execute_test(test)
-    logger.info(f"LOG:{test_results[0].log_file}")
+    logger.info(f"LOGGING:{test_results[0].log_file}")
+    logger.info(f"about to call the plot function")
     DroneTest.plot(test, test_results)
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)

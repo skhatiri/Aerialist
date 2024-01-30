@@ -57,6 +57,7 @@ class Obstacle(object):
             self.shape = shape
             self.geometry = Point(position.x, position.y)
             self.unrotated_geometry = Point(position.x, position.y)
+            self.pattern_design = pattern_design
 
     def center(self):
         return Obstacle.Position(
@@ -142,15 +143,39 @@ class Obstacle(object):
         return dist
 
     def to_dict(self):
-        return {
-            "size": {"l": self.size.l, "w": self.size.w, "h": self.size.h},
-            "position": {
-                "x": self.position.x,
-                "y": self.position.y,
-                "z": self.position.z,
-                "r": self.position.r,
-            },
-        }
+        if self.pattern_design is None:
+            return {
+                "size": {
+                    "l": self.size.l,
+                    "w": self.size.w,
+                    "h": self.size.h
+                },
+                "position": {
+                    "x": self.position.x,
+                    "y": self.position.y,
+                    "z": self.position.z,
+                    "angle": self.position.r,
+                },
+                "shape": self.shape
+            }
+        else:
+            return {
+                "size": {
+                    "l": self.size.l,
+                    "w": self.size.w,
+                    "h": self.size.h
+                },
+                "position": {
+                    "x": self.position.x,
+                    "y": self.position.y,
+                    "z": self.position.z,
+                    "angle": self.position.r,
+                },
+                "shape": self.shape,
+                "pattern_design": self.pattern_design
+            }
+
+
 
     @classmethod
     def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):

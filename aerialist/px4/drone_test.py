@@ -1,10 +1,9 @@
 from __future__ import annotations
 from statistics import median
 from typing import List
+import logging
 import munch
-import pyulog
 import yaml
-import csv
 from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
@@ -12,17 +11,18 @@ from . import file_helper
 from pprint import pprint
 from itertools import zip_longest
 from decouple import config
-from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 class DroneTest:
     def __init__(
-        self,
-        drone: DroneConfig = None,
-        simulation: SimulationConfig = None,
-        test: TestConfig = None,
-        assertion: AssertionConfig = None,
-        agent: AgentConfig = None,
+            self,
+            drone: DroneConfig = None,
+            simulation: SimulationConfig = None,
+            test: TestConfig = None,
+            assertion: AssertionConfig = None,
+            agent: AgentConfig = None,
     ) -> None:
         self.drone = drone
         self.simulation = simulation
@@ -40,8 +40,6 @@ class DroneTest:
         file_address = file_helper.get_local_file(address)
         with open(file_address) as file:
             data_dict = munch.DefaultMunch.fromYAML(file, None)
-            # data_dict = yaml.safe_load(file)
-        # print(f'##data_dict{data_dict}')
         config = cls()
         if data_dict.drone is not None:
             config.drone = DroneConfig(**data_dict.drone)
@@ -101,11 +99,6 @@ class DroneTest:
                     and len(self.simulation.obstacles) >= 1
             ):
                 params += "--obstacle "
-                # temp = [self.simulation.obstacles[0].size.x, self.simulation.obstacles[0].size.y,
-                #         self.simulation.obstacles[0].size.z, self.simulation.obstacles[0].position.x,
-                #         self.simulation.obstacles[0].position.y, self.simulation.obstacles[0].position.z,
-                #         self.simulation.obstacles[0].angle]
-                # for p in temp:
                 for p in self.simulation.obstacles[0].to_params():
                     params += f"{p} "
             if (
@@ -155,8 +148,9 @@ class DroneTest:
 
     @classmethod
     def plot(
-        cls, test: DroneTest, results: List[DroneTestResult], obstacle_distance=True
+            cls, test: DroneTest, results: List[DroneTestResult], obstacle_distance=True
     ) -> str:
+        logger.info(f"In the plot function")
         distance = None
         if obstacle_distance:
             distance = True
@@ -165,6 +159,15 @@ class DroneTest:
                 [r.record.distance(test.assertion.expectation) for r in results]
             )
         if results is not None and len(results) >= 1:
+            # logger.info(f"about to call threshold method")
+            Trajectory.log_threshold_limit(results, test.agent.path)
+            Trajectory.log_csv(test=test,
+                               results=results,
+                               wind=test.simulation.wind,
+                               light=test.simulation.light,
+                               obstacles=None
+                               if test.simulation is None
+                               else test.simulation.obstacles)
             return Trajectory.plot_multiple(
                 [r.record for r in results],
                 goal=None if test.assertion is None else test.assertion.expectation,
@@ -172,6 +175,9 @@ class DroneTest:
                 obstacles=None
                 if test.simulation is None
                 else test.simulation.obstacles,
+                wind=test.simulation.wind,
+                light=test.simulation.light,
+                upload_dir=test.agent.path
             )
 
 
@@ -181,11 +187,11 @@ class DroneConfig:
     ROS_PORT = 14541
 
     def __init__(
-        self,
-        port: int | str = SITL_PORT,
-        params: dict = None,
-        params_file: str = None,
-        mission_file=None,
+            self,
+            port: int | str = SITL_PORT,
+            params: dict = None,
+            params_file: str = None,
+            mission_file=None,
     ) -> None:
         if isinstance(port, int):
             self.port = port
@@ -228,18 +234,18 @@ class SimulationConfig:
     ROS = "ros"
 
     def __init__(
-        self,
-        simulator=GAZEBO,
-        world: str = "default",
-        speed=1,
-        headless=True,
-        pattern: List[str] = None,
-        world_file_name: List[str] = None,
-        obstacles: List[Obstacle] | List[float] = None,
-        pattern_design: List[str] = None,
-        wind=0,
-        light=0.4,
-        home_position: List[float] = None,
+            self,
+            simulator=GAZEBO,
+            world: str = "default",
+            speed=1,
+            headless=True,
+            pattern: List[str] = None,
+            world_file_name: List[str] = None,
+            obstacles: List[Obstacle] | List[float] = None,
+            pattern_design: List[str] = None,
+            wind=0,
+            light=0.4,
+            home_position: List[float] = None,
     ) -> None:
         self.simulator = simulator
         self.world = world
@@ -280,7 +286,7 @@ class SimulationConfig:
                 and len(world_file_name) > 0
         ):
             self.world_file_name = world_file_name
-        
+
     def to_dict(self):
         dic = {}
         if self.simulator is not None:
@@ -294,15 +300,17 @@ class SimulationConfig:
             dic["obstacles"] = [obs.to_dict() for obs in self.obstacles]
         if self.home_position is not None:
             dic["home_position"] = self.home_position
+        if self.world_file_name is not None:
+            dic["world_file_name"] = self.world_file_name
         return dic
 
 
 class TestConfig:
     def __init__(
-        self,
-        commands: List[Command] = None,
-        commands_file: str = None,
-        speed: float = 1,
+            self,
+            commands: List[Command] = None,
+            commands_file: str = None,
+            speed: float = 1,
     ) -> None:
         self.speed = speed
         self.commands = commands
@@ -327,10 +335,10 @@ class AssertionConfig:
     TRAJECTORY = "trajectory"
 
     def __init__(
-        self,
-        log_file: str = None,
-        variable: str = TRAJECTORY,
-        expectation=None,
+            self,
+            log_file: str = None,
+            variable: str = TRAJECTORY,
+            expectation=None,
     ) -> None:
         self.log_file = log_file
         self.expectation = expectation
@@ -357,11 +365,11 @@ class AgentConfig:
     LOCAL = "local"
 
     def __init__(
-        self,
-        engine: str,
-        count: int = 1,
-        path: str = None,
-        id: str = None,
+            self,
+            engine: str,
+            count: int = 1,
+            path: str = None,
+            id: str = None,
     ) -> None:
         self.engine = engine
         self.count = count
@@ -382,10 +390,10 @@ class AgentConfig:
 
 class DroneTestResult:
     def __init__(
-        self,
-        log_file: str = None,
-        variable: str = AssertionConfig.TRAJECTORY,
-        record=None,
+            self,
+            log_file: str = None,
+            variable: str = AssertionConfig.TRAJECTORY,
+            record=None,
     ) -> None:
         self.log_file = log_file
         self.record = record
@@ -397,7 +405,7 @@ class DroneTestResult:
 
     @classmethod
     def load_folder(
-        cls, logs_folder: str, variable: str = AssertionConfig.TRAJECTORY
+            cls, logs_folder: str, variable: str = AssertionConfig.TRAJECTORY
     ) -> List[DroneTestResult]:
         logs_folder = file_helper.get_local_folder(logs_folder)
         logs = file_helper.get_logs_address(logs_folder)

@@ -81,6 +81,7 @@ class Simulator(object):
             # print("***+++")
             # print(self.config.obstacles[0].size.x)
             # pprint(vars(self.config.obstacles[0]))
+            logger.info(f'*****world file is {self.config.world_file_name[0]}')
             sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.BOX_PATH} "
             pattern_box_count = 0
             tree_count = 0
