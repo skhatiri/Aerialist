@@ -1,5 +1,7 @@
 import subprocess
 import time
+import rospy
+
 # Define the terminal command and its parameters
 time.sleep(10)
 # print("Running this command")
@@ -11,6 +13,4 @@ process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=s
 # Wait for the process to complete and fetch the output and errors
 output, errors = process.communicate()
 
-# Print the output and errors
-# print("Output:", output.decode())
-# print("Errors:", errors.decode())
+

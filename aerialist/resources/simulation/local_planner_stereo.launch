@@ -47,9 +47,11 @@
     <arg name="pointcloud_topics" value="$(arg pointcloud_topics)"/>
   </include>
 
-    <node name="disparity_image_listener" type="get_disparity_image.py" pkg="intermediate_image_save" />
+    <node name="disparity_image_launcher" type="disparity_image_launch.py" pkg="intermediate_image_save" />
     <node name="histogram_image_listener" type="get_histogram_image.py" pkg="intermediate_image_save" />
     <node name="raw_image_listener" type="get_raw_image.py" pkg="intermediate_image_save" />
+    <node name="disparity_image_listener" type="get_disparity_image.py" pkg="intermediate_image_save" />
+
 
   <!-- Load custom console configuration -->
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find local_planner)/resource/custom_rosconsole.conf"/>

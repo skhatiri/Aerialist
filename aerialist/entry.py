@@ -1,11 +1,9 @@
 #!/usr/bin/python3
-import subprocess
 from argparse import ArgumentParser
 import logging
 import os
 import sys
 from decouple import config
-from external_subprocess import run_subprocess
 
 try:
     from .px4.k8s_agent import K8sAgent
@@ -182,6 +180,19 @@ def arg_parse():
 
     parser.set_defaults(func=run_experiment)
 
+    # plotting parser
+    plot_parser = subparsers.add_parser(
+        name="plot", description="plot an executed test"
+    )
+    plot_parser.add_argument("--test", default=None, help="test description yaml file")
+    plot_parser.add_argument(
+        "--log",
+        "--logs",
+        default=None,
+        help="test log file address / parallel tests logs folder address",
+    )
+    plot_parser.set_defaults(func=plot_test)
+
     args = main_parser.parse_args()
     return args
 
@@ -235,8 +246,7 @@ def run_experiment(args):
             agent=agent_config,
         )
     test_results = execute_test(test)
-    logger.info(f"LOGGING:{test_results[0].log_file}")
-    logger.info(f"about to call the plot function")
+    logger.info(f"LOG:{test_results[0].log_file}")
     DroneTest.plot(test, test_results)
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)
@@ -305,26 +315,8 @@ def main():
     try:
         config_loggers()
         args = arg_parse()
-        disparity_m_pro = run_subprocess(
-            config("HISTOGRAM_IMAGE"),
-            config("POINTCLOUD_IMAGE"),
-            config("DISPARITY_IMAGE"),
-            config("RAW_IMAGE"))
-        # histogram_pro, disparity_pro, raw_pro, disparity_m_pro = run_subprocess(
-        #     config("HISTOGRAM_IMAGE"),
-        #     config("POINTCLOUD_IMAGE"),
-        #     config("DISPARITY_IMAGE"),
-        #     config("RAW_IMAGE"))
         logger.info(f"preparing the test ...{args}")
-        # command = "exec roslaunch inter_images test.launch"
-        # sub_proc = subprocess.run(command, shell=True)
-        run_experiment(args)
-        # sub_proc.kill()
-        # histogram_pro.kill()
-        # # pointcloud_pro.kill()
-        # disparity_pro.kill()
-        # raw_pro.kill()
-        disparity_m_pro.kill()
+        args.func(args)
 
     except Exception as e:
         logger.exception("program terminated:" + str(e), exc_info=True)
