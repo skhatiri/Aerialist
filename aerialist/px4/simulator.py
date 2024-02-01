@@ -88,7 +88,6 @@ class Simulator(object):
             box_count = 0
             obstacle_string = ""
             first_pattern_box = False
-            # obstacle_box = []
             if self.config.obstacles is not None and len(self.config.obstacles) > 0:
                 for obstacle in self.config.obstacles:
                     if obstacle.shape == "BOX":

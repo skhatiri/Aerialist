@@ -19,7 +19,7 @@ def spawn_box():
     # Initialize the ROS node
     rospy.init_node(box_name)
     rospy.wait_for_service('/gazebo/spawn_sdf_model')
-    spawn_sdf_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
+    spawn_model_client = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
 
     # Define the SDF model for a box with the specified size
     box_sdf = """
@@ -59,15 +59,11 @@ def spawn_box():
         orientation=
         Quaternion(x=0, y=0, z=r, w=1)
     )
-    # initial_pose = Pose()
-    # initial_pose.position.x = x
-    # initial_pose.position.y = y
-    # initial_pose.position.z = z  # Adjust the Z position based on box size
 
     # Call the Gazebo spawn service to add the box model
     try:
         # spawn_sdf_model(model_name, box_sdf, "/", initial_pose, "world")
-        spawn_sdf_model(spawn_request)
+        spawn_model_client(spawn_request)
     except rospy.ServiceException as e:
         rospy.logerr("Service call failed: %s", e)
 

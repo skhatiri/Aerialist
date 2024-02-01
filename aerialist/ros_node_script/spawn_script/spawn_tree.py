@@ -3,17 +3,11 @@
 import rospy
 import os
 import sys
-from gazebo_msgs.srv import SpawnModel
-from geometry_msgs.msg import Pose, Quaternion
+from gazebo_msgs.srv import SpawnModel, SpawnModelRequest
+from geometry_msgs.msg import Pose, Quaternion, Point
 
 
 def spawn_tree():
-    # Initialize the ROS node
-    # tree_name = rospy.get_param("name")
-    # x = rospy.get_param("x")
-    # y = rospy.get_param("y")
-    # z = rospy.get_param("z")
-
     tree_name = sys.argv[1]
     x = float(sys.argv[2])
     y = float(sys.argv[3])
@@ -24,7 +18,7 @@ def spawn_tree():
 
     # Wait for the Gazebo spawn service
     rospy.wait_for_service('/gazebo/spawn_sdf_model')
-    spawn_sdf_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
+    spawn_model_client = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
 
     # Define the SDF model for a box with the specified size
     tree_sdf = """
@@ -39,16 +33,17 @@ def spawn_tree():
     """.format(x, y, z, tree_name)
 
     # Set the model name and pose
-    model_name = tree_name
-    initial_pose = Pose()
-    initial_pose.position.x = x
-    initial_pose.position.y = y
-    initial_pose.position.z = z  # Adjust the Z position based on box size
-    initial_pose.orientation = Quaternion(0, 0, r, 1)
-
+    spawn_request = SpawnModelRequest()
+    spawn_request.model_name = tree_name
+    spawn_request.model_xml = tree_sdf
+    spawn_request.initial_pose = Pose(
+        position=Point(x, y, z),
+        orientation=
+        Quaternion(x=0, y=0, z=r, w=1)
+    )
     # Call the Gazebo spawn service to add the box model
     try:
-        spawn_sdf_model(model_name, tree_sdf, "/", initial_pose, "world")
+        spawn_model_client(spawn_request)
     except rospy.ServiceException as e:
         rospy.logerr("Service call failed: %s", e)
 
