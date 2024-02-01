@@ -4,20 +4,20 @@ import rospy
 import roslaunch
 
 
-def run_tree_subprocess(tree_name, x, y, z):
+def run_tree_subprocess(tree_name, x, y, z, r):
     subprocess.Popen(
-        ["python2", "/src/catkin_ws/src/avoidance/spawn_obstacles/src/nodes/spawn_tree.py", tree_name, x, y, z])
+        ["python2", "/src/catkin_ws/src/avoidance/spawn_obstacles/src/nodes/spawn_tree.py", tree_name, x, y, z, r])
 
 
-def run_box_subprocess(box_name, l, w, h, x, y, z):
+def run_box_subprocess(box_name, l, w, h, x, y, z, r):
     subprocess.Popen(
-        ["python2", "/src/catkin_ws/src/avoidance/spawn_obstacles/src/nodes/spawn_box.py", box_name, l, w, h, x, y, z])
+        ["python2", "/src/catkin_ws/src/avoidance/spawn_obstacles/src/nodes/spawn_box.py", box_name, l, w, h, x, y, z, r])
 
 
-def run_apartment_subprocess(apartment_name, x, y, z):
+def run_apartment_subprocess(apartment_name, x, y, z, r):
     subprocess.Popen(
         ["python2", "/src/catkin_ws/src/avoidance/spawn_obstacles/src/nodes/spawn_apartment.py", apartment_name, x, y,
-         z])
+         z, r])
 
 
 def launch_node():
@@ -30,16 +30,16 @@ def launch_node():
             obstacle_list.append(temp.split(','))
 
     for temp in obstacle_list:
-        node_name = temp[4]
-        if temp[3] == "tree":
-            x, y, z, node_type, node_name_arg = temp[0], temp[1], temp[2], temp[3], temp[4]
-            run_tree_subprocess(node_name, str(x), str(y), str(z))
-        elif temp[3] == "apartment":
-            x, y, z, node_type, node_name_arg = temp[0], temp[1], temp[2], temp[3], temp[4]
-            run_apartment_subprocess(node_name, str(x), str(y), str(z))
-        elif temp[3] == "box":
-            x, y, z, node_type, node_name_arg, l, w, h = temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7]
-            run_box_subprocess(node_name, str(l), str(w), str(h), str(x), str(y), str(z))
+        node_name = temp[5]
+        if temp[4] == "tree":
+            x, y, z, r, node_type, node_name_arg = temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]
+            run_tree_subprocess(node_name, str(x), str(y), str(z), str(r))
+        elif temp[4] == "apartment":
+            x, y, z, r, node_type, node_name_arg = temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]
+            run_apartment_subprocess(node_name, str(x), str(y), str(z), str(r))
+        elif temp[4] == "box":
+            x, y, z, r, node_type, node_name_arg, l, w, h = temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8]
+            run_box_subprocess(node_name, str(l), str(w), str(h), str(x), str(y), str(z), str(r))
 
     rospy.spin()
 

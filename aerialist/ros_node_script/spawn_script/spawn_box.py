@@ -3,22 +3,21 @@
 import rospy
 import os
 import sys
-from gazebo_msgs.srv import SpawnModel
-from geometry_msgs.msg import Pose
+from gazebo_msgs.srv import SpawnModel, SpawnModelRequest
+from geometry_msgs.msg import Pose, Point, Quaternion
+
 
 def spawn_box():
     box_name = sys.argv[1]
-    l = int(sys.argv[2])
-    w = int(sys.argv[3])
-    h = int(sys.argv[4])
-    x = int(sys.argv[5])
-    y = int(sys.argv[6])
-    z = int(sys.argv[7])
+    l = float(sys.argv[2])
+    w = float(sys.argv[3])
+    h = float(sys.argv[4])
+    x = float(sys.argv[5])
+    y = float(sys.argv[6])
+    z = float(sys.argv[7])
+    r = float(sys.argv[8])
     # Initialize the ROS node
     rospy.init_node(box_name)
-    # rospy.spin()
-    # print(f"Received information is - l:{l},w:{w},h:{h},x:{x},y:{y},z:{z}")
-    # Wait for the Gazebo spawn service
     rospy.wait_for_service('/gazebo/spawn_sdf_model')
     spawn_sdf_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
 
@@ -52,15 +51,23 @@ def spawn_box():
     """.format(l, w, h, x, y, z)
 
     # Set the model name and pose
-    model_name = box_name
-    initial_pose = Pose()
-    initial_pose.position.x = x
-    initial_pose.position.y = y
-    initial_pose.position.z = z  # Adjust the Z position based on box size
+    spawn_request = SpawnModelRequest()
+    spawn_request.model_name = box_name
+    spawn_request.model_xml = box_sdf
+    spawn_request.initial_pose = Pose(
+        position=Point(x, y, z),
+        orientation=
+        Quaternion(x=0, y=0, z=r, w=1)
+    )
+    # initial_pose = Pose()
+    # initial_pose.position.x = x
+    # initial_pose.position.y = y
+    # initial_pose.position.z = z  # Adjust the Z position based on box size
 
     # Call the Gazebo spawn service to add the box model
     try:
-        spawn_sdf_model(model_name, box_sdf, "/", initial_pose, "world")
+        # spawn_sdf_model(model_name, box_sdf, "/", initial_pose, "world")
+        spawn_sdf_model(spawn_request)
     except rospy.ServiceException as e:
         rospy.logerr("Service call failed: %s", e)
 

@@ -103,31 +103,16 @@ class Simulator(object):
                                 sim_command += f"pattern_design2:={obstacle.pattern_design} "
                         else:
                             box_name = "box_" + str(box_count)
-                            # run_box_subprocess(box_name, str(obstacle.size.w), #TODO: Need to put the angle of the box too.
-                            #                    str(obstacle.size.l),
-                            #                    str(obstacle.size.h),
-                            #                    str(obstacle.position.x),
-                            #                    str(obstacle.position.y),
-                            #                    str(obstacle.position.z))
-                            obstacle_string += f"{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},box,{box_name},{obstacle.size.l},{obstacle.size.w},{obstacle.size.h},end,"
+                            obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},box,{box_name},{obstacle.size.l},{obstacle.size.w},{obstacle.size.h},end,"
                     if obstacle.shape == "TREE":
                         tree_count += 1
                         tree_name = "tree_" + str(tree_count)
-                        # run_tree_subprocess(tree_name,
-                        #                     str(obstacle.position.x),
-                        #                     str(obstacle.position.y),
-                        #                     str(obstacle.position.z))
-                        obstacle_string += f'{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},tree,{tree_name},end,'
+                        obstacle_string += f'{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},{math.radians(-obstacle.position.r)},tree,{tree_name},end,'
 
                     if obstacle.shape == "APARTMENT":
                         apartment_count += 1
                         apartment_name = "apartment_" + str(apartment_count)
-                        # print(f'apartment address is x={obstacle.position.x}, y={obstacle.position.y}')
-                        # spawn_apartment_subprocess(apartment_name,
-                        #                            str(obstacle.position.x),
-                        #                            str(obstacle.position.y),
-                        #                            str(obstacle.position.z))
-                        obstacle_string += f'{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},"apartment",{apartment_name},end,'
+                        obstacle_string += f'{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},{math.radians(-obstacle.position.r)},"apartment",{apartment_name},end,'
 
             if obstacle_string != "":
                 sim_command += f"obstacle_string:={obstacle_string} "

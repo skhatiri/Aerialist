@@ -18,7 +18,7 @@ simulation:
         x: 20
         y: 50
         z: 0
-        angle: 0
+        angle: 10
       shape: BOX
       pattern_design: default
     - size:
@@ -33,14 +33,24 @@ simulation:
       shape: BOX
       pattern_design: default
     - size:
-        l: 1
-        w: 1
-        h: 1
+        l: 6
+        w: 6
+        h: 15
+      position:
+        x: 14
+        y: 38
+        z: 0
+        angle: 0
+      shape: BOX
+    - size:
+        l: 3
+        w: 3
+        h: 20
       position:
         x: 5
         y: 5
         z: 0
-        angle: 0
+        angle: 5
       shape: BOX
     - size:
         l: 0

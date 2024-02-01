@@ -4,16 +4,17 @@ import rospy
 import os
 import sys
 from gazebo_msgs.srv import SpawnModel
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Quaternion
 
 
 def spawn_apartment():
     # Initialize the ROS node
 
     apartment_name = sys.argv[1]
-    x = int(sys.argv[2])
-    y = int(sys.argv[3])
-    z = int(sys.argv[4])
+    x = float(sys.argv[2])
+    y = float(sys.argv[3])
+    z = float(sys.argv[4])
+    r = float(sys.argv[5])
     # Initialize the ROS node
     rospy.init_node(apartment_name)
 
@@ -39,6 +40,7 @@ def spawn_apartment():
     initial_pose.position.x = x
     initial_pose.position.y = y
     initial_pose.position.z = z  # Adjust the Z position based on box size
+    initial_pose.orientation = Quaternion(0, 0, r, 1)
 
     # Call the Gazebo spawn service to add the box model
     try:

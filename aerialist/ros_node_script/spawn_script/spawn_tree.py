@@ -4,7 +4,7 @@ import rospy
 import os
 import sys
 from gazebo_msgs.srv import SpawnModel
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Quaternion
 
 
 def spawn_tree():
@@ -15,9 +15,10 @@ def spawn_tree():
     # z = rospy.get_param("z")
 
     tree_name = sys.argv[1]
-    x = int(sys.argv[2])
-    y = int(sys.argv[3])
-    z = int(sys.argv[4])
+    x = float(sys.argv[2])
+    y = float(sys.argv[3])
+    z = float(sys.argv[4])
+    r = float(sys.argv[5])
     # Initialize the ROS node
     rospy.init_node(tree_name)
 
@@ -43,6 +44,7 @@ def spawn_tree():
     initial_pose.position.x = x
     initial_pose.position.y = y
     initial_pose.position.z = z  # Adjust the Z position based on box size
+    initial_pose.orientation = Quaternion(0, 0, r, 1)
 
     # Call the Gazebo spawn service to add the box model
     try:
