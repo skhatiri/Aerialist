@@ -363,6 +363,7 @@ class Trajectory(object):
 
         trajectories: List[Trajectory] = [r.record for r in results]
         for trajectory in trajectories:
+            print("This should run only once")
             positions = trajectory.positions
             obstacle_flag = False
             obstacles_present = 0

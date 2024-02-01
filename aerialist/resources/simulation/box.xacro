@@ -4,7 +4,7 @@
   <xacro:arg name="l" default = "1" />
   <xacro:arg name="w" default = "1"/>
   <xacro:arg name="h" default = "1" />
-  <xacro:arg name="pattern" default=""/>
+  <xacro:arg name="pattern" default="default"/>
   <!-- <xacro:arg name="path1" default=""> -->
   <xacro:arg name="path" default=""/>
  <!-- <xacro:property name="path" value="/src/aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_"/> -->

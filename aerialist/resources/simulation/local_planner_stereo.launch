@@ -35,10 +35,10 @@
     <arg name="obstacle_string" default=""/>
 
   <arg name="pattern" default="false"/>
-  <arg name="pattern_design" default=""/>
+  <arg name="pattern_design" default="default"/>
 
   <arg name="pattern2" default="false"/>
-  <arg name="pattern_design2" default=""/>
+  <arg name="pattern_design2" default="default"/>
 
   <!-- Launch PX4 and mavros -->
   <include file="$(find avoidance)/launch/avoidance_sitl_stereo.launch" >

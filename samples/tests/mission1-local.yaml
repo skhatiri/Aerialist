@@ -20,7 +20,7 @@ simulation:
         z: 0
         angle: 0
       shape: BOX
-      pattern_design: chequered
+      pattern_design: default
     - size:
         l: 6
         w: 6
@@ -31,7 +31,7 @@ simulation:
         z: 0
         angle: 0
       shape: BOX
-      pattern_design: chequered
+      pattern_design: default
     - size:
         l: 1
         w: 1

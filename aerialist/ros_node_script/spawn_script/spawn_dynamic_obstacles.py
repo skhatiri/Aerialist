@@ -38,8 +38,7 @@ def launch_node():
             x, y, z, node_type, node_name_arg = temp[0], temp[1], temp[2], temp[3], temp[4]
             run_apartment_subprocess(node_name, str(x), str(y), str(z))
         elif temp[3] == "box":
-            x, y, z, node_type, node_name_arg, l, w, h = temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], \
-                temp[7]
+            x, y, z, node_type, node_name_arg, l, w, h = temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7]
             run_box_subprocess(node_name, str(l), str(w), str(h), str(x), str(y), str(z))
 
     rospy.spin()

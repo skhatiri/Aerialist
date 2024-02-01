@@ -6,7 +6,6 @@ import sys
 from gazebo_msgs.srv import SpawnModel
 from geometry_msgs.msg import Pose
 
-
 def spawn_box():
     box_name = sys.argv[1]
     l = int(sys.argv[2])
@@ -18,7 +17,7 @@ def spawn_box():
     # Initialize the ROS node
     rospy.init_node(box_name)
     # rospy.spin()
-
+    # print(f"Received information is - l:{l},w:{w},h:{h},x:{x},y:{y},z:{z}")
     # Wait for the Gazebo spawn service
     rospy.wait_for_service('/gazebo/spawn_sdf_model')
     spawn_sdf_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
@@ -32,6 +31,7 @@ def spawn_box():
         <static>true</static>
         <link name="link">
           <collision name="collision">
+          <pose>{3} {4} {5} 0 0 0</pose>
             <geometry>
               <box>
                 <size>{0} {1} {2}</size>
@@ -39,9 +39,10 @@ def spawn_box():
             </geometry>
           </collision>
           <visual name="visual">
+          <pose>{3} {4} {5} 0 0 0</pose>
             <geometry>
               <box>
-                <size>{1} {2} {3}</size>
+                <size>{0} {1} {2}</size>
               </box>
             </geometry>
           </visual>

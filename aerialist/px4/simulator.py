@@ -81,25 +81,27 @@ class Simulator(object):
             # print("***+++")
             # print(self.config.obstacles[0].size.x)
             # pprint(vars(self.config.obstacles[0]))
-            logger.info(f'*****world file is {self.config.world_file_name[0]}')
             sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.BOX_PATH} "
             pattern_box_count = 0
             tree_count = 0
             apartment_count = 0
             box_count = 0
             obstacle_string = ""
+            first_pattern_box = False
             # obstacle_box = []
             if self.config.obstacles is not None and len(self.config.obstacles) > 0:
                 for obstacle in self.config.obstacles:
                     if obstacle.shape == "BOX":
+                        box_count += 1
                         if obstacle.pattern_design is not None:
-                            if pattern_box_count == 0:
-                                sim_command += f"obst:=true obst_x:={obstacle.position.y} obst_y:={obstacle.position.x} obst_z:={obstacle.position.z} obst_l:={obstacle.size.w} obst_w:={obstacle.size.l} obst_h:={obstacle.size.h} obst_yaw:={math.radians(-obstacle.position.r)} pattern_design:={obstacle.pattern_design} "
-                                pattern_box_count += 1
-                            if pattern_box_count == 1:
-                                sim_command += f"obst2:=true obst2_x:={obstacle.position.y} obst2_y:={obstacle.position.x} obst2_z:={obstacle.position.z} obst2_l:={obstacle.size.w} obst2_w:={obstacle.size.l} obst2_h:={obstacle.size.h} obst2_yaw:={math.radians(-obstacle.position.r)} pattern_design2:={obstacle.pattern_design} "
+                            if not first_pattern_box:
+                                first_pattern_box = True
+                                sim_command += f"obst:=true obst_x:={obstacle.position.y} obst_y:={obstacle.position.x} obst_z:={obstacle.position.z} obst_l:={obstacle.size.w} obst_w:={obstacle.size.l} obst_h:={obstacle.size.h} obst_yaw:={math.radians(-obstacle.position.r)} "
+                                sim_command += f"pattern_design:={obstacle.pattern_design} "
+                            else:
+                                sim_command += f"obst2:=true obst2_x:={obstacle.position.y} obst2_y:={obstacle.position.x} obst2_z:={obstacle.position.z} obst2_l:={obstacle.size.w} obst2_w:={obstacle.size.l} obst2_h:={obstacle.size.h} obst2_yaw:={math.radians(-obstacle.position.r)} "
+                                sim_command += f"pattern_design2:={obstacle.pattern_design} "
                         else:
-                            box_count += 1
                             box_name = "box_" + str(box_count)
                             # run_box_subprocess(box_name, str(obstacle.size.w), #TODO: Need to put the angle of the box too.
                             #                    str(obstacle.size.l),
