@@ -100,7 +100,7 @@ simulation:
         x: 23
         y: 15
         z: 0
-        angle: 0
+        angle: 90
       shape: APARTMENT
 #  pattern_design:
 #    - chequered
@@ -112,7 +112,7 @@ test:
   speed: 1
 
 assertion:
-  log_file: samples/flights/ambient_0.4.ulg
+  log_file: samples/flights/first_test.ulg
   variable: trajectory
 
 #agent:

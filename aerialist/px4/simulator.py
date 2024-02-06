@@ -102,16 +102,16 @@ class Simulator(object):
                                 sim_command += f"pattern_design2:={obstacle.pattern_design} "
                         else:
                             box_name = "box_" + str(box_count)
-                            obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},box,{box_name},{obstacle.size.l},{obstacle.size.w},{obstacle.size.h},end,"
+                            obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},box,{box_name},{obstacle.size.w},{obstacle.size.l},{obstacle.size.h},end,"
                     if obstacle.shape == "TREE":
                         tree_count += 1
                         tree_name = "tree_" + str(tree_count)
-                        obstacle_string += f'{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},{math.radians(-obstacle.position.r)},tree,{tree_name},end,'
+                        obstacle_string += f'{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},tree,{tree_name},end,'
 
                     if obstacle.shape == "APARTMENT":
                         apartment_count += 1
                         apartment_name = "apartment_" + str(apartment_count)
-                        obstacle_string += f'{obstacle.position.x},{obstacle.position.y},{obstacle.position.z},{math.radians(-obstacle.position.r)},"apartment",{apartment_name},end,'
+                        obstacle_string += f'{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},"apartment",{apartment_name},end,'
 
             if obstacle_string != "":
                 sim_command += f"obstacle_string:={obstacle_string} "

@@ -11,16 +11,17 @@ import ruptures as rpt
 import csv
 import pyulog
 from shapely.geometry import LineString
-from decouple import config
 from tslearn.barycenters import softdtw_barycenter
 import warnings
 from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
 from datetime import datetime
-from pprint import pprint
 from itertools import zip_longest
 from decouple import config
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Trajectory(object):
@@ -251,7 +252,7 @@ class Trajectory(object):
             fig.text(
                 0.71,
                 0.03,
-                f"distance:{round(distance, 2)}",
+                f"distance:{round(distance,2)}",
                 ha="center",
                 bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
             )
@@ -307,17 +308,19 @@ class Trajectory(object):
     @classmethod
     def log_threshold_limit(cls, results: List[DroneTestResult], upload_dir: str):
         result_dir = config("RESULTS_DIR", default="results/")
-        threshold_file = config("THRESHOLD_FILE", default="threshold.csv")
+        threshold_file = config("THRESHOLD_FILE", default="threshold")
+        file_extension = config("FILE_EXTENSION", default=".csv")
         threshold_file_edit_mode = config("THRESHOLD_FILE_EDIT_MODE", default="a")
+        file_ts = str(datetime.now().strftime("%Y%m%d%H%M%S"))
         average_traj = Trajectory.average([r.record for r in results])
         distance_list = [r.record.distance(average_traj) for r in results]
-        print(f'The distance printed in the threshold is {distance_list}')
-        f = open(result_dir + threshold_file, threshold_file_edit_mode)
+        threshold_file_combined = threshold_file + file_ts + file_extension
+        f = open(result_dir + threshold_file_combined, threshold_file_edit_mode)
         writer = csv.writer(f)
         writer.writerow(distance_list)
         f.close()
         if cls.WEBDAV_DIR is not None:
-            file_helper.upload(result_dir + threshold_file, upload_dir)
+            file_helper.upload(result_dir + threshold_file_combined, upload_dir)
 
     @classmethod
     def log_csv(cls,
@@ -336,19 +339,19 @@ class Trajectory(object):
         default_separation = config("DEFAULT_SEPARATION", default=",")
         file_ts = str(datetime.now().strftime("%Y%m%d%H%M%S"))
         dataset_file = ""
-        print(f"***LOG:{results[0].log_file}")
+        # print(f"***LOG:{results[0].log_file}")
         log = pyulog.ULog(results[0].log_file)
-        print("**Printing cpu data list")
+        # print("**Printing cpu data list")
         cpu_data = log.get_dataset('cpuload')
-        print(cpu_data)
+        # print(cpu_data)
         cpu_load = cpu_data.data['load']
         ram_usage = cpu_data.data['ram_usage']
         cpu_timestamp = cpu_data.data['timestamp']
         cpu_timestamp_list = []
         cpu_header = False
         unsafe_flag = 0
-        print(f'**keys are {cpu_data.data.keys()}')
-        print(f'cpu load and ram usage length are {len(cpu_load)},{len(ram_usage)}')
+        # print(f'**keys are {cpu_data.data.keys()}')
+        # print(f'cpu load and ram usage length are {len(cpu_load)},{len(ram_usage)}')
         for temp_cpu_load, temp_ram_usage, temp_cpu_timestamp in zip_longest(cpu_load, ram_usage, cpu_timestamp):
             cpu_row = [temp_cpu_timestamp, temp_cpu_load, temp_ram_usage]
             cpu_timestamp_list.append(temp_cpu_timestamp)
@@ -363,7 +366,6 @@ class Trajectory(object):
 
         trajectories: List[Trajectory] = [r.record for r in results]
         for trajectory in trajectories:
-            print("This should run only once")
             positions = trajectory.positions
             obstacle_flag = False
             obstacles_present = 0
@@ -380,6 +382,8 @@ class Trajectory(object):
             apt_min_distance = []
             obstacle_header_distance = []
             tree_count = apt_count = box_count = 0
+            if test.simulation.obstacles is None:
+                return
             for obs in test.simulation.obstacles:
                 min_distance, returned_list = trajectory.distance_to_obstacles([obs])
                 if min_distance < 1.5:
@@ -440,9 +444,14 @@ class Trajectory(object):
                 z = position.z
                 r = position.r
                 timestamp = position.timestamp
-                average_tree_distance = avg_tree[i]
-                average_box_distance = avg_box[i]
-                average_apt_distance = avg_apt[i]
+                average_tree_distance = average_box_distance = average_apt_distance = 0
+
+                if len(avg_tree) > 0:
+                    average_tree_distance = avg_tree[i]
+                if len(avg_box) > 0:
+                    average_box_distance = avg_box[i]
+                if len(avg_apt) > 0:
+                    average_apt_distance = avg_apt[i]
                 i += 1
                 header_final = []
                 if obstacle_flag:

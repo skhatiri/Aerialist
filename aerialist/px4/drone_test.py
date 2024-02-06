@@ -8,9 +8,7 @@ from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
 from . import file_helper
-from pprint import pprint
-from itertools import zip_longest
-from decouple import config
+
 
 logger = logging.getLogger(__name__)
 
