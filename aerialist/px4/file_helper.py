@@ -25,7 +25,7 @@ def get_local_file(file_path: str):
     elif path.exists(file_path):
         return file_path
     else:
-        raise Exception("path does not exist")
+        raise Exception(f"path does not exist:{file_path}")
 
 
 def is_webdav_address(address: str):
