@@ -28,16 +28,16 @@ class Obstacle(object):
     CENTER_POSITION = True
 
     def __init__(
-        self,
-        size: Size,
-        position: Position,
-        # angle: float = 0,
-        shape: str = BOX,
-        pattern_design: str = None,
+            self,
+            size: Size,
+            position: Position,
+            # angle: float = 0,
+            shape: str = BOX,
+            pattern_design: str = None,
     ) -> None:
         super().__init__()
         print(f'***Checking the input received here {size} {position} {shape}')
-        if shape == "BOX":
+        if shape == "BOX" or shape == "APARTMENT":
             if self.CENTER_POSITION:
                 rect = box(-size.l / 2, -size.w / 2, size.l / 2, size.w / 2)
             else:
@@ -50,7 +50,7 @@ class Obstacle(object):
             # self.angle = angle
             self.shape = shape
             self.pattern_design = pattern_design
-        elif shape == "TREE" or shape == "APARTMENT":
+        elif shape == "TREE":
             self.size = size
             self.position = position
             # self.angle = angle
@@ -91,7 +91,7 @@ class Obstacle(object):
             self.position.r,
         ]
 
-    def plt_patch(self):
+    def plt_patch(self, color):
         obst_patch = mpatches.Rectangle(
             (
                 self.anchor_point().x,
@@ -101,8 +101,8 @@ class Obstacle(object):
             self.size.w,
             self.position.r,
             rotation_point="center",
-            edgecolor="gray",
-            facecolor="gray",
+            edgecolor=color,
+            facecolor=color,
             fill=True,
             alpha=0.5,
         )
@@ -175,14 +175,12 @@ class Obstacle(object):
                 "pattern_design": self.pattern_design
             }
 
-
-
     @classmethod
     def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
         boxes = [o.geometry for o in obstacles]
         dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
         dist_list = [sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords]
-        dist_avg = (sum(dist_list)/len(dist_list))
+        dist_avg = (sum(dist_list) / len(dist_list))
         return dist, dist_list
 
     @classmethod
@@ -222,7 +220,7 @@ class Obstacle(object):
     #         # print(f"Printing the obstacle here {obstacle}")
     #         obst.append(Obstacle.from_obstacle_def(obstacle))
     #     return obst
-    
+
     @classmethod
     def from_dict(cls, obstacle: dict):
         size = Obstacle.Size(obstacle.size.l, obstacle.size.w, obstacle.size.h)
@@ -237,11 +235,10 @@ class Obstacle(object):
                                     obstacle.pattern_design)
         else:
             obstacle_obj = Obstacle(size, position, obstacle.shape)
-        
+
         # pprint(f'****The created obstacle object is --> {vars(obstacle_obj)}')
-        
+
         return obstacle_obj
-        
 
     @classmethod
     def from_dict_multiple(cls, obstacles: List[dict]):

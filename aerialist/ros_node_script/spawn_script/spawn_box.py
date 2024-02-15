@@ -26,11 +26,9 @@ def spawn_box():
     <?xml version="1.0" ?>
     <sdf version="1.4">
       <model name="box">
-        <pose>{3} {4} {5} 0 0 0</pose>
         <static>true</static>
         <link name="link">
           <collision name="collision">
-          <pose>{3} {4} {5} 0 0 0</pose>
             <geometry>
               <box>
                 <size>{0} {1} {2}</size>
@@ -38,7 +36,6 @@ def spawn_box():
             </geometry>
           </collision>
           <visual name="visual">
-          <pose>{3} {4} {5} 0 0 0</pose>
             <geometry>
               <box>
                 <size>{0} {1} {2}</size>
@@ -48,14 +45,15 @@ def spawn_box():
         </link>
       </model>
     </sdf>
-    """.format(l, w, h, x, y, z)
+    """.format(l, w, h)
 
     # Set the model name and pose
     spawn_request = SpawnModelRequest()
     spawn_request.model_name = box_name
     spawn_request.model_xml = box_sdf
+    z_bottom = float(z) + float(h) / 2.0
     spawn_request.initial_pose = Pose(
-        position=Point(x, y, z),
+        position=Point(x, y, z_bottom),
         orientation=
         Quaternion(x=0, y=0, z=r, w=1)
     )

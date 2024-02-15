@@ -78,7 +78,7 @@ spec:
         - name: dockerhub
       initContainers:
       restartPolicy: Never
-      activeDeadlineSeconds: 600
+      activeDeadlineSeconds: 800
   completions: 1
   suspend: false
   # activeDeadlineSeconds: 1000

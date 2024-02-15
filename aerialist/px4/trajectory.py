@@ -20,6 +20,7 @@ from datetime import datetime
 from itertools import zip_longest
 from decouple import config
 import logging
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +50,13 @@ class Trajectory(object):
         self.positions = positions
 
     def plot(
-        self,
-        goal: Trajectory = None,
-        save: bool = True,
-        obstacles: List[Obstacle] = None,
-        file_prefix="",
-        highlights: List[float] = None,
-        filename=None,
+            self,
+            goal: Trajectory = None,
+            save: bool = True,
+            obstacles: List[Obstacle] = None,
+            file_prefix="",
+            highlights: List[float] = None,
+            filename=None,
     ):
         distance = True
         if goal is not None:
@@ -79,19 +80,19 @@ class Trajectory(object):
 
     @classmethod
     def plot_multiple(
-        cls,
-        trajectories: List[Trajectory],
-        goal: Trajectory = None,
-        save: bool = True,
-        distance: float | bool = None,
-        highlights: List[float] = None,
-        obstacles: List[Obstacle] = None,
-        file_prefix="",
-        ave_trajectory: Trajectory = None,
-        wind: int = 0,
-        light: float = 0.4,
-        filename=None,
-        upload_dir=None,
+            cls,
+            trajectories: List[Trajectory],
+            goal: Trajectory = None,
+            save: bool = True,
+            distance: float | bool = None,
+            highlights: List[float] = None,
+            obstacles: List[Obstacle] = None,
+            file_prefix="",
+            ave_trajectory: Trajectory = None,
+            wind: int = 0,
+            light: float = 0.4,
+            filename=None,
+            upload_dir=None,
     ):
         fig = plt.figure(tight_layout=True)
 
@@ -150,23 +151,23 @@ class Trajectory(object):
             labeled_apartment = False
             for obst in obstacles:
                 if obst.shape == "BOX":
-                    obst_patch = obst.plt_patch()
+                    obst_patch = obst.plt_patch("grey")
                     if not labeled:
                         obst_patch.set_label("Box")
                         labeled = True
                 elif obst.shape == "TREE":
-                    radius = 1.0
+                    radius = 0.5
                     color = 'green'
-                    obst_patch = obst.plt_patch_circle(radius,color)
+                    obst_patch = obst.plt_patch_circle(radius, color)
                     if not labeled_tree:
                         obst_patch.set_label("Trees")
                         # circle_legend = Line2D([0], [0], marker='o', color='w', markersize=10, markerfacecolor='g',
                         #                        label='Trees')
                         labeled_tree = True
                 elif obst.shape == "APARTMENT":
-                    radius = 8.0
+                    radius = 2.5
                     color = 'blue'
-                    obst_patch = obst.plt_patch_circle(radius, color)
+                    obst_patch = obst.plt_patch(color)
                     if not labeled_apartment:
                         obst_patch.set_label("Apartment")
                         labeled_apartment = True
@@ -252,7 +253,7 @@ class Trajectory(object):
             fig.text(
                 0.71,
                 0.03,
-                f"distance:{round(distance,2)}",
+                f"distance:{round(distance, 2)}",
                 ha="center",
                 bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
             )
@@ -355,7 +356,7 @@ class Trajectory(object):
         for temp_cpu_load, temp_ram_usage, temp_cpu_timestamp in zip_longest(cpu_load, ram_usage, cpu_timestamp):
             cpu_row = [temp_cpu_timestamp, temp_cpu_load, temp_ram_usage]
             cpu_timestamp_list.append(temp_cpu_timestamp)
-            f = open(result_dir + cpu_file + "_" + file_ts + file_extension,
+            f = open(result_dir + cpu_file + "_" + file_ts + file_extension + str(random.randrange(0,100)),
                      cpu_file_edit_mode)
             writer = csv.writer(f)
             if not cpu_header:
@@ -477,6 +478,7 @@ class Trajectory(object):
                 f.close()
         if cls.WEBDAV_DIR is not None:
             file_helper.upload(dataset_file, test.agent.path)
+
     def allign_origin(self):
         origin = copy.deepcopy(self.positions[0])
         for p in self.positions:
@@ -574,8 +576,8 @@ class Trajectory(object):
         while i < len(self.positions):
             period_points: List[Position] = []
             while (
-                i < len(self.positions)
-                and self.positions[i].timestamp <= period_start + period
+                    i < len(self.positions)
+                    and self.positions[i].timestamp <= period_start + period
             ):
                 period_points.append(self.positions[i])
                 i += 1
@@ -626,10 +628,10 @@ class Trajectory(object):
 
     @classmethod
     def extract_from_log(
-        cls,
-        log_address: str,
-        ignore_automodes=False,
-        is_jmavsim=False,
+            cls,
+            log_address: str,
+            ignore_automodes=False,
+            is_jmavsim=False,
     ):
         """extracts and returns trajectory logs from the input log"""
         positions: List[Position] = []
@@ -699,8 +701,8 @@ class Trajectory(object):
                     filtered_positions += list(
                         filter(
                             lambda p: (
-                                p.timestamp >= period_start
-                                and p.timestamp <= period_end
+                                    p.timestamp >= period_start
+                                    and p.timestamp <= period_end
                             ),
                             positions,
                         )
