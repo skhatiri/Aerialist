@@ -10,17 +10,12 @@ import logging
 
 import sys
 
-sys.path.append('/aerialist')
-from external_subprocess import run_tree_subprocess
-from external_subprocess import run_box_subprocess
-from external_subprocess import spawn_apartment_subprocess
-from wind_handler import add_wind
-from wind_handler import remove_wind
-from light_handler import modify_light
+from .wind_handler import add_wind
+from .wind_handler import remove_wind
+from .light_handler import modify_light
 from . import file_helper
 from .drone_test import SimulationConfig
 import math
-from pprint import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +26,7 @@ class Simulator(object):
     PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
     ROS_LOG_DIR = config("ROS_HOME")
     GAZEBO_GUI_AVOIDANCE = True
-    BOX_PATH = config("AERIALIST_HOME") + config("BOX_PATH")
+    PATTERN_BOX_PATH = config("AERIALIST_HOME") + config("PATTERN_BOX_PATH")
     WORLD_PATH = config("AERIALIST_HOME") + config("WORLD_PATH")
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
@@ -81,7 +76,7 @@ class Simulator(object):
             # print("***+++")
             # print(self.config.obstacles[0].size.x)
             # pprint(vars(self.config.obstacles[0]))
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.BOX_PATH} "
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.AVOIDANCE_BOX} pattern_box_path:={self.PATTERN_BOX_PATH} "
             pattern_box_count = 0
             tree_count = 0
             apartment_count = 0

@@ -5,7 +5,8 @@
   <arg name="world_path" default="" />
   <arg name="extension" default=".world" />
 <!--   <arg name="world_path" default="/src/aerialist/aerialist/resources/simulation/worlds/$(arg world_file_name).world" /> -->
-  <arg name="box_path" default="" />
+  <arg name="pattern_box_path" default="" />
+  <arg name="box_path" default="aerialist/resources/simulation/box.xacro" />
 <!--   <arg name="box_path" default="/home/prasun/Aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_" /> -->
 <!--   <arg name="box_path_address" default="/src/aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_" /> -->
   <arg name="pointcloud_topics" default="[/stereo/points2]"/>
@@ -74,14 +75,14 @@
     <group if="$(arg obst)">
         <!-- Convert xacro and put on parameter server -->
         <!-- <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h)" /> -->
-        <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h) pattern:=$(arg pattern_design) path:=$(arg box_path)" />
+        <param name="box_description" command="$(find xacro)/xacro.py $(arg box_path) name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h) pattern:=$(arg pattern_design) path:=$(arg pattern_box_path)" />
 
         <node name="spawn_obstacle" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description -urdf -x $(arg obst_x) -y $(arg obst_y) -z $(arg obst_z) -Y $(arg obst_yaw) -model box/">
         </node>
     </group>
     <group if="$(arg obst2)">
-        <param name="box_description2" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h) pattern:=$(arg pattern_design2) path:=$(arg box_path)" />
+        <param name="box_description2" command="$(find xacro)/xacro.py $(arg box_path) name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h) pattern:=$(arg pattern_design2) path:=$(arg pattern_box_path)" />
         <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen"
             args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model box2/">
         </node>

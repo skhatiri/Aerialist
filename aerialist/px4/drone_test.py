@@ -156,18 +156,6 @@ class DroneTest:
             distance = median(
                 [r.record.distance(test.assertion.expectation) for r in results]
             )
-        if results is not None and len(results) >= 1:
-            # logger.info(f"about to call threshold method")
-            for r in results:
-                result = [r]
-                Trajectory.log_threshold_limit(result, test.agent.path)
-                Trajectory.log_csv(test=test,
-                                   results=result,
-                                   wind=test.simulation.wind,
-                                   light=test.simulation.light,
-                                   obstacles=None
-                                   if test.simulation is None
-                                   else test.simulation.obstacles)
             return Trajectory.plot_multiple(
                 [r.record for r in results],
                 goal=None if test.assertion is None else test.assertion.expectation,
