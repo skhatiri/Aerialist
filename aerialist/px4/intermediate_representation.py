@@ -4,7 +4,7 @@ from decouple import config
 def check_intermediate_representation():
     list1 = []
     if not eval(config("IMAGE_REQUIRED")):
-        return ["False"]
+        return list1
     else:
         if eval(config("HISTOGRAM_IMAGE_FLAG")):
             histogram_path = config("IMAGE_PATH") + config("HISTOGRAM_IMAGE")

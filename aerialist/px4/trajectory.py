@@ -8,19 +8,14 @@ import pandas as pd
 import similaritymeasures
 import matplotlib.pyplot as plt
 import ruptures as rpt
-import csv
-import pyulog
 from shapely.geometry import LineString
 from tslearn.barycenters import softdtw_barycenter
 import warnings
 from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
-from datetime import datetime
-from itertools import zip_longest
 from decouple import config
 import logging
-import random
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +89,7 @@ class Trajectory(object):
             filename=None,
             upload_dir=None,
     ):
+        print("In plot_multiple")
         fig = plt.figure(tight_layout=True)
 
         if cls.PLOT_R:
@@ -300,6 +296,7 @@ class Trajectory(object):
             fig.savefig(plot_file)
             plt.close(fig)
             if cls.WEBDAV_DIR is not None:
+                print(f"upload_dir {upload_dir}")
                 file_helper.upload(f"{cls.DIR}{filename}.png", upload_dir)
             return plot_file
         else:
@@ -420,6 +417,9 @@ class Trajectory(object):
 
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
         return Obstacle.distance_to_many(obstacles, self.to_line())
+
+    def min_max_dist_to_obstacle(self, obstacles: List[Obstacle]):
+        return Obstacle.min_max_distance_to_many(obstacles, self.to_line())
 
     def to_line(self) -> LineString:
         points = self.to_data_frame()[:, 1:4]

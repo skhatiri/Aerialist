@@ -156,6 +156,7 @@ class DroneTest:
             distance = median(
                 [r.record.distance(test.assertion.expectation) for r in results]
             )
+        if results is not None and len(results) >= 1:
             return Trajectory.plot_multiple(
                 [r.record for r in results],
                 goal=None if test.assertion is None else test.assertion.expectation,

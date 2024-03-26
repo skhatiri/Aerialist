@@ -28,7 +28,8 @@ class LocalAgent(TestAgent):
             if self.config.agent is not None and self.config.agent.path is not None:
                 file_helper.upload(log, self.config.agent.path)
                 returned_val = check_intermediate_representation()
-                if returned_val[0] != "False":
+                returned_val.append(log)
+                if returned_val:
                     zip_list = file_helper.zip_folder(returned_val)
                     if len(zip_list) > 0:
                         for temp_zip_folder in zip_list:

@@ -58,8 +58,8 @@ simulation:
       shape: TREE
       size:
         h: 2.5
-        l: 0
-        w: 0
+        l: 1.5
+        w: 1
     - position:
         angle: 0
         x: -13
