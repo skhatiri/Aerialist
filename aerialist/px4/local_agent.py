@@ -1,10 +1,10 @@
 from . import file_helper
-from .intermediate_representation import check_intermediate_representation
 from .test_agent import TestAgent
 from .drone import Drone
 from .simulator import Simulator
 from .drone_test import AssertionConfig, DroneTest, DroneTestResult
 from . import tools
+from decouple import config
 
 
 class LocalAgent(TestAgent):
@@ -26,10 +26,11 @@ class LocalAgent(TestAgent):
                 self.drone.run_scheduled()
             log = self.simulator.get_log()
             if self.config.agent is not None and self.config.agent.path is not None:
-                returned_val = check_intermediate_representation()
-                returned_val.append(log)
-                if returned_val:
-                    zip_list = file_helper.zip_folder(returned_val)
+                if eval(config("UPLOAD_LIST")):
+                    upload_list = config("UPLOAD_LIST")
+                upload_list.append(log)
+                if upload_list:
+                    zip_list = file_helper.zip_folder(upload_list)
                     if len(zip_list) > 0:
                         for temp_zip_folder in zip_list:
                             file_helper.upload(temp_zip_folder, self.config.agent.path)
