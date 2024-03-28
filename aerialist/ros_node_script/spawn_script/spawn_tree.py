@@ -18,8 +18,8 @@ def spawn_tree():
     rospy.init_node(tree_name)
 
     # Wait for the Gazebo spawn service
-    rospy.wait_for_service('/gazebo/spawn_sdf_model')
-    spawn_model_client = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
+    rospy.wait_for_service("/gazebo/spawn_sdf_model")
+    spawn_model_client = rospy.ServiceProxy("/gazebo/spawn_sdf_model", SpawnModel)
 
     # Define the SDF model for a box with the specified size
     tree_sdf = """
@@ -92,7 +92,7 @@ def spawn_tree():
         rospy.logerr("Service call failed: %s", e)
 
 
-if __name__ == '__main__':  # Parse the box size from the command-line argument
+if __name__ == "__main__":  # Parse the box size from the command-line argument
     try:
         spawn_tree()
     except rospy.ROSInterruptException:

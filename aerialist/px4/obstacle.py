@@ -27,11 +27,11 @@ class Obstacle(object):
     CENTER_POSITION = True
 
     def __init__(
-            self,
-            size: Size,
-            position: Position,
-            # angle: float = 0,
-            shape: str = BOX,
+        self,
+        size: Size,
+        position: Position,
+        # angle: float = 0,
+        shape: str = BOX,
     ) -> None:
         super().__init__()
         if shape == "BOX" or shape == "APARTMENT":
@@ -104,7 +104,9 @@ class Obstacle(object):
         return obst_patch
 
     def plt_patch_circle(self, radius, color):
-        obst_patch = mpatches.Circle((self.position.x, self.position.y), radius, color=color, alpha=0.5)
+        obst_patch = mpatches.Circle(
+            (self.position.x, self.position.y), radius, color=color, alpha=0.5
+        )
         return obst_patch
 
     def plt_patch_triangle(self):
@@ -139,36 +141,34 @@ class Obstacle(object):
 
     def to_dict(self):
         return {
-            "size": {
-                "l": self.size.l,
-                "w": self.size.w,
-                "h": self.size.h
-            },
+            "size": {"l": self.size.l, "w": self.size.w, "h": self.size.h},
             "position": {
                 "x": self.position.x,
                 "y": self.position.y,
                 "z": self.position.z,
                 "angle": self.position.r,
             },
-            "shape": self.shape
+            "shape": self.shape,
         }
-
 
     @classmethod
     def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
         boxes = [o.geometry for o in obstacles]
         dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
         dist_list = [sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords]
-        dist_avg = (sum(dist_list) / len(dist_list))
+        dist_avg = sum(dist_list) / len(dist_list)
         return dist, dist_list
 
     @classmethod
     def min_max_distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
         obstacle_list = [o.geometry for o in obstacles]
-        min_dist = min([sum([o.distance(Point(*p)) for o in obstacle_list]) for p in line.coords])
-        max_dist = max([sum([o.distance(Point(*p)) for o in obstacle_list]) for p in line.coords])
+        min_dist = min(
+            [sum([o.distance(Point(*p)) for o in obstacle_list]) for p in line.coords]
+        )
+        max_dist = max(
+            [sum([o.distance(Point(*p)) for o in obstacle_list]) for p in line.coords]
+        )
         return min_dist, max_dist
-
 
     @classmethod
     def from_coordinates(cls, coordinates: List[float]):
@@ -182,9 +182,8 @@ class Obstacle(object):
     def from_coordinates_multiple(cls, coordinates: List[float]):
         obst = []
         for i in range(0, len(coordinates), 7):
-            obst.append(Obstacle.from_coordinates(coordinates[i: i + 7]))
+            obst.append(Obstacle.from_coordinates(coordinates[i : i + 7]))
         return obst
-
 
     @classmethod
     def from_dict(cls, obstacle: dict):

@@ -223,7 +223,7 @@ def run_experiment(args):
             # pattern=args.pattern + args.pattern2,
             # pattern_design=args.pattern_design + args.pattern_design2,
             home_position=args.home,
-            world_file_name=args.world_file_name
+            world_file_name=args.world_file_name,
         )
         test_config = TestConfig(
             commands_file=args.commands,

@@ -22,8 +22,8 @@ def spawn_box():
     # rospy.spin()
 
     # Wait for the Gazebo spawn service
-    rospy.wait_for_service('/gazebo/spawn_sdf_model')
-    spawn_sdf_model = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
+    rospy.wait_for_service("/gazebo/spawn_sdf_model")
+    spawn_sdf_model = rospy.ServiceProxy("/gazebo/spawn_sdf_model", SpawnModel)
 
     # Define the SDF model for a box with the specified size
     box_sdf = """
@@ -65,7 +65,9 @@ def spawn_box():
         </link>
       </model>
     </sdf>
-    """.format(l, w, h, x, y, z)
+    """.format(
+        l, w, h, x, y, z
+    )
 
     # Set the model name and pose
     model_name = box_name
@@ -81,7 +83,7 @@ def spawn_box():
         rospy.logerr("Service call failed: %s", e)
 
 
-if __name__ == '__main__':  # Parse the box size from the command-line argument
+if __name__ == "__main__":  # Parse the box size from the command-line argument
     try:
         spawn_box()
     except rospy.ROSInterruptException:

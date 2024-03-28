@@ -41,8 +41,8 @@ class Simulator(object):
             sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
         self.log_file = None
         if (
-                self.config.simulator == SimulationConfig.GAZEBO
-                or self.config.simulator == SimulationConfig.JMAVSIM
+            self.config.simulator == SimulationConfig.GAZEBO
+            or self.config.simulator == SimulationConfig.JMAVSIM
         ):
             self.log_dir = self.PX4_LOG_DIR
             if self.config.headless:
@@ -59,12 +59,12 @@ class Simulator(object):
             sim_command += f". {self.PX4_DIR}Tools/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
             # sim_command += f". {self.PX4_DIR}Tools/simulation/gazebo/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
             sim_command += (
-                    "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:"
-                    + f"{self.PX4_DIR[:-1]}; "
+                "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:"
+                + f"{self.PX4_DIR[:-1]}; "
             )
             sim_command += (
-                    'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
-                    + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
+                'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
+                + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
             sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.AVOIDANCE_BOX} "
             tree_count = 0
@@ -80,7 +80,7 @@ class Simulator(object):
                     if obstacle.shape == "TREE":
                         tree_count += 1
                         tree_name = "tree_" + str(tree_count)
-                        obstacle_string += f'{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},tree,{tree_name},end,'
+                        obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},tree,{tree_name},end,"
 
                     if obstacle.shape == "APARTMENT":
                         apartment_count += 1
@@ -126,13 +126,13 @@ class Simulator(object):
                     )
                     logger.info(f"logging started: {self.log_file}")
                     if (
-                            self.config.simulator == SimulationConfig.GAZEBO
-                            or self.config.simulator == SimulationConfig.JMAVSIM
+                        self.config.simulator == SimulationConfig.GAZEBO
+                        or self.config.simulator == SimulationConfig.JMAVSIM
                     ):
                         return True
 
                 if self.config.simulator == SimulationConfig.ROS and output.endswith(
-                        "INFO  [tone_alarm] home set"
+                    "INFO  [tone_alarm] home set"
                 ):
                     logger.info("Avoidance is ready (waiting 10 seconds to wrap up)")
                     time.sleep(10)
@@ -171,8 +171,8 @@ class Simulator(object):
                 self.handle_errors(output)
 
                 if (
-                        land_time is not None
-                        and time.perf_counter() - land_time > self.LAND_TIMEOUT
+                    land_time is not None
+                    and time.perf_counter() - land_time > self.LAND_TIMEOUT
                 ):
                     self.kill()
                     raise Exception(
@@ -180,8 +180,8 @@ class Simulator(object):
                     )
 
                 if (
-                        self.SIMULATION_TIMEOUT > 0
-                        and time.perf_counter() - start_time > self.SIMULATION_TIMEOUT
+                    self.SIMULATION_TIMEOUT > 0
+                    and time.perf_counter() - start_time > self.SIMULATION_TIMEOUT
                 ):
                     logger.error(
                         "Simulation Timeout. Terminating the rest of the execution..."

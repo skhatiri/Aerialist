@@ -45,13 +45,13 @@ class Trajectory(object):
         self.positions = positions
 
     def plot(
-            self,
-            goal: Trajectory = None,
-            save: bool = True,
-            obstacles: List[Obstacle] = None,
-            file_prefix="",
-            highlights: List[float] = None,
-            filename=None,
+        self,
+        goal: Trajectory = None,
+        save: bool = True,
+        obstacles: List[Obstacle] = None,
+        file_prefix="",
+        highlights: List[float] = None,
+        filename=None,
     ):
         distance = True
         if goal is not None:
@@ -75,19 +75,19 @@ class Trajectory(object):
 
     @classmethod
     def plot_multiple(
-            cls,
-            trajectories: List[Trajectory],
-            goal: Trajectory = None,
-            save: bool = True,
-            distance: float | bool = None,
-            highlights: List[float] = None,
-            obstacles: List[Obstacle] = None,
-            file_prefix="",
-            ave_trajectory: Trajectory = None,
-            wind: int = 0,
-            light: float = 0.4,
-            filename=None,
-            upload_dir=None,
+        cls,
+        trajectories: List[Trajectory],
+        goal: Trajectory = None,
+        save: bool = True,
+        distance: float | bool = None,
+        highlights: List[float] = None,
+        obstacles: List[Obstacle] = None,
+        file_prefix="",
+        ave_trajectory: Trajectory = None,
+        wind: int = 0,
+        light: float = 0.4,
+        filename=None,
+        upload_dir=None,
     ):
         print("In plot_multiple")
         fig = plt.figure(tight_layout=True)
@@ -153,7 +153,7 @@ class Trajectory(object):
                         labeled = True
                 elif obst.shape == "TREE":
                     radius = 0.5
-                    color = 'green'
+                    color = "green"
                     obst_patch = obst.plt_patch_circle(radius, color)
                     if not labeled_tree:
                         obst_patch.set_label("Trees")
@@ -162,7 +162,7 @@ class Trajectory(object):
                         labeled_tree = True
                 elif obst.shape == "APARTMENT":
                     radius = 2.5
-                    color = 'blue'
+                    color = "blue"
                     obst_patch = obst.plt_patch(color)
                     if not labeled_apartment:
                         obst_patch.set_label("Apartment")
@@ -303,7 +303,6 @@ class Trajectory(object):
             plt.ion()
             plt.show()
 
-
     def allign_origin(self):
         origin = copy.deepcopy(self.positions[0])
         for p in self.positions:
@@ -369,7 +368,7 @@ class Trajectory(object):
                 p
                 for p in positions
                 if p.timestamp >= self.TIME_RANGE[0]
-                   and p.timestamp <= self.TIME_RANGE[1]
+                and p.timestamp <= self.TIME_RANGE[1]
             ]
 
         data = np.zeros(
@@ -401,8 +400,8 @@ class Trajectory(object):
         while i < len(self.positions):
             period_points: List[Position] = []
             while (
-                    i < len(self.positions)
-                    and self.positions[i].timestamp <= period_start + period
+                i < len(self.positions)
+                and self.positions[i].timestamp <= period_start + period
             ):
                 period_points.append(self.positions[i])
                 i += 1
@@ -456,10 +455,10 @@ class Trajectory(object):
 
     @classmethod
     def extract_from_log(
-            cls,
-            log_address: str,
-            ignore_automodes=False,
-            is_jmavsim=False,
+        cls,
+        log_address: str,
+        ignore_automodes=False,
+        is_jmavsim=False,
     ):
         """extracts and returns trajectory logs from the input log"""
         positions: List[Position] = []
@@ -529,8 +528,8 @@ class Trajectory(object):
                     filtered_positions += list(
                         filter(
                             lambda p: (
-                                    p.timestamp >= period_start
-                                    and p.timestamp <= period_end
+                                p.timestamp >= period_start
+                                and p.timestamp <= period_end
                             ),
                             positions,
                         )
@@ -648,7 +647,7 @@ class Trajectory(object):
         change_idx = [0] + alg.predict(pen=5)
         segments: List[Trajectory] = []
         for i in range(len(change_idx) - 1):
-            seg_pos = self.positions[change_idx[i]: change_idx[i + 1]]
+            seg_pos = self.positions[change_idx[i] : change_idx[i + 1]]
             segments.append(Trajectory(seg_pos))
 
         return segments

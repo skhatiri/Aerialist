@@ -19,8 +19,8 @@ def spawn_apartment():
     rospy.init_node(apartment_name)
 
     # Wait for the Gazebo spawn service
-    rospy.wait_for_service('/gazebo/spawn_sdf_model')
-    spawn_model_client = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
+    rospy.wait_for_service("/gazebo/spawn_sdf_model")
+    spawn_model_client = rospy.ServiceProxy("/gazebo/spawn_sdf_model", SpawnModel)
 
     # Define the SDF model for a box with the specified size
     apartment_sdf = """
@@ -32,16 +32,16 @@ def spawn_apartment():
       <pose>{0} {1} {2} 0 0 0</pose>
     </include>
     </sdf>
-    """.format(x, y, z, apartment_name)
+    """.format(
+        x, y, z, apartment_name
+    )
 
     # Set the model name and pose
     spawn_request = SpawnModelRequest()
     spawn_request.model_name = apartment_name
     spawn_request.model_xml = apartment_sdf
     spawn_request.initial_pose = Pose(
-        position=Point(x, y, z),
-        orientation=
-        Quaternion(x=0, y=0, z=r, w=1)
+        position=Point(x, y, z), orientation=Quaternion(x=0, y=0, z=r, w=1)
     )
     # Call the Gazebo spawn service to add the box model
     try:
@@ -50,7 +50,7 @@ def spawn_apartment():
         rospy.logerr("Service call failed: %s", e)
 
 
-if __name__ == '__main__':  # Parse the box size from the command-line argument
+if __name__ == "__main__":  # Parse the box size from the command-line argument
     try:
         spawn_apartment()
     except rospy.ROSInterruptException:

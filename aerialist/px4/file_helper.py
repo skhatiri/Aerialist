@@ -193,8 +193,8 @@ def create_dir(path: str):
         cloud_path = get_webdav_path(path)
     try:
         if not webdav_client.check(cloud_path):
-            current_path = ''
-            folders = cloud_path.split('/')
+            current_path = ""
+            folders = cloud_path.split("/")
             # Iterate through each folder and create it if it doesn't exist
             for folder in folders:
                 current_path = os.path.join(current_path, folder)
@@ -223,7 +223,9 @@ def zip_folder(file_path_list):
         if temp_file_path.endswith(".ulg"):
             temp_file_path_ts = temp_file_path
         else:
-            temp_file_path_ts = temp_file_path + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
-        shutil.make_archive(temp_file_path_ts, 'zip', root_dir=temp_file_path)
+            temp_file_path_ts = (
+                temp_file_path + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
+            )
+        shutil.make_archive(temp_file_path_ts, "zip", root_dir=temp_file_path)
         zip_list.append(temp_file_path_ts + ".zip")
     return zip_list
