@@ -5,7 +5,6 @@
   <arg name="world_path" default="" />
   <arg name="extension" default=".world" />
 <!--   <arg name="world_path" default="/src/aerialist/aerialist/resources/simulation/worlds/$(arg world_file_name).world" /> -->
-  <arg name="pattern_box_path" default="" />
   <arg name="box_path" default="aerialist/resources/simulation/box.xacro" />
 <!--   <arg name="box_path" default="/home/prasun/Aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_" /> -->
 <!--   <arg name="box_path_address" default="/src/aerialist/aerialist/resources/simulation/models/big_box/meshes/big_box_" /> -->
@@ -35,24 +34,12 @@
 
     <arg name="obstacle_string" default=""/>
 
-  <arg name="pattern" default="false"/>
-  <arg name="pattern_design" default="default"/>
-
-  <arg name="pattern2" default="false"/>
-  <arg name="pattern_design2" default="default"/>
-
   <!-- Launch PX4 and mavros -->
   <include file="$(find avoidance)/launch/avoidance_sitl_stereo.launch" >
     <arg name="model" value="iris_stereo_camera" />
     <arg name="world_path" value="$(arg world_path)$(arg world_file_name)$(arg extension)" />
     <arg name="pointcloud_topics" value="$(arg pointcloud_topics)"/>
   </include>
-
-    <node name="disparity_image_launcher" type="disparity_image_launch.py" pkg="intermediate_image_save" />
-    <node name="histogram_image_listener" type="get_histogram_image.py" pkg="intermediate_image_save" />
-    <node name="raw_image_listener" type="get_raw_image.py" pkg="intermediate_image_save" />
-    <node name="disparity_image_listener" type="get_disparity_image.py" pkg="intermediate_image_save" />
-
 
   <!-- Load custom console configuration -->
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find local_planner)/resource/custom_rosconsole.conf"/>
@@ -72,70 +59,11 @@
 
 
   <!-- add obstacles -->
-    <group if="$(arg obst)">
-        <!-- Convert xacro and put on parameter server -->
-        <!-- <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h)" /> -->
-        <param name="box_description" command="$(find xacro)/xacro.py $(arg box_path) name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h) pattern:=$(arg pattern_design) path:=$(arg pattern_box_path)" />
-
-        <node name="spawn_obstacle" pkg="gazebo_ros" type="spawn_model" output="screen"
-            args="-param box_description -urdf -x $(arg obst_x) -y $(arg obst_y) -z $(arg obst_z) -Y $(arg obst_yaw) -model box/">
-        </node>
-    </group>
-    <group if="$(arg obst2)">
-        <param name="box_description2" command="$(find xacro)/xacro.py $(arg box_path) name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h) pattern:=$(arg pattern_design2) path:=$(arg pattern_box_path)" />
-        <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen"
-            args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model box2/">
-        </node>
-    </group>
-
     <group if="$(eval len(obstacle_string) > 0)">
         <node pkg="spawn_obstacles" type="spawn_dynamic_obstacles.py" name="dynamic_obstacle_launcher">
             <param name="obstacle_string" value="$(arg obstacle_string)"/>
         </node>
-<!--         <node name="raw_image_listener" type="get_raw_image.py" pkg="intermediate_image_save" /> -->
     </group>
 
-<!--         <for_each cmd="echo" param="obstacle" items="$(arg obstacle_list)"> -->
-<!--         <foreach item="arg" list="$(arg obstacle_list)" param="item"> -->
-<!--             <param name="x" type="int" value="$(eval item[0])" /> -->
-<!--             <param name="y" value="$(eval item[1])" /> -->
-<!--             <param name="z" value="$(eval item[2])" /> -->
-<!--             <param name="type" value="$(eval item[3])" /> -->
-<!--             <param name="name" value="$(eval item[4])" /> -->
-
-<!--             <param if="$(eval item[3] == 'box')" name="l" value="$(eval item[4])" /> -->
-<!--                 <param if="$(eval item[3] == 'box')" name="l" value="$(eval item[4])" />
-            <param if="$(eval item[3] == 'box')" name="w" value="$(eval item[5])" />
-            <param if="$(eval item[3] == 'box')" name="h" value="$(eval item[6])" />        <param if="$(eval item[3] == 'box')" name="w" value="$(eval item[5])" /> -->
-<!--             <param if="$(eval item[3] == 'box')" name="h" value="$(eval item[6])" /> -->
-
-
-<!--             <node name="spawn_$(arg type)" type="spawn_$(arg type).py" pkg="spawn_obstacles" > -->
-<!--                 <param name="x" value="$(arg x)" /> -->
-<!--                 <param name="y" value="$(arg y)" /> -->
-<!--                 <param name="z" value="$(arg z)" /> -->
-<!--                 <param name="name" value="$(arg name)"> -->
-
-<!--                 <param if="$(eval item[3] == 'box')" name="l" value="$(eval item[4])" /> -->
-<!--                 <param if="$(eval item[3] == 'box')" name="w" value="$(eval item[5])" /> -->
-<!--                 <param if="$(eval item[3] == 'box')" name="h" value="$(eval item[6])" /> -->
-<!--           </node> -->
-<!--         </foreach> -->
-
-<!--     <group if="$(arg obst2)"> -->
-<!--         <param name="oak_tree_description" command="xacro /home/prasun/Aerialist/aerialist/resources/simulation/oak_tree.xacro" /> -->
-<!--         <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen" -->
-<!--             args="-param oak_tree_description -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model oak_tree/"> -->
-<!--         </node> -->
-<!--     </group> -->
-  <!-- rosrun topic_tools transform /stereo/disparity /stereo/disparity_image sensor_msgs/Image 'm.image' -->
-
-  <!-- rosrun topic_tools transform /stereoV/disparity /stereoV/disparity_image sensor_msgs/Image 'm.image' -->
-
-  <!--  <node name="transform" pkg="topic_tools" type="transform"
-      args="/stereo/disparity /stereo/disparity_image sensor_msgs/Image 'm.image'" />
-
-       <node name="transformV" pkg="topic_tools" type="transform"
-      args="/stereoV/disparity /stereoV/disparity_image sensor_msgs/Image 'm.image'" /> -->
 
 </launch>

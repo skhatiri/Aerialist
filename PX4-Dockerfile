@@ -23,7 +23,7 @@ RUN mkdir -p /src/catkin_ws/src &&\
     chmod +x install_geographiclib_datasets.sh &&\
     sudo ./install_geographiclib_datasets.sh &&\
     cd /src/catkin_ws/src &&\
-    git clone --depth 1 https://github.com/saurabhprasun20/PX4-Avoidance.git
+    git clone --depth 1 https://github.com/PX4/avoidance.git
 
 RUN . /opt/ros/melodic/setup.sh &&\
     catkin build -w /src/catkin_ws &&\

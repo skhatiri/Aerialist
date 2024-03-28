@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class DockerAgent(TestAgent):
     CMD = "python3 aerialist {params}"
     DOCKER_CMD = "docker exec -it {id} "
-    DOCKER_IMG = config("DOCKER_IMG", default="prasun20/aerialist")
+    DOCKER_IMG = config("DOCKER_IMG", default="skhatiri/aerialist")
     COPY_DIR = config("LOGS_COPY_DIR", "results/logs/")
     DOCKER_TIMEOUT = config("DOCKER_TIMEOUT", default=1000, cast=int)
     SIMULATION_TIMEOUT = config("SIMULATION_TIMEOUT", cast=int, default=-1)

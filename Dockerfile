@@ -16,12 +16,7 @@ RUN sudo apt install ros-melodic-stereo-image-proc ros-melodic-image-view -y
 #Setting up the current tool 
 COPY ./requirements.txt /src/aerialist/requirements.txt
 WORKDIR /src/catkin_ws/src/avoidance/
-RUN catkin_create_pkg intermediate_image_save std_msgs rospy roscpp cv_bridge
 RUN catkin_create_pkg spawn_obstacles std_msgs rospy roscpp cv_bridge
-WORKDIR /src/catkin_ws/src/avoidance/intermediate_image_save/src
-RUN mkdir -p nodes
-WORKDIR /src/catkin_ws/src/avoidance/intermediate_image_save/src/nodes
-COPY aerialist/ros_node_script/scripts/ .
 WORKDIR /src/catkin_ws/src/avoidance/spawn_obstacles/src
 RUN mkdir -p nodes
 WORKDIR /src/catkin_ws/src/avoidance/spawn_obstacles/src/nodes

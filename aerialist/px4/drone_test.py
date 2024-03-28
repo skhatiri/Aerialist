@@ -112,18 +112,18 @@ class DroneTest:
                 params += "--world_file_name "
                 params += self.simulation.world_file_name[0]
 
-            if (
-                    self.simulation.pattern_design is not None
-                    and len(self.simulation.pattern_design) >= 1
-            ):
-                params += " --pattern_design "
-                params += f"{self.simulation.pattern_design[0]} "
-            if (
-                    self.simulation.pattern_design is not None
-                    and len(self.simulation.pattern_design) >= 2
-            ):
-                params += "--pattern_design2 "
-                params += f"{self.simulation.pattern_design[1]} "
+            # if (
+            #         self.simulation.pattern_design is not None
+            #         and len(self.simulation.pattern_design) >= 1
+            # ):
+            #     params += " --pattern_design "
+            #     params += f"{self.simulation.pattern_design[0]} "
+            # if (
+            #         self.simulation.pattern_design is not None
+            #         and len(self.simulation.pattern_design) >= 2
+            # ):
+            #     params += "--pattern_design2 "
+            #     params += f"{self.simulation.pattern_design[1]} "
 
         if self.test is not None:
             if self.test.commands_file is not None:
@@ -164,8 +164,8 @@ class DroneTest:
                 obstacles=None
                 if test.simulation is None
                 else test.simulation.obstacles,
-                wind=test.simulation.wind,
-                light=test.simulation.light,
+                # wind=test.simulation.wind,
+                # light=test.simulation.light,
                 upload_dir=test.agent.path
             )
 
@@ -228,12 +228,12 @@ class SimulationConfig:
             world: str = "default",
             speed=1,
             headless=True,
-            pattern: List[str] = None,
+            # pattern: List[str] = None,
             world_file_name: List[str] = None,
             obstacles: List[Obstacle] | List[float] = None,
-            pattern_design: List[str] = None,
-            wind=0,
-            light=0.4,
+            # pattern_design: List[str] = None,
+            # wind=0,
+            # light=0.4,
             home_position: List[float] = None,
     ) -> None:
         self.simulator = simulator
@@ -242,10 +242,10 @@ class SimulationConfig:
         self.headless = headless
         self.obstacles: List[Obstacle] = obstacles
         self.home_position = home_position
-        self.pattern_design = pattern_design
-        self.pattern = pattern
-        self.wind = wind
-        self.light = light
+        # self.pattern_design = pattern_design
+        # self.pattern = pattern
+        # self.wind = wind
+        # self.light = light
         self.world_file_name = None
         if (
                 obstacles is not None
@@ -259,17 +259,17 @@ class SimulationConfig:
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
 
-        if (
-                pattern is not None
-                and len(pattern) > 0
-        ):
-            self.pattern = pattern
-
-        if (
-                pattern_design is not None
-                and len(pattern_design) > 0
-        ):
-            self.pattern_design = pattern_design
+        # if (
+        #         pattern is not None
+        #         and len(pattern) > 0
+        # ):
+        #     self.pattern = pattern
+        #
+        # if (
+        #         pattern_design is not None
+        #         and len(pattern_design) > 0
+        # ):
+        #     self.pattern_design = pattern_design
         if (
                 world_file_name is not None
                 and len(world_file_name) > 0

@@ -32,7 +32,6 @@ class Obstacle(object):
             position: Position,
             # angle: float = 0,
             shape: str = BOX,
-            pattern_design: str = None,
     ) -> None:
         super().__init__()
         if shape == "BOX" or shape == "APARTMENT":
@@ -47,7 +46,6 @@ class Obstacle(object):
             self.position = position
             # self.angle = angle
             self.shape = shape
-            self.pattern_design = pattern_design
         elif shape == "TREE":
             self.size = size
             self.position = position
@@ -55,7 +53,6 @@ class Obstacle(object):
             self.shape = shape
             self.geometry = Point(position.x, position.y)
             self.unrotated_geometry = Point(position.x, position.y)
-            self.pattern_design = pattern_design
 
     def center(self):
         return Obstacle.Position(
@@ -141,37 +138,21 @@ class Obstacle(object):
         return dist
 
     def to_dict(self):
-        if self.pattern_design is None:
-            return {
-                "size": {
-                    "l": self.size.l,
-                    "w": self.size.w,
-                    "h": self.size.h
-                },
-                "position": {
-                    "x": self.position.x,
-                    "y": self.position.y,
-                    "z": self.position.z,
-                    "angle": self.position.r,
-                },
-                "shape": self.shape
-            }
-        else:
-            return {
-                "size": {
-                    "l": self.size.l,
-                    "w": self.size.w,
-                    "h": self.size.h
-                },
-                "position": {
-                    "x": self.position.x,
-                    "y": self.position.y,
-                    "z": self.position.z,
-                    "angle": self.position.r,
-                },
-                "shape": self.shape,
-                "pattern_design": self.pattern_design
-            }
+        return {
+            "size": {
+                "l": self.size.l,
+                "w": self.size.w,
+                "h": self.size.h
+            },
+            "position": {
+                "x": self.position.x,
+                "y": self.position.y,
+                "z": self.position.z,
+                "angle": self.position.r,
+            },
+            "shape": self.shape
+        }
+
 
     @classmethod
     def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
@@ -214,11 +195,8 @@ class Obstacle(object):
             obstacle.position.z,
             obstacle.position.angle,
         )
-        if obstacle.pattern_design is not None:
-            obstacle_obj = Obstacle(size, position, obstacle.shape,
-                                    obstacle.pattern_design)
-        else:
-            obstacle_obj = Obstacle(size, position, obstacle.shape)
+
+        obstacle_obj = Obstacle(size, position, obstacle.shape)
 
         return obstacle_obj
 

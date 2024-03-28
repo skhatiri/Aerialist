@@ -7,12 +7,6 @@ import os
 import threading
 from decouple import config
 import logging
-
-import sys
-
-from .wind_handler import add_wind
-from .wind_handler import remove_wind
-from .light_handler import modify_light
 from . import file_helper
 from .drone_test import SimulationConfig
 import math
@@ -26,7 +20,6 @@ class Simulator(object):
     PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
     ROS_LOG_DIR = config("ROS_HOME")
     GAZEBO_GUI_AVOIDANCE = True
-    PATTERN_BOX_PATH = config("AERIALIST_HOME") + config("PATTERN_BOX_PATH")
     WORLD_PATH = config("AERIALIST_HOME") + config("WORLD_PATH")
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
@@ -73,31 +66,17 @@ class Simulator(object):
                     'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
                     + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            # print("***+++")
-            # print(self.config.obstacles[0].size.x)
-            # pprint(vars(self.config.obstacles[0]))
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.AVOIDANCE_BOX} pattern_box_path:={self.PATTERN_BOX_PATH} "
-            pattern_box_count = 0
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.AVOIDANCE_BOX} "
             tree_count = 0
             apartment_count = 0
             box_count = 0
             obstacle_string = ""
-            first_pattern_box = False
             if self.config.obstacles is not None and len(self.config.obstacles) > 0:
                 for obstacle in self.config.obstacles:
                     if obstacle.shape == "BOX":
                         box_count += 1
-                        if obstacle.pattern_design is not None:
-                            if not first_pattern_box:
-                                first_pattern_box = True
-                                sim_command += f"obst:=true obst_x:={obstacle.position.y} obst_y:={obstacle.position.x} obst_z:={obstacle.position.z} obst_l:={obstacle.size.w} obst_w:={obstacle.size.l} obst_h:={obstacle.size.h} obst_yaw:={math.radians(-obstacle.position.r)} "
-                                sim_command += f"pattern_design:={obstacle.pattern_design} "
-                            else:
-                                sim_command += f"obst2:=true obst2_x:={obstacle.position.y} obst2_y:={obstacle.position.x} obst2_z:={obstacle.position.z} obst2_l:={obstacle.size.w} obst2_w:={obstacle.size.l} obst2_h:={obstacle.size.h} obst2_yaw:={math.radians(-obstacle.position.r)} "
-                                sim_command += f"pattern_design2:={obstacle.pattern_design} "
-                        else:
-                            box_name = "box_" + str(box_count)
-                            obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},box,{box_name},{obstacle.size.w},{obstacle.size.l},{obstacle.size.h},end,"
+                        box_name = "box_" + str(box_count)
+                        obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},box,{box_name},{obstacle.size.w},{obstacle.size.l},{obstacle.size.h},end,"
                     if obstacle.shape == "TREE":
                         tree_count += 1
                         tree_name = "tree_" + str(tree_count)
@@ -110,15 +89,6 @@ class Simulator(object):
 
             if obstacle_string != "":
                 sim_command += f"obstacle_string:={obstacle_string} "
-
-        world_file_path = self.WORLD_PATH + self.config.world_file_name[0] + ".world"
-        if self.config.wind != 0:
-            remove_wind(world_file_path)
-            add_wind(world_file_path, self.config.wind)
-        else:
-            remove_wind(world_file_path)
-        if self.config.light > 0:
-            modify_light(world_file_path, self.config.light)
 
         logger.info("executing:" + sim_command)
         self.sim_process = subprocess.Popen(

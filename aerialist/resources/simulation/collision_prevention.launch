@@ -8,37 +8,7 @@
   <arg name="gui" default="true"/>
   <arg name="rviz" default="true"/>
 
-    <arg name="obst" default = "false"/>-
-    <arg name="obst_x" default = "0"/>
-    <arg name="obst_y" default = "0"/>
-    <arg name="obst_z" default = "0"/>
-    <arg name="obst_yaw" default = "0"/>
-    <arg name="obst_l" default = "1"/>
-    <arg name="obst_w" default = "1"/>
-    <arg name="obst_h" default = "1"/>
-
-
-    <arg name="obst2" default = "false"/>
-    <arg name="obst2_x" default = "0"/>
-    <arg name="obst2_y" default = "0"/>
-    <arg name="obst2_z" default = "0"/>
-    <arg name="obst2_yaw" default = "0"/>
-    <arg name="obst2_l" default = "1"/>
-    <arg name="obst2_w" default = "1"/>
-    <arg name="obst2_h" default = "1"/>
-
-    <arg name="obst3" default = "false"/>
-    <arg name="obst3_x" default = "1"/>
-    <arg name="obst3_y" default = "1"/>
-    <arg name="obst3_z" default = "1"/>
-    <arg name="obst3_yaw" default = "0"/>
-
-
-  <arg name="pattern" default="false"/>
-  <arg name="pattern_design" default=""/>
-
-  <arg name="pattern2" default="false"/>
-  <arg name="pattern_design2" default=""/>
+  <arg name="obstacle_string" default=""/>
 
   <!-- Launch PX4 and mavros -->
   <include file="$(find avoidance)/launch/avoidance_sitl_stereo.launch" >
@@ -69,37 +39,12 @@
 
   <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find local_planner)/resource/local_planner.rviz" />
 
-
-  <!-- add obstacles -->
-    <group if="$(arg obst)">
-        <!-- Convert xacro and put on parameter server -->
-        <!-- <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h)" /> -->
-        <param name="box_description" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box l:=$(arg obst_l) w:=$(arg obst_w) h:=$(arg obst_h) pattern:=$(arg pattern_design)" />
-
-        <node name="spawn_obstacle" pkg="gazebo_ros" type="spawn_model" output="screen"
-            args="-param box_description -urdf -x $(arg obst_x) -y $(arg obst_y) -z $(arg obst_z) -Y $(arg obst_yaw) -model box/">
+    <!-- add obstacles -->
+    <group if="$(eval len(obstacle_string) > 0)">
+        <node pkg="spawn_obstacles" type="spawn_dynamic_obstacles.py" name="dynamic_obstacle_launcher">
+            <param name="obstacle_string" value="$(arg obstacle_string)"/>
         </node>
     </group>
-    <group if="$(arg obst2)">
-        <param name="box_description2" command="$(find xacro)/xacro.py aerialist/resources/simulation/box.xacro name:=box2 l:=$(arg obst2_l) w:=$(arg obst2_w) h:=$(arg obst2_h) pattern:=$(arg pattern_design2)" />
-        <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen"
-            args="-param box_description2 -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model box2/">
-        </node>
-    </group>
-<!--     <group if="$(arg obst2)"> -->
-<!--         <param name="oak_tree_description" command="xacro /home/prasun/Aerialist/aerialist/resources/simulation/oak_tree.xacro" /> -->
-<!--         <node name="spawn_obstacle2" pkg="gazebo_ros" type="spawn_model" output="screen" -->
-<!--             args="-param oak_tree_description -urdf -x $(arg obst2_x) -y $(arg obst2_y) -z $(arg obst2_z) -Y $(arg obst2_yaw) -model oak_tree/"> -->
-<!--         </node> -->
-<!--     </group> -->
-  <!-- rosrun topic_tools transform /stereo/disparity /stereo/disparity_image sensor_msgs/Image 'm.image' -->
 
-  <!-- rosrun topic_tools transform /stereoV/disparity /stereoV/disparity_image sensor_msgs/Image 'm.image' -->
-
-  <!--  <node name="transform" pkg="topic_tools" type="transform"
-      args="/stereo/disparity /stereo/disparity_image sensor_msgs/Image 'm.image'" />
-
-       <node name="transformV" pkg="topic_tools" type="transform"
-      args="/stereoV/disparity /stereoV/disparity_image sensor_msgs/Image 'm.image'" /> -->
 
 </launch>

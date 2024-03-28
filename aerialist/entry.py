@@ -83,36 +83,36 @@ def arg_parse():
         help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
         default=[],
     )
-    parser.add_argument(
-        "--pattern",
-        nargs=1,
-        help="flag to put a patten on the obstacle 1 being spawned",
-        default="_"
-    )
-    parser.add_argument(
-        "--pattern2",
-        nargs=1,
-        help="flag to put a patten on the obstacle 2 being spawned",
-        default="_"
-    )
-    parser.add_argument(
-        "--pattern_design",
-        nargs=1,
-        help="name of the pattern type among chequered or sticker",
-        default=[],
-    )
-    parser.add_argument(
-        "--pattern_design2",
-        nargs=1,
-        help="name of the pattern type among chequered or sticker",
-        default=[],
-    )
-    parser.add_argument(
-        "--wind",
-        nargs=1,
-        help="wind speed",
-        default=0,
-    )
+    # parser.add_argument(
+    #     "--pattern",
+    #     nargs=1,
+    #     help="flag to put a patten on the obstacle 1 being spawned",
+    #     default="_"
+    # )
+    # parser.add_argument(
+    #     "--pattern2",
+    #     nargs=1,
+    #     help="flag to put a patten on the obstacle 2 being spawned",
+    #     default="_"
+    # )
+    # parser.add_argument(
+    #     "--pattern_design",
+    #     nargs=1,
+    #     help="name of the pattern type among chequered or sticker",
+    #     default=[],
+    # )
+    # parser.add_argument(
+    #     "--pattern_design2",
+    #     nargs=1,
+    #     help="name of the pattern type among chequered or sticker",
+    #     default=[],
+    # )
+    # parser.add_argument(
+    #     "--wind",
+    #     nargs=1,
+    #     help="wind speed",
+    #     default=0,
+    # )
     parser.add_argument(
         "--world_file_name",
         nargs=1,
@@ -220,8 +220,8 @@ def run_experiment(args):
             speed=args.speed,
             headless=args.headless,
             obstacles=args.obstacle + args.obstacle2,
-            pattern=args.pattern + args.pattern2,
-            pattern_design=args.pattern_design + args.pattern_design2,
+            # pattern=args.pattern + args.pattern2,
+            # pattern_design=args.pattern_design + args.pattern_design2,
             home_position=args.home,
             world_file_name=args.world_file_name
         )
