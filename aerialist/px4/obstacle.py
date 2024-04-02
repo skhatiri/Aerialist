@@ -43,12 +43,10 @@ class Obstacle(object):
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
             self.size = size
             self.position = position
-            # self.angle = angle
             self.shape = shape
         elif shape == "TREE":
             self.size = size
             self.position = position
-            # self.angle = angle
             self.shape = shape
             self.geometry = Point(position.x, position.y)
             self.unrotated_geometry = Point(position.x, position.y)

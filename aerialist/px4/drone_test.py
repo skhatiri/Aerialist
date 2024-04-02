@@ -91,7 +91,6 @@ class DroneTest:
                 params += f"--headless "
             if self.simulation.home_position is not None:
                 params += f"--home {self.simulation.home_position[0]} {self.simulation.home_position[1]} {self.simulation.home_position[2]} "
-            # print(f'********{self.simulation.obstacles[0].size.x}')
             if (
                 self.simulation.obstacles is not None
                 and len(self.simulation.obstacles) >= 1
@@ -109,19 +108,6 @@ class DroneTest:
             if self.simulation.world_file_name is not None:
                 params += "--world_file_name "
                 params += self.simulation.world_file_name[0]
-
-            # if (
-            #         self.simulation.pattern_design is not None
-            #         and len(self.simulation.pattern_design) >= 1
-            # ):
-            #     params += " --pattern_design "
-            #     params += f"{self.simulation.pattern_design[0]} "
-            # if (
-            #         self.simulation.pattern_design is not None
-            #         and len(self.simulation.pattern_design) >= 2
-            # ):
-            #     params += "--pattern_design2 "
-            #     params += f"{self.simulation.pattern_design[1]} "
 
         if self.test is not None:
             if self.test.commands_file is not None:
@@ -223,12 +209,8 @@ class SimulationConfig:
         world: str = "default",
         speed=1,
         headless=True,
-        # pattern: List[str] = None,
         world_file_name: List[str] = None,
         obstacles: List[Obstacle] | List[float] = None,
-        # pattern_design: List[str] = None,
-        # wind=0,
-        # light=0.4,
         home_position: List[float] = None,
     ) -> None:
         self.simulator = simulator
@@ -237,10 +219,6 @@ class SimulationConfig:
         self.headless = headless
         self.obstacles: List[Obstacle] = obstacles
         self.home_position = home_position
-        # self.pattern_design = pattern_design
-        # self.pattern = pattern
-        # self.wind = wind
-        # self.light = light
         self.world_file_name = None
         if (
             obstacles is not None
@@ -249,22 +227,11 @@ class SimulationConfig:
         ):
             if isinstance(obstacles[0], munch.DefaultMunch):
                 self.obstacles = Obstacle.from_dict_multiple(obstacles)
-                # self.obstacles = Obstacle.from_obstacle_list(obstacles)
                 print(self.obstacles)
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
 
-        # if (
-        #         pattern is not None
-        #         and len(pattern) > 0
-        # ):
-        #     self.pattern = pattern
-        #
-        # if (
-        #         pattern_design is not None
-        #         and len(pattern_design) > 0
-        # ):
-        #     self.pattern_design = pattern_design
+      
         if world_file_name is not None and len(world_file_name) > 0:
             self.world_file_name = world_file_name
 

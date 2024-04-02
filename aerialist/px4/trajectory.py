@@ -84,8 +84,6 @@ class Trajectory(object):
         obstacles: List[Obstacle] = None,
         file_prefix="",
         ave_trajectory: Trajectory = None,
-        wind: int = 0,
-        light: float = 0.4,
         filename=None,
         upload_dir=None,
     ):
@@ -117,28 +115,6 @@ class Trajectory(object):
         xy_plt.yaxis.tick_right()
         xy_plt.set_xlabel("X (m)", loc="right")
         xy_plt.set_aspect("equal", "datalim")
-        circle_legend = None
-        wind_legend = None
-
-        if wind != 0:
-            fig.text(
-                0.85,
-                0.97,
-                f"wind:{wind}km/hr",
-                ha="left",
-                va="top",
-                bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
-            )
-
-        if light > 0:
-            fig.text(
-                0.15,
-                0.97,
-                f"Light:{light}",
-                ha="right",
-                va="top",
-                bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
-            )
 
         if obstacles is not None:
             labeled = False
@@ -295,7 +271,6 @@ class Trajectory(object):
             fig.savefig(plot_file)
             plt.close(fig)
             if cls.WEBDAV_DIR is not None:
-                print(f"upload_dir {upload_dir}")
                 file_helper.upload(f"{cls.DIR}{filename}.png", upload_dir)
             return plot_file
         else:

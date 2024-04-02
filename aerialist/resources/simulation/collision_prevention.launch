@@ -1,7 +1,9 @@
 <launch>
 
   <arg name="world_file_name"    default="simple_obstacle" />
-  <arg name="world_path" default="/home/prasun/Aerialist/aerialist/resources/simulation/worlds/$(arg world_file_name).world" />
+  <arg name="world_path" default="" />
+  <arg name="extension" default=".world" />
+  <arg name="box_path" default="aerialist/resources/simulation/box.xacro" />
   <!-- <arg name="world_path" default="/src/aerialist/aerialist/resources/simulation/worlds/$(arg world_file_name).world" /> -->
   <arg name="pointcloud_topics" default="[/stereo/points2]"/>
 
