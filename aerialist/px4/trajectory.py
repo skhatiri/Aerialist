@@ -89,7 +89,6 @@ class Trajectory(object):
         filename=None,
         upload_dir=None,
     ):
-        print("In plot_multiple")
         fig = plt.figure(tight_layout=True)
 
         if cls.PLOT_R:

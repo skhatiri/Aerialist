@@ -12,6 +12,7 @@ from webdav3.client import Client
 import webdav3.exceptions
 from os import path
 import os
+import zipfile
 
 logger = logging.getLogger(__name__)
 MAX_WEBDAV_RETRIES = 5
@@ -217,15 +218,23 @@ def get_logs_address(path):
     return files
 
 
-def zip_folder(file_path_list):
+def zip_files_folders(file_path_list):
     zip_list = []
     for temp_file_path in file_path_list:
-        if temp_file_path.endswith(".ulg"):
-            temp_file_path_ts = temp_file_path
+        if os.path.isfile(temp_file_path):
+            base_dir = os.path.dirname(temp_file_path)
+            file_name = os.path.basename(temp_file_path)
+
+            archive_path = os.path.join(base_dir, file_name+".zip")
+            with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                zipf.write(temp_file_path, arcname=file_name)
+            temp_file_path_ts = archive_path
+
         else:
             temp_file_path_ts = (
                 temp_file_path + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
             )
-        shutil.make_archive(temp_file_path_ts, "zip", root_dir=temp_file_path)
-        zip_list.append(temp_file_path_ts + ".zip")
+            shutil.make_archive(temp_file_path_ts, "zip", root_dir=temp_file_path)
+            temp_file_path_ts = temp_file_path_ts + ".zip"
+        zip_list.append(temp_file_path_ts)
     return zip_list

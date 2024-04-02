@@ -26,11 +26,11 @@ class LocalAgent(TestAgent):
                 self.drone.run_scheduled()
             log = self.simulator.get_log()
             if self.config.agent is not None and self.config.agent.path is not None:
-                if eval(config("UPLOAD_LIST")):
-                    upload_list = config("UPLOAD_LIST")
+                upload_string = config("UPLOAD_LIST", default='')
+                upload_list = upload_string.split(',') if upload_string else []
                 upload_list.append(log)
                 if upload_list:
-                    zip_list = file_helper.zip_folder(upload_list)
+                    zip_list = file_helper.zip_files_folders(upload_list)
                     if len(zip_list) > 0:
                         for temp_zip_folder in zip_list:
                             file_helper.upload(temp_zip_folder, self.config.agent.path)

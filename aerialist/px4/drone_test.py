@@ -146,7 +146,6 @@ class DroneTest:
     def plot(
         cls, test: DroneTest, results: List[DroneTestResult], obstacle_distance=True
     ) -> str:
-        logger.info(f"In the plot function")
         distance = None
         if obstacle_distance:
             distance = True
@@ -162,8 +161,6 @@ class DroneTest:
                 obstacles=None
                 if test.simulation is None
                 else test.simulation.obstacles,
-                # wind=test.simulation.wind,
-                # light=test.simulation.light,
                 upload_dir=test.agent.path,
             )
 
