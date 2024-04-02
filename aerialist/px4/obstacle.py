@@ -5,7 +5,6 @@ from shapely import affinity
 import matplotlib.patches as mpatches
 import logging
 
-from build.lib.aerialist.px4.obstacle import Obstacle
 
 logger = logging.getLogger(__name__)
 

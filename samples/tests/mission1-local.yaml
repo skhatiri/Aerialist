@@ -7,8 +7,6 @@ simulation:
   simulator: ros #{gazebo, jmavsim, ros}
   speed: 1
   headless: true
-  wind: 5
-  light: 0.95
   obstacles:
     - size:
         l: 1
