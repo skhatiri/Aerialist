@@ -14,7 +14,7 @@ spec:
   containers:
     - imagePullPolicy: Always
       name: init
-      image: prasun20/aerialist:k8s
+      image: skhatiri/aerialist:k8s
       stdin: true
       stdinOnce: false
       command:
@@ -40,7 +40,7 @@ spec:
         requests: {}
     - imagePullPolicy: Always
       name: sim
-      image: prasun20/aerialist
+      image: skhatiri/aerialist
       stdin: true
       stdinOnce: true
       command:

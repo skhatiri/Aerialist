@@ -1,7 +1,7 @@
 drone:
   port: ros #{sitl, ros, cf}
-  params_file: samples/flights/auto-params.csv #csv file with the same structure as above
-  mission_file: webdav://test/case_studies/mission6.plan
+  params_file: samples/flights/mission1-params.csv #csv file with the same structure as above
+  mission_file: samples/flights/auto-params.csv
 
 simulation:
   simulator: ros #{gazebo, jmavsim, ros}
@@ -84,5 +84,5 @@ agent:
   engine: k8s # {k8s, docker, local}
   count: 5
   path: webdav://test/ # /home/git/Aerialist/results 
-  id: mission6-test
+  id: yaml-test
 

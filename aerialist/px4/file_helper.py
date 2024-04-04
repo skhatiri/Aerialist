@@ -225,8 +225,8 @@ def zip_files_folders(file_path_list):
             base_dir = os.path.dirname(temp_file_path)
             file_name = os.path.basename(temp_file_path)
 
-            archive_path = os.path.join(base_dir, file_name+".zip")
-            with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            archive_path = os.path.join(base_dir, file_name + ".zip")
+            with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zipf:
                 zipf.write(temp_file_path, arcname=file_name)
             temp_file_path_ts = archive_path
 

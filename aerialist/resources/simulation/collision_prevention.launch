@@ -1,11 +1,8 @@
 <launch>
 
   <arg name="world_file_name"    default="simple_obstacle" />
-  <arg name="world_path" default="" />
-  <arg name="extension" default=".world" />
-  <arg name="box_path" default="aerialist/resources/simulation/box.xacro" />
-  <!-- <arg name="world_path" default="/src/aerialist/aerialist/resources/simulation/worlds/$(arg world_file_name).world" /> -->
-  <arg name="pointcloud_topics" default="[/stereo/points2]"/>
+  <arg name="world_path" default="$(find avoidance)/sim/worlds/$(arg world_file_name).world" />
+  <arg name="pointcloud_topics" default="[/camera/depth/points]"/>
 
   <arg name="gui" default="true"/>
   <arg name="rviz" default="true"/>
