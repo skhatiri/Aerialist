@@ -20,16 +20,12 @@ class Simulator(object):
     PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
     ROS_LOG_DIR = config("ROS_HOME")
     GAZEBO_GUI_AVOIDANCE = True
-    WORLD_PATH = config("AERIALIST_HOME") + config("WORLD_PATH")
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
         "AVOIDANCE_LAUNCH",
         default="aerialist/resources/simulation/collision_prevention.launch",
     )
     SIMULATION_TIMEOUT = config("SIMULATION_TIMEOUT", cast=int, default=-1)
-    AVOIDANCE_BOX = config(
-        "AVOIDANCE_BOX", default="aerialist/resources/simulation/box.xacro"
-    )
     COPY_DIR = config("LOGS_COPY_DIR", None)
     LAND_TIMEOUT = 20
 
@@ -66,7 +62,7 @@ class Simulator(object):
                 'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
                 + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} world_path:={self.WORLD_PATH} box_path:={self.AVOIDANCE_BOX} "
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} "
             tree_count = 0
             apartment_count = 0
             box_count = 0
