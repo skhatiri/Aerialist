@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class K8sAgent(DockerAgent):
-    KUBE_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value = "{command}") | .spec.completions = {runs} | .spec.parallelism = {runs}\' {template} | kubectl apply -f - --validate=true'
-    KUBE_LOCAL_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.volumes[0].hostPath.path = "{host_volume}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value = "{command}") | .spec.completions = {runs} | .spec.parallelism = {runs}\' {template} | kubectl apply -f - --validate=true'
+    KUBE_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value = "{command}") | .spec.completions = {runs} | .spec.template.spec.containers[1].image="{image}" | .spec.parallelism = {runs}\' {template} | kubectl apply -f - --validate=true'
+    KUBE_LOCAL_CMD = 'yq \'.metadata.name = "{name}" | .spec.template.spec.volumes[0].hostPath.path = "{host_volume}" | .spec.template.spec.containers[0].env |= map(select(.name == "COMMAND").value = "{command}") | .spec.completions = {runs} | .spec.template.spec.containers[1].image="{image}" | .spec.parallelism = {runs}\' {template} | kubectl apply -f - --validate=true'
 
     CMD = "timeout {timeout} python3 aerialist exec --test {test_file}"
     WEBDAV_LOCAL_DIR = config("WEBDAV_DL_FLD", default="tmp/")
@@ -35,6 +35,7 @@ class K8sAgent(DockerAgent):
     )
     USE_VOLUME = config("KUBE_USE_VOLUME", cast=bool, default=False)
     VOLUME_PATH = config("KUBE_VOLUME_PATH", default="/src/aerialist/results/")
+    IMAGE = config("DOCKER_IMG", default="prasun20/aerialist")
 
     def __init__(self, config: DroneTest) -> None:
         self.config = config
@@ -62,6 +63,7 @@ class K8sAgent(DockerAgent):
                 command=cmd,
                 host_volume=host_volume_prefix + self.config.agent.path,
                 runs=self.config.agent.count,
+                image=self.IMAGE,
                 template=template,
             )
 
@@ -75,6 +77,7 @@ class K8sAgent(DockerAgent):
                 name=self.config.agent.id,
                 command=cmd,
                 runs=self.config.agent.count,
+                image=self.IMAGE,
                 template=template,
             )
 
