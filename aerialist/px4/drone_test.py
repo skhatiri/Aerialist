@@ -151,11 +151,8 @@ class DroneTest:
                 obstacles=None
                 if test.simulation is None
                 else test.simulation.obstacles,
-<<<<<<< HEAD
                 upload_dir=test.agent.path,
-=======
                 filename=filename,
->>>>>>> 5481a2b7beaa1c02718a75b311028ed158bf6d3a
             )
 
 
