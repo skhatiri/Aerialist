@@ -99,7 +99,7 @@ class K8sAgent(DockerAgent):
                 logger.debug("files downloaded")
 
             for test_log in os.listdir(local_folder):
-                if test_log.endswith(".ulg") and (
+                if ".ulg" in test_log and (
                     self.config.test is None
                     or self.config.test.commands_file is None
                     or path.basename(test_log)
