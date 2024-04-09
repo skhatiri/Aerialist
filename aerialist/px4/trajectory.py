@@ -122,7 +122,8 @@ class Trajectory(object):
             labeled_apartment = False
             for obst in obstacles:
                 if obst.shape == "BOX":
-                    obst_patch = obst.plt_patch("grey")
+                    color = "grey"
+                    obst_patch = obst.plt_patch(color)
                     if not labeled:
                         obst_patch.set_label("Box")
                         labeled = True
@@ -132,11 +133,8 @@ class Trajectory(object):
                     obst_patch = obst.plt_patch_circle(radius, color)
                     if not labeled_tree:
                         obst_patch.set_label("Trees")
-                        # circle_legend = Line2D([0], [0], marker='o', color='w', markersize=10, markerfacecolor='g',
-                        #                        label='Trees')
                         labeled_tree = True
                 elif obst.shape == "APARTMENT":
-                    radius = 2.5
                     color = "blue"
                     obst_patch = obst.plt_patch(color)
                     if not labeled_apartment:
@@ -261,7 +259,7 @@ class Trajectory(object):
             by_label.values(),
             by_label.keys(),
             loc="upper center",
-            ncol=3 if obstacles is None else 3,
+            ncol=3,
         )
         if save:
             if filename is None:

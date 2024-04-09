@@ -41,10 +41,17 @@ class Obstacle(object):
             self.geometry = affinity.rotate(rect, position.r, "centroid")
             self.geometry = affinity.translate(self.geometry, position.x, position.y)
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
+            if shape == "APARTMENT":
+                size.l = 20.0
+                size.w = 22.0
+                size.h = 14.0
             self.size = size
             self.position = position
             self.shape = shape
         elif shape == "TREE":
+            size.l = 1.5
+            size.w = 1.0
+            size.h = 2.5
             self.size = size
             self.position = position
             self.shape = shape

@@ -232,7 +232,6 @@ class SimulationConfig:
         ):
             if isinstance(obstacles[0], munch.DefaultMunch):
                 self.obstacles = Obstacle.from_dict_multiple(obstacles)
-                print(self.obstacles)
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
 
