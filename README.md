@@ -241,7 +241,7 @@ You can utilize the toolkit with the following command line options:
 
 3. The simplest way to execute a UAV test by Aerialist is by the following command:
 
-    `python3 aerialsit exec --test [test-file.yaml] --agent docker`
+    `python3 aerialist exec --test [test-file.yaml] --agent docker`
 
 - Replaying a pre-recorded manual flight (RC commands are extracted and replayed from a .ulg log)
 
