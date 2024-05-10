@@ -283,18 +283,30 @@ This can be specifically useful when you are working on test generation approach
 
 If you use this tool in your research, please cite the following papers:
 
+- **Sajad Khatiri**, Sebastiano Panichella, and Paolo Tonella, "Simulation-based Testing of Unmanned Aerial Vehicles with Aerialist," *In 2024 International Conference on Software Engineering (ICSE)*
+  - [Preprint](https://skhatiri.ir/papers/aerialist.pdf)
+
+  ````{code-block} bibtex
+  @inproceedings{icse2024Aerialist,
+    title={Simulation-based Testing of Unmanned Aerial Vehicles with Aerialist},
+    author={Khatiri, Sajad and Panichella, Sebastiano and Tonella, Paolo},
+    booktitle={International Conference on Software Engineering (ICSE)},
+    year={2024},
+  }
+  ````
+
 - **Sajad Khatiri**, Sebastiano Panichella, and Paolo Tonella, "Simulation-based Test Case Generation for Unmanned Aerial Vehicles in the Neighborhood of Real Flights," *In 2023 IEEE 16th International Conference on Software Testing, Verification and Validation (ICST)*
   - [Preprint](https://skhatiri.ir/papers/surrealist.pdf)
   - [Experiments Dataset](https://doi.org/10.5281/zenodo.6525021)
 
-````{code-block} bibtex
-@inproceedings{khatiri2023simulation,
-  title={Simulation-based test case generation for unmanned aerial vehicles in the neighborhood of real flights},
-  author={Khatiri, Sajad and Panichella, Sebastiano and Tonella, Paolo},
-  booktitle={2023 16th IEEE International Conference on Software Testing, Verification and Validation (ICST)},
-  year={2023},
-}
-````
+  ````{code-block} bibtex
+  @inproceedings{khatiri2023simulation,
+    title={Simulation-based test case generation for unmanned aerial vehicles in the neighborhood of real flights},
+    author={Khatiri, Sajad and Panichella, Sebastiano and Tonella, Paolo},
+    booktitle={2023 16th IEEE International Conference on Software Testing, Verification and Validation (ICST)},
+    year={2023},
+  }
+  ````
 
 ## License
 
