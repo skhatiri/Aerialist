@@ -176,15 +176,15 @@ class Trajectory(object):
 
         if goal != None:
             data_frame = goal.to_data_frame()
-            x_plt.plot(
-                data_frame[:, 0], data_frame[:, 1], label="original", color="blue"
-            )
+            x_plt.plot(data_frame[:, 0], data_frame[:, 1], color="blue")
             y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="blue")
             z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="blue")
             if cls.PLOT_R:
                 r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="blue")
 
-            xy_plt.plot(data_frame[:, 1], data_frame[:, 2], color="blue")
+            xy_plt.plot(
+                data_frame[:, 1], data_frame[:, 2], label="original", color="blue"
+            )
 
             # xyz_plt.plot3D(
             #     [p.x for p in goal.positions],
@@ -194,7 +194,7 @@ class Trajectory(object):
 
         if distance is True and obstacles is not None and len(obstacles) > 0:
             distance = ave_trajectory.min_distance_to_obstacles(obstacles)
-        if distance is not None and distance is not False:
+        if distance is not None and type(distance) is not bool:
             fig.text(
                 0.71,
                 0.03,
