@@ -26,16 +26,12 @@ class Simulator(object):
         default="aerialist/resources/simulation/collision_prevention.launch",
     )
     SIMULATION_TIMEOUT = config("SIMULATION_TIMEOUT", cast=int, default=-1)
-    AVOIDANCE_BOX = config(
-        "AVOIDANCE_BOX", default="aerialist/resources/simulation/box.xacro"
-    )
     COPY_DIR = config("LOGS_COPY_DIR", None)
     LAND_TIMEOUT = 20
 
     def __init__(self, config: SimulationConfig) -> None:
         super().__init__()
         self.config = config
-
         sim_command = ""
         if config.home_position is not None:
             sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
@@ -57,6 +53,7 @@ class Simulator(object):
                 f"DONT_RUN=1 make -C {self.PX4_DIR} px4_sitl_default gazebo; "
             )
             sim_command += f". {self.PX4_DIR}Tools/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
+            # sim_command += f". {self.PX4_DIR}Tools/simulation/gazebo/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
             sim_command += (
                 "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:"
                 + f"{self.PX4_DIR[:-1]}; "
@@ -65,18 +62,31 @@ class Simulator(object):
                 'echo "export GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:'
                 + f'{self.CATKIN_DIR}src/avoidance/avoidance/sim/models:{self.CATKIN_DIR}src/avoidance/avoidance/sim/worlds" >> ~/.bashrc; '
             )
-            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(False and not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} box_path:={self.AVOIDANCE_BOX} "
-            if self.config.obstacles != None:
-                if len(self.config.obstacles) > 0:
-                    sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.w} obst_w:={self.config.obstacles[0].size.l} obst_h:={self.config.obstacles[0].size.h} obst_yaw:={math.radians(-self.config.obstacles[0].position.r)} "
-                if len(self.config.obstacles) > 1:
-                    sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.w} obst2_w:={self.config.obstacles[1].size.l} obst2_h:={self.config.obstacles[1].size.h} obst2_yaw:={math.radians(-self.config.obstacles[1].position.r)} "
-                if len(self.config.obstacles) > 2:
-                    sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[2].position.x} obst3_z:={self.config.obstacles[2].position.z} obst3_l:={self.config.obstacles[2].size.w} obst3_w:={self.config.obstacles[2].size.l} obst3_h:={self.config.obstacles[2].size.h} obst3_yaw:={math.radians(-self.config.obstacles[2].position.r)} "
-                if len(self.config.obstacles) > 3:
-                    sim_command += f"obst4:=true obst4_x:={self.config.obstacles[3].position.y} obst4_y:={self.config.obstacles[3].position.x} obst4_z:={self.config.obstacles[3].position.z} obst4_l:={self.config.obstacles[3].size.w} obst4_w:={self.config.obstacles[3].size.l} obst4_h:={self.config.obstacles[3].size.h} obst4_yaw:={math.radians(-self.config.obstacles[3].position.r)} "
+            sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(True and not self.config.headless).lower()} world_file_name:={self.config.world_file_name[0]} "
+            tree_count = 0
+            apartment_count = 0
+            box_count = 0
+            obstacle_string = ""
+            if self.config.obstacles is not None and len(self.config.obstacles) > 0:
+                for obstacle in self.config.obstacles:
+                    if obstacle.shape == "BOX":
+                        box_count += 1
+                        box_name = "box_" + str(box_count)
+                        obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},box,{box_name},{obstacle.size.w},{obstacle.size.l},{obstacle.size.h},end,"
+                    if obstacle.shape == "TREE":
+                        tree_count += 1
+                        tree_name = "tree_" + str(tree_count)
+                        obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},tree,{tree_name},end,"
 
-        logger.debug("executing:" + sim_command)
+                    if obstacle.shape == "APARTMENT":
+                        apartment_count += 1
+                        apartment_name = "apartment_" + str(apartment_count)
+                        obstacle_string += f'{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},"apartment",{apartment_name},end,'
+
+            if obstacle_string != "":
+                sim_command += f"obstacle_string:={obstacle_string} "
+
+        logger.info("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
             sim_command,
             shell=True,
@@ -120,8 +130,8 @@ class Simulator(object):
                 if self.config.simulator == SimulationConfig.ROS and output.endswith(
                     "INFO  [tone_alarm] home set"
                 ):
-                    logger.info("Avoidance is ready (waiting 5 seconds to wrap up)")
-                    time.sleep(5)
+                    logger.info("Avoidance is ready (waiting 10 seconds to wrap up)")
+                    time.sleep(10)
                     return True
 
                 return_code = self.sim_process.poll()

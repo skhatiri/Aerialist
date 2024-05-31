@@ -58,3 +58,15 @@ catkin build -w ~/catkin_ws
 
 echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 source ~/.bashrc
+
+# Fix below code in order to change the catkin workspace.
+# cd ~
+# git clone https://github.com/saurabhprasun20/avoidance_attack.git
+
+# cp -r ~/avoidance_attack/src/avoidance/* ~/catkin_ws/src/avoidance/
+
+# catkin build -w ~/catkin_ws
+
+# echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+# source ~/.bashrc
+

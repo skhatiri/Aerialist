@@ -5,7 +5,6 @@ import os
 import sys
 from decouple import config
 
-
 try:
     from .px4.k8s_agent import K8sAgent
     from .px4.local_agent import LocalAgent
@@ -85,18 +84,10 @@ def arg_parse():
         default=[],
     )
     parser.add_argument(
-        "--obstacle3",
-        nargs=7,
-        type=float,
-        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
-        default=[],
-    )
-    parser.add_argument(
-        "--obstacle4",
-        nargs=7,
-        type=float,
-        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
-        default=[],
+        "--world_file_name",
+        nargs=1,
+        help="name of the world file name",
+        default="collision_prevention",
     )
     parser.add_argument(
         "--headless",
@@ -119,7 +110,6 @@ def arg_parse():
         help="home position to place the drone: [lat,lon,alt] in order",
         default=None,
     )
-
     # test configs
     parser.add_argument(
         "--commands",
@@ -199,8 +189,9 @@ def run_experiment(args):
             world="default",
             speed=args.speed,
             headless=args.headless,
-            obstacles=args.obstacle + args.obstacle2 + args.obstacle3 + args.obstacle4,
+            obstacles=args.obstacle + args.obstacle2,
             home_position=args.home,
+            world_file_name=args.world_file_name,
         )
         test_config = TestConfig(
             commands_file=args.commands,

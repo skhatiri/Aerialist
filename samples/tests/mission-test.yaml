@@ -1,0 +1,91 @@
+drone:
+  port: ros #{sitl, ros, cf}
+  params_file: samples/flights/auto-params.csv #csv file with the same structure as above
+  mission_file: webdav://test/case_studies/mission4.plan
+
+simulation:
+  simulator: ros #{gazebo, jmavsim, ros}
+  speed: 1
+  headless: true
+  wind: 5
+  light: 0.2
+  obstacles:
+    - size:
+        l: 15
+        w: 13.890927
+        h: 15.0
+      position:
+        x: 9.375
+        y: 18.53
+        z: 0
+        angle: 15.0
+      shape: BOX
+    - size:
+        l: 7.625
+        w: 5.0625
+        h: 15.0
+      position:
+        x: -6.375
+        y: 17.53125
+        z: 0
+        angle: 0
+      shape: BOX
+    - size:
+        l: 0
+        w: 0
+        h: 0
+      position:
+        x: 40
+        y: 52
+        z: 0
+        angle: 0
+      shape: TREE
+    - size:
+        l: 0
+        w: 0
+        h: 0
+      position:
+        x: 38
+        y: 50
+        z: 0
+        angle: 0
+      shape: TREE
+    - size:
+        l: 0
+        w: 0
+        h: 0
+      position:
+        x: 42
+        y: 50
+        z: 0
+        angle: 0
+      shape: TREE
+    - size:
+        l: 20
+        w: 22
+        h: 14
+      position:
+        x: 25
+        y: 40
+        z: 0
+        angle: 0
+      shape: APARTMENT
+#  pattern_design:
+#    - chequered
+#    - chequered
+  world_file_name: ["simple_obstacle_scenario1"]
+
+test:
+  commands_file: samples/flights/auto_commands.csv
+  speed: 1
+
+#assertion:
+#  log_file: samples/flights/First_test.ulg
+#  variable: trajectory
+
+agent:
+  engine: k8s # {k8s, docker, local}
+  count: 5
+  path: webdav://test/ # /home/git/Aerialist/results
+  id: yaml-test
+

@@ -1,29 +1,84 @@
 drone:
   port: ros #{sitl, ros, cf}
-  params_file: samples/flights/mission1-params.csv #csv file with the same structure as above 
-  mission_file: samples/flights/mission1.plan
+  params_file: samples/flights/mission1-params.csv #csv file with the same structure as above
+  mission_file: samples/flights/auto-params.csv
 
 simulation:
-  simulator: ros #{gazebo, jmavsim, ros} 
+  simulator: ros #{gazebo, jmavsim, ros}
   speed: 1
   headless: true
+  wind: 2
+  light: 0.95
   obstacles:
-  - size:
-      l: 5
-      w: 5
-      h: 5
-    position:
-      x: -8
-      y: 3
-      z: 0
-      r: 0
-  # home_position: [lat,lon,alt]  
-test:
-  commands_file: samples/flights/mission1-commands.csv
+    - position:
+        angle: 15.0
+        x: -6.375
+        y: 10.53
+        z: 0
+      shape: BOX
+      size:
+        h: 15.0
+        l: 5.0
+        w: 5.0
+    - position:
+        angle: 0
+        x: 19.375
+        y: 37.53125
+        z: 0
+      shape: BOX
+      size:
+        h: 15.0
+        l: 7.625
+        w: 7.0625
+    - position:
+        angle: 0
+        x: 20
+        y: 20
+        z: 0
+      shape: TREE
+      size:
+        h: 0
+        l: 0
+        w: 0
+    - position:
+        angle: 0
+        x: 18
+        y: 18
+        z: 0
+      shape: TREE
+      size:
+        h: 0
+        l: 0
+        w: 0
+    - position:
+        angle: 0
+        x: 22
+        y: 18
+        z: 0
+      shape: TREE
+      size:
+        h: 2.5
+        l: 1.5
+        w: 1
+    - position:
+        angle: 0
+        x: -13
+        y: 28
+        z: 0
+      shape: APARTMENT
+      size:
+        h: 14
+        l: 20
+        w: 22
+  world_file_name: ["simple_obstacle_scenario1"]
 
-assertion:
-  log_file: samples/flights/mission1.ulg
-  # variable: trajectory
+test:
+  commands_file: samples/flights/auto_commands.csv
+  speed: 1
+
+#assertion:
+#  log_file: samples/flights/First_test.ulg
+#  variable: trajectory
 
 agent:
   engine: k8s # {k8s, docker, local}

@@ -12,6 +12,7 @@ from webdav3.client import Client
 import webdav3.exceptions
 from os import path
 import os
+import zipfile
 
 logger = logging.getLogger(__name__)
 MAX_WEBDAV_RETRIES = 5
@@ -142,7 +143,7 @@ def upload_dir(src_dir: str, dest_dir: str) -> str:
                 return upload_dir(src_dir, dest_dir)
             else:
                 raise (e)
-    return dest_dir
+        return dest_dir
 
 
 def download(src_file: str, dest_path: str) -> str:
@@ -215,3 +216,25 @@ def create_dir(path: str):
 def get_logs_address(path):
     files = [path + f for f in os.listdir(path) if f.endswith(".ulg")]
     return files
+
+
+def zip_files_folders(file_path_list):
+    zip_list = []
+    for temp_file_path in file_path_list:
+        if os.path.isfile(temp_file_path):
+            base_dir = os.path.dirname(temp_file_path)
+            file_name = os.path.basename(temp_file_path)
+
+            archive_path = os.path.join(base_dir, file_name + ".zip")
+            with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+                zipf.write(temp_file_path, arcname=file_name)
+            temp_file_path_ts = archive_path
+
+        else:
+            temp_file_path_ts = (
+                temp_file_path + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
+            )
+            shutil.make_archive(temp_file_path_ts, "zip", root_dir=temp_file_path)
+            temp_file_path_ts = temp_file_path_ts + ".zip"
+        zip_list.append(temp_file_path_ts)
+    return zip_list

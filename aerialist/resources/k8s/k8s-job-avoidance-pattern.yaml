@@ -20,12 +20,12 @@ spec:
       containers:
         - imagePullPolicy: Always
           name: init
-          image: skhatiri/aerialist:k8s
+          image: prasun20/aerialist:k8s
           stdin: true
           stdinOnce: false
           command:
-            - /bin/bash 
-            - -c 
+            - /bin/bash
+            - -c
             - /bin/sleep 10 && kubectl exec -it $HOSTNAME -c sim -- /bin/bash -c "$(COMMAND) && pkill bash"
           env:
             - name: COMMAND
@@ -43,10 +43,10 @@ spec:
             requests: {}
         - imagePullPolicy: Always
           name: sim
-          image: skhatiri/aerialist
+          image: prasun20/aerialist
           stdin: true
           stdinOnce: true
-          command: 
+          command:
           tty: true
           env:
             - name: SIMULATION_TIMEOUT
@@ -55,17 +55,17 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: webdav
-                  key: host                  
+                  key: host
             - name: WEBDAV_USER
               valueFrom:
                 secretKeyRef:
                   name: webdav
-                  key: user           
+                  key: user
             - name: WEBDAV_PASS
               valueFrom:
                 secretKeyRef:
                   name: webdav
-                  key: pass          
+                  key: pass
           resources:
             requests:
               cpu: 6000m
@@ -78,11 +78,11 @@ spec:
         - name: dockerhub
       initContainers:
       restartPolicy: Never
-      activeDeadlineSeconds: 600
+      activeDeadlineSeconds: 800
   completions: 1
   suspend: false
   # activeDeadlineSeconds: 1000
-  backoffLimit: 2
+  backoffLimit: 5
   completionMode: NonIndexed
   parallelism: 1
-  ttlSecondsAfterFinished: 60
+  ttlSecondsAfterFinished: 600

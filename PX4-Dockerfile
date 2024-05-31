@@ -1,5 +1,7 @@
 FROM px4io/px4-dev-ros-melodic:2021-09-08
 
+RUN mkdir /data
+
 # Setting up PX4-Autopilot
 RUN mkdir /src &&\      
     cd /src &&\        

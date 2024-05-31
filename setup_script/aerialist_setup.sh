@@ -50,7 +50,7 @@ sed -i "s|$SEARCH_STRING|$REPLACE_STRING|g" .env
 sed -i 'export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:~/Firmware' "~/.bashrc"
 
 
-make -C /home/aerialist/Firmware px4_sitl_default gazebo &
+make -C ~/Firmware px4_sitl_default gazebo &
 
 # Capture the process ID (PID) of the make command
 make_pid=$!

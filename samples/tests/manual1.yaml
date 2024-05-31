@@ -1,8 +1,10 @@
 drone:
-  port: sitl #{sitl, ros, cf}
-  
+  port: ros #{sitl, ros, cf}
+  params_file: samples/flights/auto-params.csv #csv file with the same structure as above
+  mission_file: samples/flights/scenario2-3.plan #5m trajectory altitude
+
 simulation:
-  simulator: gazebo #{gazebo,jmavsim,ros} 
+  simulator: ros #{gazebo, jmavsim, ros}
   speed: 1
   headless: true
 
@@ -10,5 +12,5 @@ test:
   commands_file: samples/flights/manual1.ulg
 
 assertion:
-  log_file: samples/flights/manual1.ulg
+  # log_file: samples/flights/log-test_case_2-normal-5m.ulg
   variable: trajectory

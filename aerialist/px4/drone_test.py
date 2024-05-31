@@ -1,12 +1,16 @@
 from __future__ import annotations
 from statistics import median
 from typing import List
+import logging
 import munch
 import yaml
 from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
 from . import file_helper
+
+
+logger = logging.getLogger(__name__)
 
 
 class DroneTest:
@@ -87,24 +91,23 @@ class DroneTest:
                 params += f"--headless "
             if self.simulation.home_position is not None:
                 params += f"--home {self.simulation.home_position[0]} {self.simulation.home_position[1]} {self.simulation.home_position[2]} "
-
-            if self.simulation.obstacles is not None:
-                if len(self.simulation.obstacles) >= 1:
-                    params += "--obstacle "
-                    for p in self.simulation.obstacles[0].to_params():
-                        params += f"{p} "
-                if len(self.simulation.obstacles) >= 2:
-                    params += "--obstacle2 "
-                    for p in self.simulation.obstacles[1].to_params():
-                        params += f"{p} "
-                if len(self.simulation.obstacles) >= 3:
-                    params += "--obstacle3 "
-                    for p in self.simulation.obstacles[2].to_params():
-                        params += f"{p} "
-                if len(self.simulation.obstacles) >= 4:
-                    params += "--obstacle4 "
-                    for p in self.simulation.obstacles[3].to_params():
-                        params += f"{p} "
+            if (
+                self.simulation.obstacles is not None
+                and len(self.simulation.obstacles) >= 1
+            ):
+                params += "--obstacle "
+                for p in self.simulation.obstacles[0].to_params():
+                    params += f"{p} "
+            if (
+                self.simulation.obstacles is not None
+                and len(self.simulation.obstacles) >= 2
+            ):
+                params += "--obstacle2 "
+                for p in self.simulation.obstacles[1].to_params():
+                    params += f"{p} "
+            if self.simulation.world_file_name is not None:
+                params += "--world_file_name "
+                params += self.simulation.world_file_name[0]
 
         if self.test is not None:
             if self.test.commands_file is not None:
@@ -148,6 +151,7 @@ class DroneTest:
                 obstacles=None
                 if test.simulation is None
                 else test.simulation.obstacles,
+                upload_dir=test.agent.path,
                 filename=filename,
             )
 
@@ -210,6 +214,7 @@ class SimulationConfig:
         world: str = "default",
         speed=1,
         headless=True,
+        world_file_name: List[str] = None,
         obstacles: List[Obstacle] | List[float] = None,
         home_position: List[float] = None,
     ) -> None:
@@ -219,6 +224,7 @@ class SimulationConfig:
         self.headless = headless
         self.obstacles: List[Obstacle] = obstacles
         self.home_position = home_position
+        self.world_file_name = None
         if (
             obstacles is not None
             and len(obstacles) > 0
@@ -228,6 +234,10 @@ class SimulationConfig:
                 self.obstacles = Obstacle.from_dict_multiple(obstacles)
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
+
+      
+        if world_file_name is not None and len(world_file_name) > 0:
+            self.world_file_name = world_file_name
 
     def to_dict(self):
         dic = {}
@@ -242,6 +252,8 @@ class SimulationConfig:
             dic["obstacles"] = [obs.to_dict() for obs in self.obstacles]
         if self.home_position is not None:
             dic["home_position"] = self.home_position
+        if self.world_file_name is not None:
+            dic["world_file_name"] = self.world_file_name
         return dic
 
 

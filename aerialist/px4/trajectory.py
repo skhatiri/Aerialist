@@ -9,12 +9,15 @@ import similaritymeasures
 import matplotlib.pyplot as plt
 import ruptures as rpt
 from shapely.geometry import LineString
-from decouple import config
 from tslearn.barycenters import softdtw_barycenter
 import warnings
 from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
+from decouple import config
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Trajectory(object):
@@ -82,6 +85,7 @@ class Trajectory(object):
         file_prefix="",
         ave_trajectory: Trajectory = None,
         filename=None,
+        upload_dir=None,
     ):
         fig = plt.figure(tight_layout=True)
 
@@ -95,7 +99,6 @@ class Trajectory(object):
         z_plt = fig.add_subplot(gs[2, :2])
         xy_plt = fig.add_subplot(gs[:, 2:])
         # xyz_plt = fig.add_subplot(gs[:, 2:], projection="3d")
-
         # annotations
         fig.suptitle(" ")
 
@@ -114,9 +117,30 @@ class Trajectory(object):
         xy_plt.set_aspect("equal", "datalim")
 
         if obstacles is not None:
+            labeled = False
+            labeled_tree = False
+            labeled_apartment = False
             for obst in obstacles:
-                obst_patch = obst.plt_patch()
-                obst_patch.set_label("obstacle")
+                if obst.shape == "BOX":
+                    color = "grey"
+                    obst_patch = obst.plt_patch(color)
+                    if not labeled:
+                        obst_patch.set_label("Box")
+                        labeled = True
+                elif obst.shape == "TREE":
+                    radius = 0.5
+                    color = "green"
+                    obst_patch = obst.plt_patch_circle(radius, color)
+                    if not labeled_tree:
+                        obst_patch.set_label("Trees")
+                        labeled_tree = True
+                elif obst.shape == "APARTMENT":
+                    color = "blue"
+                    obst_patch = obst.plt_patch(color)
+                    if not labeled_apartment:
+                        obst_patch.set_label("Apartment")
+                        labeled_apartment = True
+
                 xy_plt.add_patch(obst_patch)
 
         alpha = 1 if len(trajectories) <= 1 else 0.25
@@ -198,7 +222,7 @@ class Trajectory(object):
             fig.text(
                 0.71,
                 0.03,
-                f"distance:{round(distance,2)}",
+                f"distance:{round(distance, 2)}",
                 ha="center",
                 bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
             )
@@ -235,7 +259,7 @@ class Trajectory(object):
             by_label.values(),
             by_label.keys(),
             loc="upper center",
-            ncol=3 if obstacles is None else 4,
+            ncol=3,
         )
         if save:
             if filename is None:
@@ -245,7 +269,7 @@ class Trajectory(object):
             fig.savefig(plot_file)
             plt.close(fig)
             if cls.WEBDAV_DIR is not None:
-                file_helper.upload(f"{cls.DIR}{filename}.png", cls.WEBDAV_DIR)
+                file_helper.upload(f"{cls.DIR}{filename}.png", upload_dir)
             return plot_file
         else:
             plt.ion()
@@ -364,6 +388,9 @@ class Trajectory(object):
 
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
         return Obstacle.distance_to_many(obstacles, self.to_line())
+
+    def min_max_dist_to_obstacle(self, obstacles: List[Obstacle]):
+        return Obstacle.min_max_distance_to_many(obstacles, self.to_line())
 
     def to_line(self) -> LineString:
         points = self.to_data_frame()[:, 1:4]
