@@ -19,12 +19,15 @@ class DockerAgent(TestAgent):
     COPY_DIR = config("LOGS_COPY_DIR", "results/logs/")
     DOCKER_TIMEOUT = config("DOCKER_TIMEOUT", default=1000, cast=int)
     SIMULATION_TIMEOUT = config("SIMULATION_TIMEOUT", cast=int, default=-1)
+    DOCKER_DISPLAY = config("DOCKER_DISPLAY", cast=bool, default=False)
 
     def __init__(self, config: DroneTest) -> None:
         super().__init__(config)
         envs = ""
         if self.SIMULATION_TIMEOUT > 0:
             envs = f"-e SIMULATION_TIMEOUT={self.SIMULATION_TIMEOUT} "
+        if self.DOCKER_DISPLAY and not config.simulation.headless:
+            envs += '-e DISPLAY -v "/tmp/.X11-unix:/tmp/.X11-unix:rw" '
         cmd = f"docker run --rm {envs}-td {self.DOCKER_IMG}"
         create_cmd = subprocess.run(cmd, shell=True, capture_output=True)
 
