@@ -2,7 +2,9 @@
 
 **Aerialist** (unmanned AERIAL vehIcle teST bench) is a novel test bench for UAV software that automates all the necessary UAV testing steps: setting up the test environment, building and running the UAV firmware code, configuring the simulator with the simulated world properties, connecting the simulated UAV to the firmware and applying proper UAV configurations at startup, scheduling and executing runtime commands, monitoring the UAV at runtime for any issues, and extracting the flight log file after the test completion.
 
-With Aerialist, we aim to provide researchers with an easy platform to automate tests on both simulated and real UAVs, allowing them to do experiments required to overcome the UAV simulation-based testing challenges.
+With Aerialist, we aim to provide researchers with an easy platform to automate tests on both simulated and real UAVs, allowing them to do experiments required to overcome the UAV simulation-based testing challenges. 
+Aerialist is used to organize the [UAV Testing Competition](https://github.com/skhatiri/UAV-Testing-Competition).
+
 
 ## Table of Contents
 
@@ -51,7 +53,7 @@ Hence, Aerialist models a UAV test case with the following set of *test properti
 
 ### UAV Testing Competition
 
-Aerialist has been used in the organisation of the [UAV Testing Competition](https://github.com/skhatiri/UAV-Testing-Competition).
+Aerialist has been used in the organization of the [UAV Testing Competition](https://github.com/skhatiri/UAV-Testing-Competition).
 The competion organized jointly by the [International Conference on Software Testing, Verification and Validation (ICST)](https://conf.researchr.org/home/icst-2025) and [Search-Based and Fuzz Testing (SBFT) workshop](https://sbft24.github.io/) is an initiative designed to inspire and encourage the Software Testing Community to direct their attention toward UAVs as a rapidly emerging and crucial domain.
 
 **Visit the [competition webpage](https://github.com/skhatiri/UAV-Testing-Competition) for more details**
