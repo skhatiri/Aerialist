@@ -19,7 +19,7 @@ Aerialist can connect both to a cloud Kubernetes cluster, or a local instance (m
           chmod +x /usr/bin/yq
       ```
 
-## Using Local Kubernetes Instance
+## Using Local Kubernetes Instance (Experimental)
 
 This guide explains how to set up a local Kubernetes instance using Docker Desktop for the purpose of running a specific task.
 
@@ -30,13 +30,12 @@ This guide explains how to set up a local Kubernetes instance using Docker Deskt
 3. **Generate a Kubeconfig File**: Open a terminal and run the following command to generate a kubeconfig file for your local Kubernetes instance:
    `kubectl config view --raw --minify > k8s-config.yaml`
 
-3. **Upload Kubeconfig as a ConfigMap**: Create a Kubernetes ConfigMap named k8s-config by uploading the kubeconfig file generated:
-   `kubectl config view --raw --minify > k8s-config.yaml`
+4. **Upload Kubeconfig as a ConfigMap**: Create a Kubernetes ConfigMap named k8s-config by uploading the kubeconfig file generated:
+   `kubectl create configmap k8s-config --from-file k8s-config.yaml`
 
+5. **Enable Use of Docker Volumes**: Edit your `.env` file and set the environment variable `KUBE_USE_VOLUME` to `True` in your environment. This will enable the use of docker volumes instead of cloud storage to share files with simulation containers.
 
-5. **Set Environment variable**: Set the environment variable `KUBE_USE_VOLUME` to `True` in your environment.
-
-6. **Specify Output Folder**: Edit the path in the `k8s-job-avoidance-local.yaml` or `k8s-job-local.yaml` file to specify the desired output folder within your project.
+6. **Specify Volume Address**:  Edit your `.env` file and set the environment variable `KUBE_VOLUME_PATH` to a desired path to be shared as a volume with the simulation containers in K8S. Container inputs and outputs (simulation logs, etc. ) will be copied to this address.
 
 7. **Run the Task**: `python3 aerialist exec --test samples/tests/mission1-k8s.yaml`
 
