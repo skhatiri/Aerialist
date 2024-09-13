@@ -104,6 +104,8 @@ Aerialist's Docker image is hosted on [Dockerhub](https://hub.docker.com/r/skhat
   
   `docker run -it -e DISPLAY -v "/tmp/.X11-unix:/tmp/.X11-unix:rw" skhatiri/aerialist bash`
 
+  Make sure you set `headless: false` in your test YAML file for the simulation window to appear.
+
 #### Using Host's CLI
 
 Alternatively, you can use the CLI on your local machine and instruct Aerialist to execute test cases inside a docker container.
@@ -138,6 +140,8 @@ This gives you more flexibility since the test results (flight logs) are directl
   `xhost +`
   
   `DOCKER_DISPLAY=True python3 aerialist exec --test [test-file.yaml] --agent docker`
+
+  Make sure you set `headless: false` in your test YAML file for the simulation window to appear.
 
 ### Local Test Execution
 
