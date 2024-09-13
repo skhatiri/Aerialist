@@ -10,10 +10,8 @@ import shutil
 import logging
 from webdav4.client import Client
 from requests.exceptions import RequestException
-# import webdav4.exceptions
 from os import path
 import os
-import zipfile
 
 logger = logging.getLogger(__name__)
 MAX_WEBDAV_RETRIES = 5
@@ -61,7 +59,7 @@ def init_webdav():
             webdav_client = Client(
                 base_url=config("WEBDAV_HOST"),
                 auth=(config("WEBDAV_USER"), config("WEBDAV_PASS")),
-                timeout=600
+                timeout=600,
             )
         except Exception as e:
             logger.error(e)
@@ -138,14 +136,18 @@ def upload_dir(src_dir: str, dest_dir: str) -> str:
         for root, dirs, files in os.walk(src_dir):
             # Create the directory structure in WebDAV
             relative_path = os.path.relpath(root, src_dir)
-            webdav_folder_path = os.path.join(cloud_dir, relative_path).replace("\\", "/")
+            webdav_folder_path = os.path.join(cloud_dir, relative_path).replace(
+                "\\", "/"
+            )
 
             # Create the directory on WebDAV if it doesn't exist
             try:
                 if not webdav_client.exists(webdav_folder_path):
                     webdav_client.mkdir(webdav_folder_path)
             except RequestException as e:
-                logger.error(f"webdav connection lost while creating directory: retrying {RETRIES}")
+                logger.error(
+                    f"webdav connection lost while creating directory: retrying {RETRIES}"
+                )
                 sleep(20)
                 RETRIES += 1
                 if RETRIES <= MAX_WEBDAV_RETRIES:
@@ -157,11 +159,15 @@ def upload_dir(src_dir: str, dest_dir: str) -> str:
             # Upload each file in the directory
             for file in files:
                 local_file_path = os.path.join(root, file)
-                remote_file_path = os.path.join(webdav_folder_path, file).replace("\\", "/")
+                remote_file_path = os.path.join(webdav_folder_path, file).replace(
+                    "\\", "/"
+                )
                 try:
                     webdav_client.upload_file(local_file_path, remote_file_path)
                 except RequestException as e:
-                    logger.error(f"webdav connection lost while uploading file: retrying {RETRIES}")
+                    logger.error(
+                        f"webdav connection lost while uploading file: retrying {RETRIES}"
+                    )
                     sleep(20)
                     RETRIES += 1
                     if RETRIES <= MAX_WEBDAV_RETRIES:
@@ -216,12 +222,12 @@ def download_dir(src_path: str, dest_path: str) -> str:
 
         # Fetch the directory's contents
         for item in webdav_client.ls(cloud_path):
-            item_path = item['href'].rstrip('/')
+            item_path = item["href"].rstrip("/")
             item_name = os.path.basename(item_path)
             remote_item_path = f"{cloud_path}/{item_name}"
             local_item_path = os.path.join(dest_path, item_name)
 
-            if item['type'] == 'directory':
+            if item["type"] == "directory":
                 # Recursively download directories
                 download_dir(remote_item_path, local_item_path)
             else:
