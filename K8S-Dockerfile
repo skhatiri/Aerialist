@@ -23,6 +23,3 @@ COPY . .
 RUN chmod +x ./aerialist/__main__.py
 COPY ./template.env ./.env
 RUN mkdir -p /io/ ./results/logs/
-
-RUN mkdir -p /io/ ./results/logs/
-
