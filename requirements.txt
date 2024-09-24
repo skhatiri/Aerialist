@@ -19,3 +19,4 @@ tslearn==0.5.2
 h5py==3.9.0
 setuptools==39.0.1
 requests==2.18.4
+bagpy==0.5

@@ -4,6 +4,7 @@ from typing import List
 from decouple import config
 from pandas.core.frame import DataFrame
 from pyulog import ULog
+from bagpy import bagreader
 import pandas as pd
 import os.path
 import shutil
@@ -69,6 +70,13 @@ init_webdav()
 
 
 def extract(log_address: str, topic: str, columns: List[str] = None) -> DataFrame:
+    if log_address.endswith(".bag"):
+        return extract_bag(log_address, topic, columns)
+    else:
+        return extract_ulg(log_address, topic, columns)
+
+
+def extract_ulg(log_address: str, topic: str, columns: List[str] = None) -> DataFrame:
     """extracts specific messages from the input log and returns the dataframe object"""
     ulog = ULog(log_address, topic, True)
     if len(ulog.data_list) == 0:
@@ -77,6 +85,16 @@ def extract(log_address: str, topic: str, columns: List[str] = None) -> DataFram
         df = pd.DataFrame(ulog.data_list[0].data)
     else:
         df = pd.DataFrame({c: ulog.data_list[0].data[c] for c in columns})
+    return df
+
+
+def extract_bag(log_address: str, topic: str, columns: List[str] = None) -> DataFrame:
+    """extracts specific messages from the input bag file and returns the dataframe object"""
+    bag = bagreader(log_address)
+    topic_csv = bag.message_by_topic(topic)
+    df = pd.read_csv(topic_csv)
+    if columns is not None:
+        df = df[columns]
     return df
 
 
