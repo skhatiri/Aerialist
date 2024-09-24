@@ -67,7 +67,7 @@ chmod +x aerialist_setup.sh
 
 If you can not use the above script, these are step by step guides to install PX4 and its dependencies.
 
-1. [install python >= 3.8](https://www.itsupportwale.com/blog/how-to-upgrade-to-python-3-8-on-ubuntu-18-04-lts/) (if not already installed)
+1. [install python >= 3.8 & < 3.12](https://www.itsupportwale.com/blog/how-to-upgrade-to-python-3-8-on-ubuntu-18-04-lts/) (if not already installed)
 
 - [if terminal doesn't show up anymore](https://askubuntu.com/questions/1132349/terminal-not-opening-up-after-upgrading-python-to-3-7) (use VS code terminal)
 

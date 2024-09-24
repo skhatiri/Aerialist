@@ -113,7 +113,7 @@ This gives you more flexibility since the test results (flight logs) are directl
 
 - Requirements:
   - [Docker](https://docs.docker.com/engine/install/)
-  - Python ≥ 3.8
+  - Python ≥ 3.8 & < 3.12
   - Your user should be able to run docker commands without `sudo`. [check here](https://docs.docker.com/engine/install/linux-postinstall/)
 - This has been tested on **Ubuntu and macOS with x86-64 processors**.
   - You may need to rebuild the docker image if you are using another OS or architecture.
