@@ -36,6 +36,7 @@ class Trajectory(object):
     HIGHLIGHT_COLOR = "red"
     HIGHLIGHT_ALPHA = 0.25
     HIGHLIGHT_SIZE = 25
+    TIME_SCALE = 1000000.0
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()
@@ -143,7 +144,9 @@ class Trajectory(object):
             if highlights is not None:
                 for timestamp in highlights:
                     point = data_frame[
-                        abs(data_frame[:, 0] - (timestamp / 1000000.0)).argsort()[0]
+                        abs(data_frame[:, 0] - (timestamp / cls.TIME_SCALE)).argsort()[
+                            0
+                        ]
                     ]
                     xy_plt.scatter(
                         [point[1]],
@@ -205,26 +208,26 @@ class Trajectory(object):
         if highlights is not None:
             for timestamp in highlights:
                 x_plt.axvline(
-                    timestamp / 1000000.0,
+                    timestamp / cls.TIME_SCALE,
                     color=cls.HIGHLIGHT_COLOR,
                     alpha=cls.HIGHLIGHT_ALPHA,
                     linewidth=1.75,
                 )
                 y_plt.axvline(
-                    timestamp / 1000000.0,
+                    timestamp / cls.TIME_SCALE,
                     color=cls.HIGHLIGHT_COLOR,
                     alpha=cls.HIGHLIGHT_ALPHA,
                     linewidth=1.75,
                 )
                 z_plt.axvline(
-                    timestamp / 1000000.0,
+                    timestamp / cls.TIME_SCALE,
                     color=cls.HIGHLIGHT_COLOR,
                     alpha=cls.HIGHLIGHT_ALPHA,
                     linewidth=1.75,
                 )
                 if cls.PLOT_R:
                     r_plt.axvline(
-                        timestamp / 1000000.0,
+                        timestamp / cls.TIME_SCALE,
                         color=cls.HIGHLIGHT_COLOR,
                         alpha=cls.HIGHLIGHT_ALPHA,
                         linewidth=1.75,
@@ -322,7 +325,7 @@ class Trajectory(object):
         data = np.zeros(
             (len(positions), 5),
         )
-        data[:, 0] = [p.timestamp / 1000000.0 for p in positions]
+        data[:, 0] = [p.timestamp / self.TIME_SCALE for p in positions]
         data[:, 1] = [p.x for p in positions]
         data[:, 2] = [p.y for p in positions]
         data[:, 3] = [p.z for p in positions]
@@ -634,7 +637,7 @@ class Trajectory(object):
             for i in range(len(average_time)):
                 ave_positions.append(
                     Position(
-                        timestamp=average_time[i, 0] * 1000000,
+                        timestamp=average_time[i, 0] * cls.TIME_SCALE,
                         x=average_data[i, 0],
                         y=average_data[i, 1],
                         z=average_data[i, 2],

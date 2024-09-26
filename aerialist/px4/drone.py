@@ -14,6 +14,7 @@ class Drone(object):
 
     SETPOINT_PERIOD = 0.2
     DEFAULT_PARAMS = config("PARAMS", default=None)
+    TIME_SCALE = 1000000
 
     def __init__(self, config: DroneConfig) -> None:
         super().__init__()
@@ -52,7 +53,7 @@ class Drone(object):
                 c.mode == FlightMode.Altitude or c.mode == FlightMode.Position
             ):
                 self.scheduler.enter(
-                    float(c.timestamp - timeoffset) / (1000000 * test.speed)
+                    float(c.timestamp - timeoffset) / (self.TIME_SCALE * test.speed)
                     + 6 * self.SETPOINT_PERIOD,
                     1,
                     self.run,
@@ -61,7 +62,7 @@ class Drone(object):
 
             else:
                 self.scheduler.enter(
-                    float(c.timestamp - timeoffset) / (1000000 * test.speed),
+                    float(c.timestamp - timeoffset) / (self.TIME_SCALE * test.speed),
                     1,
                     self.run,
                     (c,),
