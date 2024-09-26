@@ -375,7 +375,7 @@ class Trajectory(object):
         """extracts and returns trajectory from the file"""
         if address.endswith(".csv"):
             return cls.extract_from_csv(address)
-        if address.endswith(".ulg"):
+        if address.endswith(".ulg") or address.endswith(".bag"):
             return cls.extract_from_log(address)
         return None
 
