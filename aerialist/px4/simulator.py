@@ -35,7 +35,8 @@ class Simulator(object):
     def __init__(self, config: SimulationConfig) -> None:
         super().__init__()
         self.config = config
-
+        if self.config.timeout <= 0 and self.SIMULATION_TIMEOUT > 0:
+            self.config.timeout = self.SIMULATION_TIMEOUT
         sim_command = ""
         if config.home_position is not None:
             sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
@@ -166,8 +167,8 @@ class Simulator(object):
                     )
 
                 if (
-                    self.SIMULATION_TIMEOUT > 0
-                    and time.perf_counter() - start_time > self.SIMULATION_TIMEOUT
+                    self.config.timeout > 0
+                    and time.perf_counter() - start_time > self.config.timeout
                 ):
                     logger.error(
                         "Simulation Timeout. Terminating the rest of the execution..."

@@ -145,9 +145,9 @@ class DroneTest:
                 [r.record for r in results],
                 goal=None if test.assertion is None else test.assertion.expectation,
                 distance=distance,
-                obstacles=None
-                if test.simulation is None
-                else test.simulation.obstacles,
+                obstacles=(
+                    None if test.simulation is None else test.simulation.obstacles
+                ),
                 filename=filename,
             )
 
@@ -212,6 +212,7 @@ class SimulationConfig:
         headless=True,
         obstacles: List[Obstacle] | List[float] = None,
         home_position: List[float] = None,
+        timeout: int = -1,
     ) -> None:
         self.simulator = simulator
         self.world = world
@@ -219,6 +220,7 @@ class SimulationConfig:
         self.headless = headless
         self.obstacles: List[Obstacle] = obstacles
         self.home_position = home_position
+        self.timeout = timeout
         if (
             obstacles is not None
             and len(obstacles) > 0
@@ -242,10 +244,14 @@ class SimulationConfig:
             dic["obstacles"] = [obs.to_dict() for obs in self.obstacles]
         if self.home_position is not None:
             dic["home_position"] = self.home_position
+        if self.timeout > 0:
+            dic["timeout"] = self.timeout
         return dic
 
 
 class TestConfig:
+    MAX_INLINE_COMMANDS = 10
+
     def __init__(
         self,
         commands: List[Command] = None,
@@ -260,9 +266,20 @@ class TestConfig:
         if commands is None and commands_file is not None:
             self.commands = Command.extract(file_helper.get_local_file(commands_file))
 
+    def save_commands_list_if_needed(self, path=None):
+        if path is None:
+            path = "/tmp/"
+        if (
+            self.commands_file is None
+            and self.commands is not None
+            and len(self.commands) > self.MAX_INLINE_COMMANDS
+        ):
+            self.commands_file = f"{path}{file_helper.time_filename()}.csv"
+            Command.save_csv(self.commands, self.commands_file)
+
     def to_dict(self):
         dic = {}
-        if self.commands is not None and len(self.commands) < 10:
+        if self.commands is not None and len(self.commands) <= self.MAX_INLINE_COMMANDS:
             dic["commands"] = [c.to_dict() for c in self.commands]
         elif self.commands_file is not None:
             dic["commands_file"] = self.commands_file
