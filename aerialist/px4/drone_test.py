@@ -141,7 +141,7 @@ class DroneTest:
                 [r.record.distance(test.assertion.expectation) for r in results]
             )
         if results is not None and len(results) >= 1:
-            return Trajectory.plot_multiple(
+            return results[0].record.plot_multiple(
                 [r.record for r in results],
                 goal=None if test.assertion is None else test.assertion.expectation,
                 distance=distance,
@@ -289,23 +289,22 @@ class TestConfig:
 
 
 class AssertionConfig:
-    TRAJECTORY = "trajectory"
+    TRAJECTORY = Trajectory
 
     def __init__(
         self,
         log_file: str = None,
-        variable: str = TRAJECTORY,
+        variable: type = TRAJECTORY,
         expectation=None,
     ) -> None:
         self.log_file = log_file
         self.expectation = expectation
+        if variable == "trajectory":
+            variable = self.TRAJECTORY
         self.variable = variable
         if expectation is None and log_file is not None:
-            if variable == self.TRAJECTORY:
-                # todo: jMavsim complications (take into account local positioning differences with gazebo)
-                self.expectation = Trajectory.extract(
-                    file_helper.get_local_file(log_file)
-                )
+            # todo: jMavsim complications (take into account local positioning differences with gazebo)
+            self.expectation = variable.extract(file_helper.get_local_file(log_file))
 
     def to_dict(self):
         dic = {}
@@ -349,20 +348,21 @@ class DroneTestResult:
     def __init__(
         self,
         log_file: str = None,
-        variable: str = AssertionConfig.TRAJECTORY,
+        variable: type = AssertionConfig.TRAJECTORY,
         record=None,
     ) -> None:
         self.log_file = log_file
         self.record = record
+        if variable == "trajectory":
+            variable = AssertionConfig.TRAJECTORY
         self.variable = variable
         if record is None and log_file is not None:
             # todo: jMavsim complications (take into account local positioning differences with gazebo)
-            if variable == AssertionConfig.TRAJECTORY:
-                self.record = Trajectory.extract(file_helper.get_local_file(log_file))
+            self.record = variable.extract(file_helper.get_local_file(log_file))
 
     @classmethod
     def load_folder(
-        cls, logs_folder: str, variable: str = AssertionConfig.TRAJECTORY
+        cls, logs_folder: str, variable: type = AssertionConfig.TRAJECTORY
     ) -> List[DroneTestResult]:
         logs_folder = file_helper.get_local_folder(logs_folder)
         logs = file_helper.get_logs_address(logs_folder)
