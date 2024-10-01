@@ -27,10 +27,10 @@ class Position(object):
         self.x = -jmav_y
         self.y = jmav_x
 
-    def get_position_in_relative_distance(self, distance: float):
+    def get_position_in_relative_distance(self, distance: float) -> Position:
         delta_x = distance * math.cos(self.r)
         delta_y = distance * math.sin(self.r)
-        return Position(self.x + delta_x, self.y + delta_y, self.z, self.r)
+        return (self.x + delta_x, self.y + delta_y, self.z, self.r)
 
     def to_geometry(self):
         return Point(self.x, self.y)
@@ -52,7 +52,7 @@ class Position(object):
 
     @classmethod
     def average(cls, positions: List[Position]):
-        return Position(
+        return cls(
             x=mean([p.x for p in positions]),
             y=mean([p.y for p in positions]),
             z=mean([p.z for p in positions]),

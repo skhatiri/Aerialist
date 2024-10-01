@@ -164,7 +164,7 @@ class Trajectory(object):
 
         if len(trajectories) > 1:
             if ave_trajectory is None:
-                ave_trajectory = Trajectory.average(trajectories)
+                ave_trajectory = cls.average(trajectories)
             data_frame = ave_trajectory.to_data_frame()
             x_plt.plot(
                 data_frame[:, 0], data_frame[:, 1], label="test ave.", color="red"
@@ -342,7 +342,7 @@ class Trajectory(object):
         for i in range(count):
             down_sampled.append(self.positions[math.ceil(i * scale)])
 
-        return Trajectory(down_sampled)
+        return type(self)(down_sampled)
 
     def downsample_time(self, period: float = SAMPLING_PERIOD) -> Trajectory:
         down_sampled: List[Position] = []
@@ -359,7 +359,7 @@ class Trajectory(object):
             if len(period_points) > 0:
                 down_sampled.append(Position.average(period_points))
             period_start += period
-        return Trajectory(down_sampled)
+        return type(self)(down_sampled)
 
     def min_distance_to_obstacles(self, obstacles: List[Obstacle]):
         line = self.to_line()
@@ -398,7 +398,7 @@ class Trajectory(object):
                     row.timestamp,
                 )
             )
-        trj = Trajectory(positions)
+        trj = cls(positions)
         return trj
 
     @classmethod
@@ -596,7 +596,7 @@ class Trajectory(object):
         segments: List[Trajectory] = []
         for i in range(len(change_idx) - 1):
             seg_pos = self.positions[change_idx[i] : change_idx[i + 1]]
-            segments.append(Trajectory(seg_pos))
+            segments.append(type(self)(seg_pos))
 
         return segments
 
@@ -617,7 +617,7 @@ class Trajectory(object):
                 Position.average([t.positions[i] for t in down_sampled])
             )
 
-        return Trajectory(ave_positions)
+        return cls(ave_positions)
 
     @classmethod
     def dtw_average(cls, trajectories: List[Trajectory]) -> Trajectory:
@@ -644,7 +644,7 @@ class Trajectory(object):
                         r=average_r[i, 0],
                     )
                 )
-        ave_trj = Trajectory(ave_positions)
+        ave_trj = cls(ave_positions)
         if cls.AVE_CUT_LAND:
             ave_trj = ave_trj.cut_landed()
         return ave_trj
@@ -657,10 +657,10 @@ class Trajectory(object):
         cut_ave = Position.average(cut_list)
         positions = self.positions[0:cut_idx]
         positions.append(cut_ave)
-        return Trajectory(positions)
+        return type(self)(positions)
 
     @classmethod
     def load_folder(cls, path, ignore_automodes=False):
         files = [path + f for f in os.listdir(path) if f.endswith(".ulg")]
-        trjs = [Trajectory.extract_from_log(f, ignore_automodes) for f in files]
+        trjs = [cls.extract_from_log(f, ignore_automodes) for f in files]
         return trjs
