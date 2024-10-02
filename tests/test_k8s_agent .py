@@ -7,7 +7,7 @@ from aerialist.px4.drone_test import (
     DroneTest,
     AgentConfig,
     SimulationConfig,
-    TestConfig,
+    MissionConfig,
 )
 from aerialist.px4.k8s_agent import K8sAgent
 from aerialist.px4.local_agent import LocalAgent
@@ -32,7 +32,7 @@ class TestK8sAgent(unittest.TestCase):
             params={},
             mission_file=None,
         )
-        test_config = TestConfig("aerialist/resources/logs/t0.ulg")
+        test_config = MissionConfig("aerialist/resources/logs/t0.ulg")
         assertion_config = AssertionConfig(
             "aerialist/resources/logs/t0.ulg", variable=AssertionConfig.TRAJECTORY
         )
@@ -56,7 +56,7 @@ class TestK8sAgent(unittest.TestCase):
             params={},
             mission_file=None,
         )
-        test_config = TestConfig(
+        test_config = MissionConfig(
             "https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/t0.ulg"
         )
         assertion_config = AssertionConfig(

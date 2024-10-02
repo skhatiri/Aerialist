@@ -15,7 +15,7 @@ try:
         DroneConfig,
         DroneTest,
         SimulationConfig,
-        TestConfig,
+        MissionConfig,
         AgentConfig,
         DroneTestResult,
     )
@@ -28,7 +28,7 @@ except:
         DroneConfig,
         DroneTest,
         SimulationConfig,
-        TestConfig,
+        MissionConfig,
         AgentConfig,
         DroneTestResult,
     )
@@ -202,7 +202,7 @@ def run_experiment(args):
             obstacles=args.obstacle + args.obstacle2 + args.obstacle3 + args.obstacle4,
             home_position=args.home,
         )
-        test_config = TestConfig(
+        test_config = MissionConfig(
             commands_file=args.commands,
             speed=args.speed,
         )
@@ -218,7 +218,7 @@ def run_experiment(args):
         test = DroneTest(
             drone=drone_config,
             simulation=simulation_config,
-            test=test_config,
+            mission=test_config,
             assertion=assertion_config,
             agent=agent_config,
         )

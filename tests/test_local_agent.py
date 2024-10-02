@@ -7,7 +7,7 @@ from aerialist.px4.drone_test import (
     DroneConfig,
     DroneTest,
     SimulationConfig,
-    TestConfig,
+    MissionConfig,
 )
 from aerialist.px4.local_agent import LocalAgent
 from aerialist.px4.simulator import Simulator
@@ -37,7 +37,7 @@ class TestLocalAgent(unittest.TestCase):
             params={},
             mission_file=None,
         )
-        test_config = TestConfig(commands="aerialist/resources/logs/t0.ulg")
+        test_config = MissionConfig(commands="aerialist/resources/logs/t0.ulg")
         drone = Drone(drone_config)
         drone.schedule_test(test_config)
         drone.run_scheduled()
@@ -51,7 +51,7 @@ class TestLocalAgent(unittest.TestCase):
             params={},
             mission_file=None,
         )
-        test_config = TestConfig("aerialist/resources/logs/t0.ulg")
+        test_config = MissionConfig("aerialist/resources/logs/t0.ulg")
         assertion_config = AssertionConfig(
             "aerialist/resources/logs/t0.ulg", variable=AssertionConfig.TRAJECTORY
         )

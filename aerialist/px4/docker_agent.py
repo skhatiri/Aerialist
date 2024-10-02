@@ -159,18 +159,18 @@ class DockerAgent(TestAgent):
                 )
 
         # Test Config
-        if self.config.test is not None:
-            self.config.test.save_commands_list_if_needed(self.config.agent.path)
+        if self.config.mission is not None:
+            self.config.mission.save_commands_list_if_needed(self.config.agent.path)
             if (
-                self.config.test.commands_file is not None
-                and self.config.test.commands is not None
-                and len(self.config.test.commands)
-                > self.config.test.MAX_INLINE_COMMANDS
+                self.config.mission.commands_file is not None
+                and self.config.mission.commands is not None
+                and len(self.config.mission.commands)
+                > self.config.mission.MAX_INLINE_COMMANDS
             ):
-                self.docker_cp_import(self.config.test.commands_file, self.VOLUME_PATH)
-                container_config.test.commands_file = (
-                    f"{self.VOLUME_PATH}{path.basename(self.config.test.commands_file)}"
+                self.docker_cp_import(
+                    self.config.mission.commands_file, self.VOLUME_PATH
                 )
+                container_config.mission.commands_file = f"{self.VOLUME_PATH}{path.basename(self.config.mission.commands_file)}"
 
         # Assertion Config
         container_config.assertion = None
@@ -217,16 +217,16 @@ class DockerAgent(TestAgent):
                 ).replace(volume_folder, self.VOLUME_PATH)
 
         # Test Config
-        if self.config.test is not None:
-            self.config.test.save_commands_list_if_needed(self.config.agent.path)
+        if self.config.mission is not None:
+            self.config.mission.save_commands_list_if_needed(self.config.agent.path)
             if (
-                self.config.test.commands_file is not None
-                and self.config.test.commands is not None
-                and len(self.config.test.commands)
-                > self.config.test.MAX_INLINE_COMMANDS
+                self.config.mission.commands_file is not None
+                and self.config.mission.commands is not None
+                and len(self.config.mission.commands)
+                > self.config.mission.MAX_INLINE_COMMANDS
             ):
-                container_config.test.commands_file = file_helper.copy(
-                    self.config.test.commands_file, volume_folder
+                container_config.mission.commands_file = file_helper.copy(
+                    self.config.mission.commands_file, volume_folder
                 ).replace(volume_folder, self.VOLUME_PATH)
 
         # Assertion Config

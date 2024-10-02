@@ -4,7 +4,7 @@ import sched
 from mavsdk import System, action, asyncio
 from decouple import config
 from .command import Command, FlightMode, DefaultCommands
-from .drone_test import DroneConfig, TestConfig
+from .drone_test import DroneConfig, MissionConfig
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class Drone(object):
 
         self.scheduler = None
 
-    def schedule_test(self, test: TestConfig, offset_sync=False) -> None:
+    def schedule_test(self, test: MissionConfig, offset_sync=False) -> None:
         """sets an schedular object with input control commands to be replayed accurately"""
         self.scheduler = sched.scheduler(time.time, time.sleep)
         if test.commands is None:

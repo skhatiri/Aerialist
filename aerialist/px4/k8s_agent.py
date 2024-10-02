@@ -96,10 +96,10 @@ class K8sAgent(DockerAgent):
 
             for test_log in os.listdir(local_folder):
                 if test_log.endswith(".ulg") and (
-                    self.config.test is None
-                    or self.config.test.commands_file is None
+                    self.config.mission is None
+                    or self.config.mission.commands_file is None
                     or path.basename(test_log)
-                    != path.basename(self.config.test.commands_file)
+                    != path.basename(self.config.mission.commands_file)
                 ):
                     self.results.append(DroneTestResult(local_folder + test_log))
             if len(self.results) == 0:
@@ -154,16 +154,16 @@ class K8sAgent(DockerAgent):
                 )
 
         # Test Config
-        if self.config.test is not None:
-            self.config.test.save_commands_list_if_needed(self.WEBDAV_LOCAL_DIR)
+        if self.config.mission is not None:
+            self.config.mission.save_commands_list_if_needed(self.WEBDAV_LOCAL_DIR)
             if (
-                self.config.test.commands_file is not None
-                and self.config.test.commands is not None
-                and len(self.config.test.commands)
-                > self.config.test.MAX_INLINE_COMMANDS
+                self.config.mission.commands_file is not None
+                and self.config.mission.commands is not None
+                and len(self.config.mission.commands)
+                > self.config.mission.MAX_INLINE_COMMANDS
             ):
-                container_config.test.commands_file = file_helper.upload(
-                    self.config.test.commands_file, cloud_folder
+                container_config.mission.commands_file = file_helper.upload(
+                    self.config.mission.commands_file, cloud_folder
                 )
 
         # Assertion Config

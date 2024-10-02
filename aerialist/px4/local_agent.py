@@ -16,8 +16,8 @@ class LocalAgent(TestAgent):
         self.drone = None
         if self.config.drone is not None:
             self.drone = Drone(self.config.drone)
-            if self.config.test is not None:
-                self.drone.schedule_test(self.config.test)
+            if self.config.mission is not None:
+                self.drone.schedule_test(self.config.mission)
 
     def run(self):
         try:

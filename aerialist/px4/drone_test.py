@@ -4,7 +4,6 @@ from typing import List
 import munch
 import yaml
 
-from .mission import Mission
 from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
@@ -16,20 +15,20 @@ class DroneTest:
         self,
         drone: DroneConfig = None,
         simulation: SimulationConfig = None,
-        test: TestConfig = None,
+        mission: MissionConfig = None,
         assertion: AssertionConfig = None,
         agent: AgentConfig = None,
     ) -> None:
         self.drone = drone
         self.simulation = simulation
-        self.test = test
+        self.mission = mission
         self.assertion = assertion
         self.agent = agent
         if simulation is not None and simulation.home_position is None:
             if assertion is not None and assertion.log_file is not None:
                 simulation.home_position = Trajectory.get_home(assertion.log_file)
-        if simulation is not None and test is not None:
-            self.test.speed = self.simulation.speed
+        if simulation is not None and mission is not None:
+            self.mission.speed = self.simulation.speed
 
     @classmethod
     def from_yaml(cls, address):
@@ -41,14 +40,20 @@ class DroneTest:
             config.drone = DroneConfig(**data_dict.drone)
         if data_dict.simulation is not None:
             config.simulation = SimulationConfig(**data_dict.simulation)
-        if data_dict.test is not None:
-            config.test = TestConfig(**data_dict.test)
+        if data_dict.mission is not None:
+            config.mission = MissionConfig(**data_dict.mission)
+        elif data_dict.test is not None:  # for compatibility with old versions
+            config.mission = MissionConfig(**data_dict.test)
         if data_dict.assertion is not None:
             config.assertion = AssertionConfig(**data_dict.assertion)
         if data_dict.agent is not None:
             config.agent = AgentConfig(**data_dict.agent)
         return cls(
-            config.drone, config.simulation, config.test, config.assertion, config.agent
+            config.drone,
+            config.simulation,
+            config.mission,
+            config.assertion,
+            config.agent,
         )
 
     def to_yaml(self, address):
@@ -62,8 +67,8 @@ class DroneTest:
             dic["drone"] = self.drone.to_dict()
         if self.simulation is not None:
             dic["simulation"] = self.simulation.to_dict()
-        if self.test is not None:
-            dic["test"] = self.test.to_dict()
+        if self.mission is not None:
+            dic["mission"] = self.mission.to_dict()
         if self.agent is not None:
             dic["agent"] = self.agent.to_dict()
         if self.assertion is not None:
@@ -108,9 +113,9 @@ class DroneTest:
                     for p in self.simulation.obstacles[3].to_params():
                         params += f"{p} "
 
-        if self.test is not None:
-            if self.test.commands_file is not None:
-                params += f"--commands '{self.test.commands_file}' "
+        if self.mission is not None:
+            if self.mission.commands_file is not None:
+                params += f"--commands '{self.mission.commands_file}' "
 
         if self.assertion is not None:
             if self.assertion.log_file is not None:
@@ -251,7 +256,7 @@ class SimulationConfig:
         return dic
 
 
-class TestConfig:
+class MissionConfig:
     MAX_INLINE_COMMANDS = 10
 
     def __init__(
@@ -259,7 +264,7 @@ class TestConfig:
         commands: List[Command] = None,
         commands_file: str = None,
         speed: float = 1,
-        mission: Mission = None,
+        waypoints: List[Obstacle.Position] = None,
     ) -> None:
         self.speed = speed
         self.commands = commands
@@ -269,9 +274,9 @@ class TestConfig:
         if commands is None and commands_file is not None:
             self.commands = Command.extract(file_helper.get_local_file(commands_file))
 
-        self.mission = mission
-        if mission is not None and isinstance(mission, munch.DefaultMunch):
-            self.mission = Mission.from_dict(mission)
+        self.waypoints = waypoints
+        if waypoints is not None and type(waypoints[0]) != Obstacle.Position:
+            self.waypoints = [Obstacle.Position(**wp) for wp in waypoints]
 
     def save_commands_list_if_needed(self, path=None):
         if path is None:
@@ -292,8 +297,8 @@ class TestConfig:
             dic["commands_file"] = self.commands_file
         if self.speed != 1:
             dic["speed"] = self.speed
-        if self.mission is not None:
-            dic["mission"] = self.mission.to_dict()
+        if self.waypoints is not None:
+            dic["waypoints"] = [wp._asdict() for wp in self.waypoints]
         return dic
 
 
