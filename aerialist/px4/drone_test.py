@@ -165,7 +165,6 @@ class DroneConfig:
         params: dict = None,
         params_file: str = None,
         mission_file: str = None,
-        mission: Mission = None,
     ) -> None:
         if isinstance(port, int):
             self.port = port
@@ -189,10 +188,6 @@ class DroneConfig:
         if mission_file is not None:
             self.mission_file = file_helper.get_local_file(mission_file)
 
-        self.mission = mission
-        if mission is not None and isinstance(mission, munch.DefaultMunch):
-            self.mission = Mission.from_dict(mission)
-
     def to_dict(self):
         dic = {}
         if self.port is not None:
@@ -203,8 +198,6 @@ class DroneConfig:
             dic["params_file"] = self.params_file
         if self.mission_file is not None:
             dic["mission_file"] = self.mission_file
-        if self.mission is not None:
-            dic["mission"] = self.mission.to_dict()
         return dic
 
 
@@ -266,6 +259,7 @@ class TestConfig:
         commands: List[Command] = None,
         commands_file: str = None,
         speed: float = 1,
+        mission: Mission = None,
     ) -> None:
         self.speed = speed
         self.commands = commands
@@ -274,6 +268,10 @@ class TestConfig:
             self.commands = [Command(**c) for c in commands]
         if commands is None and commands_file is not None:
             self.commands = Command.extract(file_helper.get_local_file(commands_file))
+
+        self.mission = mission
+        if mission is not None and isinstance(mission, munch.DefaultMunch):
+            self.mission = Mission.from_dict(mission)
 
     def save_commands_list_if_needed(self, path=None):
         if path is None:
@@ -294,6 +292,8 @@ class TestConfig:
             dic["commands_file"] = self.commands_file
         if self.speed != 1:
             dic["speed"] = self.speed
+        if self.mission is not None:
+            dic["mission"] = self.mission.to_dict()
         return dic
 
 
