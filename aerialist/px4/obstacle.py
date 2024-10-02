@@ -22,6 +22,7 @@ class Obstacle(object):
 
     BOX = "box"
     CENTER_POSITION = True
+    CYLINDER = "cylinder"
 
     def __init__(
         self,
@@ -31,6 +32,12 @@ class Obstacle(object):
     ) -> None:
         super().__init__()
 
+        if shape is None:
+            shape = self.BOX
+        self.size = size
+        self.position = position
+        self.shape = shape
+
         if shape == self.BOX:
             if self.CENTER_POSITION:
                 rect = box(-size.l / 2, -size.w / 2, size.l / 2, size.w / 2)
@@ -39,8 +46,6 @@ class Obstacle(object):
             self.geometry = affinity.rotate(rect, position.r, "centroid")
             self.geometry = affinity.translate(self.geometry, position.x, position.y)
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
-            self.size = size
-            self.position = position
 
     def center(self):
         return Obstacle.Position(
@@ -119,6 +124,7 @@ class Obstacle(object):
 
     def to_dict(self):
         return {
+            "shape": self.shape,
             "size": {"l": self.size.l, "w": self.size.w, "h": self.size.h},
             "position": {
                 "x": self.position.x,
@@ -158,7 +164,7 @@ class Obstacle(object):
             obstacle.position.z,
             obstacle.position.r,
         )
-        return Obstacle(size, position)
+        return Obstacle(size, position, obstacle.get("shape"))
 
     @classmethod
     def from_dict_multiple(cls, obstacles: List[dict]):
