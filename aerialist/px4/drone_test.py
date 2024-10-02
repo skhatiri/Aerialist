@@ -3,6 +3,8 @@ from statistics import median
 from typing import List
 import munch
 import yaml
+
+from .mission import Mission
 from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
@@ -162,7 +164,8 @@ class DroneConfig:
         port: int | str = SITL_PORT,
         params: dict = None,
         params_file: str = None,
-        mission_file=None,
+        mission_file: str = None,
+        mission: Mission = None,
     ) -> None:
         if isinstance(port, int):
             self.port = port
@@ -186,6 +189,10 @@ class DroneConfig:
         if mission_file is not None:
             self.mission_file = file_helper.get_local_file(mission_file)
 
+        self.mission = mission
+        if mission is not None and isinstance(mission, munch.DefaultMunch):
+            self.mission = Mission.from_dict(mission)
+
     def to_dict(self):
         dic = {}
         if self.port is not None:
@@ -196,6 +203,8 @@ class DroneConfig:
             dic["params_file"] = self.params_file
         if self.mission_file is not None:
             dic["mission_file"] = self.mission_file
+        if self.mission is not None:
+            dic["mission"] = self.mission.to_dict()
         return dic
 
 
