@@ -47,6 +47,10 @@ class Obstacle(object):
             self.geometry = affinity.rotate(rect, position.r, "centroid")
             self.geometry = affinity.translate(self.geometry, position.x, position.y)
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
+        if shape == self.CYLINDER:
+            center = Point(position.x, position.y)
+            self.geometry = center.buffer(self.size.r)
+            self.unrotated_geometry = self.geometry
 
     def center(self):
         return Obstacle.Position(
@@ -81,21 +85,37 @@ class Obstacle(object):
         ]
 
     def plt_patch(self):
-        obst_patch = mpatches.Rectangle(
-            (
-                self.anchor_point().x,
-                self.anchor_point().y,
-            ),
-            self.size.l,
-            self.size.w,
-            self.position.r,
-            rotation_point="center",
-            edgecolor="gray",
-            facecolor="gray",
-            fill=True,
-            alpha=0.5,
-        )
-        return obst_patch
+        if self.shape == self.BOX:
+            obst_patch = mpatches.Rectangle(
+                (
+                    self.anchor_point().x,
+                    self.anchor_point().y,
+                ),
+                self.size.l,
+                self.size.w,
+                self.position.r,
+                rotation_point="center",
+                edgecolor="gray",
+                facecolor="gray",
+                fill=True,
+                alpha=0.5,
+            )
+            return obst_patch
+        elif self.shape == self.CYLINDER:
+            obst_patch = mpatches.Circle(
+                (
+                    self.position.x,
+                    self.position.y,
+                ),
+                self.size.r,
+                edgecolor="gray",
+                facecolor="gray",
+                fill=True,
+                alpha=0.5,
+            )
+            return obst_patch
+        else:
+            return None
 
     def intersects(self, other: Obstacle):
         return self.geometry.intersects(other.geometry)
