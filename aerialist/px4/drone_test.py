@@ -3,6 +3,7 @@ from statistics import median
 from typing import List
 import munch
 import yaml
+from decouple import config
 
 from .command import Command
 from .obstacle import Obstacle
@@ -11,6 +12,8 @@ from . import file_helper
 
 
 class DroneTest:
+    LOAD_HOME_FROM_LOG = config("LOAD_HOME_FROM_LOG", cast=bool, default=True)
+
     def __init__(
         self,
         drone: DroneConfig = None,
@@ -25,8 +28,15 @@ class DroneTest:
         self.assertion = assertion
         self.agent = agent
         if simulation is not None and simulation.home_position is None:
-            if assertion is not None and assertion.log_file is not None:
-                simulation.home_position = Trajectory.get_home(assertion.log_file)
+            if (
+                self.LOAD_HOME_FROM_LOG
+                and assertion is not None
+                and assertion.log_file is not None
+                and assertion.expectation is not None
+            ):
+                simulation.home_position = assertion.expectation.get_home(
+                    assertion.log_file
+                )
         if simulation is not None and mission is not None:
             self.mission.speed = self.simulation.speed
 
