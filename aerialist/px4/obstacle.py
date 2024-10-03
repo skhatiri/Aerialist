@@ -13,6 +13,7 @@ class Obstacle(object):
         l: float
         w: float
         h: float
+        r: float = 0
 
     class Position(NamedTuple):
         x: float
@@ -125,13 +126,8 @@ class Obstacle(object):
     def to_dict(self):
         return {
             "shape": self.shape,
-            "size": {"l": self.size.l, "w": self.size.w, "h": self.size.h},
-            "position": {
-                "x": self.position.x,
-                "y": self.position.y,
-                "z": self.position.z,
-                "r": self.position.r,
-            },
+            "size": self.size._asdict(),
+            "position": self.position._asdict(),
         }
 
     @classmethod
@@ -157,13 +153,8 @@ class Obstacle(object):
 
     @classmethod
     def from_dict(cls, obstacle: dict):
-        size = Obstacle.Size(obstacle.size.l, obstacle.size.w, obstacle.size.h)
-        position = Obstacle.Position(
-            obstacle.position.x,
-            obstacle.position.y,
-            obstacle.position.z,
-            obstacle.position.r,
-        )
+        size = Obstacle.Size(**obstacle.size)
+        position = Obstacle.Position(**obstacle.position)
         return Obstacle(size, position, obstacle.get("shape"))
 
     @classmethod
