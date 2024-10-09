@@ -4,6 +4,7 @@ from shapely.geometry import box, LineString, Point
 from shapely import affinity
 import matplotlib.patches as mpatches
 import logging
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,18 @@ class Obstacle(object):
             self.position.z,
             self.position.r,
         ]
+
+    def degree_to_radians(self) -> Obstacle:
+        return Obstacle(
+            self.size,
+            Obstacle.Position(
+                self.position.x,
+                self.position.y,
+                self.position.z,
+                math.radians(self.position.r),
+            ),
+            self.shape,
+        )
 
     def plt_patch(self):
         if self.shape == self.BOX:
