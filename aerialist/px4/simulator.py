@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class Simulator(object):
-    PX4_DIR = config("PX4_HOME")
-    CATKIN_DIR = config("CATKIN_HOME")
+    PX4_DIR = config("PX4_HOME", default=None)
+    CATKIN_DIR = config("CATKIN_HOME", default=None)
     PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
-    ROS_LOG_DIR = config("ROS_HOME")
+    ROS_LOG_DIR = config("ROS_HOME", default=None)
     GAZEBO_GUI_AVOIDANCE = True
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
     AVOIDANCE_LAUNCH = config(
@@ -29,7 +29,7 @@ class Simulator(object):
     AVOIDANCE_BOX = config(
         "AVOIDANCE_BOX", default="aerialist/resources/simulation/box.xacro"
     )
-    COPY_DIR = config("LOGS_COPY_DIR", None)
+    COPY_DIR = config("LOGS_COPY_DIR", default=None)
     LAND_TIMEOUT = 20
 
     def __init__(self, config: SimulationConfig) -> None:
