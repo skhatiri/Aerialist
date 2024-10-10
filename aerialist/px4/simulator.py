@@ -17,7 +17,10 @@ logger = logging.getLogger(__name__)
 class Simulator(object):
     PX4_DIR = config("PX4_HOME", default=None)
     CATKIN_DIR = config("CATKIN_HOME", default=None)
-    PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
+    if PX4_DIR is not None:
+        PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
+    else:
+        PX4_LOG_DIR = None
     ROS_LOG_DIR = config("ROS_HOME", default=None)
     GAZEBO_GUI_AVOIDANCE = True
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
