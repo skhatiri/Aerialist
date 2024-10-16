@@ -17,6 +17,6 @@ rospkg==1.4.0
 defusedxml==0.7.1
 tslearn==0.5.2
 h5py==3.9.0
-setuptools==39.0.1
+setuptools==75.1.0
 requests~=2.18.4
 bagpy==0.5
