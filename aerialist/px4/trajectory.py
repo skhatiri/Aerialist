@@ -174,7 +174,6 @@ class Trajectory(object):
                 ax=xy_plt,
                 linewidth=cls.XY_TRAJECTORY_WIDTH,
                 color="red",
-                alpha=alpha,
             )
         else:
             ave_trajectory = trajectories[0]
@@ -193,7 +192,6 @@ class Trajectory(object):
                 linewidth=cls.XY_TRAJECTORY_WIDTH,
                 color="blue",
                 label="original",
-                alpha=alpha,
             )
 
             # xyz_plt.plot3D(
@@ -695,7 +693,7 @@ class data_linewidth_plot:
         if lw != self.lw:
             self.line.set_linewidth(lw)
             self.lw = lw
-            # self._redraw_later()
+            self._redraw_later()
 
     def _redraw_later(self):
         self.timer = self.fig.canvas.new_timer(interval=10)
