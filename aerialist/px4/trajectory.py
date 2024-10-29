@@ -24,7 +24,6 @@ class Trajectory(object):
     IGNORE_AUTO_MODES = False
     REMOVE_OFFSET = True
     PLOT_TESTS_XYZ = config("PLOT_TESTS_XYZ", default=True, cast=bool)
-    PLOT_R = config("PLOT_R", default=False, cast=bool)
     TIME_RANGE = None
     DISTANCE_METHOD = config("DISTANCE_METHOD", default="dtw")
     AVERAGE_METHOD = config("AVERAGE_METHOD", default="dtw")
@@ -37,6 +36,7 @@ class Trajectory(object):
     HIGHLIGHT_ALPHA = 0.25
     HIGHLIGHT_SIZE = 25
     TIME_SCALE = 1000000.0
+    XY_TRAJECTORY_WIDTH = 0.25  # meters
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()
@@ -86,11 +86,8 @@ class Trajectory(object):
     ):
         fig = plt.figure(tight_layout=True)
 
-        if cls.PLOT_R:
-            gs = fig.add_gridspec(4, 4)
-            r_plt = fig.add_subplot(gs[3, :2])
-        else:
-            gs = fig.add_gridspec(3, 4)
+        gs = fig.add_gridspec(4, 4)
+        r_plt = fig.add_subplot(gs[3, :2])
         x_plt = fig.add_subplot(gs[0, :2])
         y_plt = fig.add_subplot(gs[1, :2])
         z_plt = fig.add_subplot(gs[2, :2])
@@ -103,11 +100,8 @@ class Trajectory(object):
         x_plt.set_ylabel("X (m)")
         y_plt.set_ylabel("Y (m)")
         z_plt.set_ylabel("Z (m)")
-        if cls.PLOT_R:
-            r_plt.set_ylabel("Yaw (\u00b0)")
-            r_plt.set_xlabel("flight time (s)")
-        else:
-            z_plt.set_xlabel("flight time (s)")
+        r_plt.set_ylabel("Yaw (rad)")
+        r_plt.set_xlabel("Time (s)")
         xy_plt.set_ylabel("Y (m)", loc="bottom")
         xy_plt.yaxis.set_label_position("right")
         xy_plt.yaxis.tick_right()
@@ -128,19 +122,21 @@ class Trajectory(object):
                 x_plt.plot(data_frame[:, 0], data_frame[:, 1], alpha=alpha)
                 y_plt.plot(data_frame[:, 0], data_frame[:, 2], alpha=alpha)
                 z_plt.plot(data_frame[:, 0], data_frame[:, 3], alpha=alpha)
-                if cls.PLOT_R:
-                    r_plt.plot(data_frame[:, 0], data_frame[:, 4], alpha=alpha)
+                r_plt.plot(data_frame[:, 0], data_frame[:, 4], alpha=alpha)
 
             label = None
             if i == 0:
                 label = "tests" if len(trajectories) > 1 else "test"
 
-            xy_plt.plot(
+            data_linewidth_plot(
                 data_frame[:, 1],
                 data_frame[:, 2],
+                ax=xy_plt,
+                linewidth=cls.XY_TRAJECTORY_WIDTH,
                 label=label,
                 alpha=alpha,
             )
+
             if highlights is not None:
                 for timestamp in highlights:
                     point = data_frame[
@@ -171,9 +167,15 @@ class Trajectory(object):
             )
             y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="red")
             z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="red")
-            if cls.PLOT_R:
-                r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="red")
-            xy_plt.plot(data_frame[:, 1], data_frame[:, 2], color="red")
+            r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="red")
+            data_linewidth_plot(
+                data_frame[:, 1],
+                data_frame[:, 2],
+                ax=xy_plt,
+                linewidth=cls.XY_TRAJECTORY_WIDTH,
+                color="red",
+                alpha=alpha,
+            )
         else:
             ave_trajectory = trajectories[0]
 
@@ -182,11 +184,16 @@ class Trajectory(object):
             x_plt.plot(data_frame[:, 0], data_frame[:, 1], color="blue")
             y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="blue")
             z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="blue")
-            if cls.PLOT_R:
-                r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="blue")
+            r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="blue")
 
-            xy_plt.plot(
-                data_frame[:, 1], data_frame[:, 2], label="original", color="blue"
+            data_linewidth_plot(
+                data_frame[:, 1],
+                data_frame[:, 2],
+                ax=xy_plt,
+                linewidth=cls.XY_TRAJECTORY_WIDTH,
+                color="blue",
+                label="original",
+                alpha=alpha,
             )
 
             # xyz_plt.plot3D(
@@ -225,13 +232,12 @@ class Trajectory(object):
                     alpha=cls.HIGHLIGHT_ALPHA,
                     linewidth=1.75,
                 )
-                if cls.PLOT_R:
-                    r_plt.axvline(
-                        timestamp / cls.TIME_SCALE,
-                        color=cls.HIGHLIGHT_COLOR,
-                        alpha=cls.HIGHLIGHT_ALPHA,
-                        linewidth=1.75,
-                    )
+                r_plt.axvline(
+                    timestamp / cls.TIME_SCALE,
+                    color=cls.HIGHLIGHT_COLOR,
+                    alpha=cls.HIGHLIGHT_ALPHA,
+                    linewidth=1.75,
+                )
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         fig.legend(
@@ -664,3 +670,35 @@ class Trajectory(object):
         files = [path + f for f in os.listdir(path) if f.endswith(".ulg")]
         trjs = [cls.extract_from_log(f, ignore_automodes) for f in files]
         return trjs
+
+
+class data_linewidth_plot:
+    def __init__(self, x, y, **kwargs):
+        self.ax = kwargs.pop("ax", plt.gca())
+        self.fig = self.ax.get_figure()
+        self.lw_data = kwargs.pop("linewidth", 1)
+        self.lw = 1
+        self.fig.canvas.draw()
+
+        self.ppd = 72.0 / self.fig.dpi
+        self.trans = self.ax.transData.transform
+        (self.linehandle,) = self.ax.plot([], [], **kwargs)
+        if "label" in kwargs:
+            kwargs.pop("label")
+        (self.line,) = self.ax.plot(x, y, **kwargs)
+        self.line.set_color(self.linehandle.get_color())
+        self._resize()
+        self.cid = self.fig.canvas.mpl_connect("draw_event", self._resize)
+
+    def _resize(self, event=None):
+        lw = ((self.trans((1, self.lw_data)) - self.trans((0, 0))) * self.ppd)[1]
+        if lw != self.lw:
+            self.line.set_linewidth(lw)
+            self.lw = lw
+            # self._redraw_later()
+
+    def _redraw_later(self):
+        self.timer = self.fig.canvas.new_timer(interval=10)
+        self.timer.single_shot = True
+        self.timer.add_callback(lambda: self.fig.canvas.draw_idle())
+        self.timer.start()
