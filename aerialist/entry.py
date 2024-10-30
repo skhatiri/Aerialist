@@ -19,6 +19,7 @@ try:
         AgentConfig,
         DroneTestResult,
     )
+    from .px4.plot import Plot
 except:
     from px4.k8s_agent import K8sAgent
     from px4.local_agent import LocalAgent
@@ -32,6 +33,7 @@ except:
         AgentConfig,
         DroneTestResult,
     )
+    from px4.plot import Plot
 
 
 logger = logging.getLogger(__name__)
@@ -224,7 +226,7 @@ def run_experiment(args):
         )
     test_results = execute_test(test)
     logger.info(f"LOG:{test_results[0].log_file}")
-    DroneTest.plot(test, test_results)
+    Plot.plot_test(test, test_results)
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)
     #     print(f"LOG:{exp.log}")
@@ -257,7 +259,7 @@ def plot_test(args):
         else:
             test_results = DroneTestResult.load_folder(args.log)
 
-    DroneTest.plot(test, test_results)
+    Plot.plot_test(test, test_results)
 
 
 def config_loggers():

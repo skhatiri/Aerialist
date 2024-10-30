@@ -1,5 +1,4 @@
 from __future__ import annotations
-from statistics import median
 from typing import List
 import munch
 import yaml
@@ -141,32 +140,6 @@ class DroneTest:
                 params += f"--id {self.agent.id} "
 
         return params
-
-    @classmethod
-    def plot(
-        cls,
-        test: DroneTest,
-        results: List[DroneTestResult],
-        obstacle_distance=True,
-        filename=None,
-    ) -> str:
-        distance = None
-        if obstacle_distance:
-            distance = True
-        elif test.assertion is not None and test.assertion.expectation is not None:
-            distance = median(
-                [r.record.distance(test.assertion.expectation) for r in results]
-            )
-        if results is not None and len(results) >= 1:
-            return results[0].record.plot_multiple(
-                [r.record for r in results],
-                goal=None if test.assertion is None else test.assertion.expectation,
-                distance=distance,
-                obstacles=(
-                    None if test.simulation is None else test.simulation.obstacles
-                ),
-                filename=filename,
-            )
 
 
 class DroneConfig:

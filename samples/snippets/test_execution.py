@@ -1,7 +1,6 @@
 from aerialist.px4.drone_test import DroneTest
 from aerialist.px4.docker_agent import DockerAgent
-from aerialist.px4.obstacle import Obstacle
-from aerialist.px4.trajectory import Trajectory
+from aerialist.px4.plot import Plot
 
 
 ### load a yaml test file
@@ -19,13 +18,13 @@ agent = DockerAgent(test)
 test_results = agent.run()
 
 ### plot the test
-DroneTest.plot(test, test_results)
+Plot.plot_test(test, test_results)
 
 ### get the test flight trajectory
 trajectory = test_results[0].record
 
 ### plot the trajecotory
-trajectory.plot()
+Plot.plot_trajectory([trajectory])
 
 ### get minimum drone distance to the obstacles
 distance = trajectory.distance_to_obstacles(test.simulation.obstacles)

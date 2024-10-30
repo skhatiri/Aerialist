@@ -6,7 +6,6 @@ from typing import List
 import numpy as np
 import pandas as pd
 import similaritymeasures
-import matplotlib.pyplot as plt
 import ruptures as rpt
 from shapely.geometry import LineString
 from decouple import config
@@ -18,12 +17,9 @@ from . import file_helper, timeserie_helper
 
 
 class Trajectory(object):
-    DIR = config("RESULTS_DIR", default="results/")
-    WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
     USE_GPS = config("USE_GPS", default=False, cast=bool)
     IGNORE_AUTO_MODES = False
     REMOVE_OFFSET = True
-    PLOT_TESTS_XYZ = config("PLOT_TESTS_XYZ", default=True, cast=bool)
     TIME_RANGE = None
     DISTANCE_METHOD = config("DISTANCE_METHOD", default="dtw")
     AVERAGE_METHOD = config("AVERAGE_METHOD", default="dtw")
@@ -32,231 +28,17 @@ class Trajectory(object):
     SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
-    HIGHLIGHT_COLOR = "red"
-    HIGHLIGHT_ALPHA = 0.25
-    HIGHLIGHT_SIZE = 25
     TIME_SCALE = 1000000.0
-    XY_TRAJECTORY_WIDTH = 0.25  # meters
+    VEHICLE_WIDTH = 0.25  # meters
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()
         self.positions = positions
 
-    def plot(
-        self,
-        goal: Trajectory = None,
-        save: bool = True,
-        obstacles: List[Obstacle] = None,
-        file_prefix="",
-        highlights: List[float] = None,
-        filename=None,
-    ):
-        distance = True
-        if goal is not None:
-            distance = self.distance(goal)
-        return self.plot_multiple(
-            [self],
-            goal,
-            save,
-            distance,
-            highlights,
-            obstacles,
-            file_prefix,
-            None,
-            filename,
-        )
-
     def save_csv(self, address: str) -> None:
         """saves trajectory to file"""
         data_frame = pd.DataFrame.from_records([p.to_dict() for p in self.positions])
         data_frame.to_csv(address, index=False)
-
-    @classmethod
-    def plot_multiple(
-        cls,
-        trajectories: List[Trajectory],
-        goal: Trajectory = None,
-        save: bool = True,
-        distance: float | bool = None,
-        highlights: List[float] = None,
-        obstacles: List[Obstacle] = None,
-        file_prefix="",
-        ave_trajectory: Trajectory = None,
-        filename=None,
-    ):
-        fig = plt.figure(tight_layout=True)
-
-        gs = fig.add_gridspec(4, 4)
-        r_plt = fig.add_subplot(gs[3, :2])
-        x_plt = fig.add_subplot(gs[0, :2])
-        y_plt = fig.add_subplot(gs[1, :2])
-        z_plt = fig.add_subplot(gs[2, :2])
-        xy_plt = fig.add_subplot(gs[:, 2:])
-        # xyz_plt = fig.add_subplot(gs[:, 2:], projection="3d")
-
-        # annotations
-        fig.suptitle(" ")
-
-        x_plt.set_ylabel("X (m)")
-        y_plt.set_ylabel("Y (m)")
-        z_plt.set_ylabel("Z (m)")
-        r_plt.set_ylabel("Yaw (rad)")
-        r_plt.set_xlabel("Time (s)")
-        xy_plt.set_ylabel("Y (m)", loc="bottom")
-        xy_plt.yaxis.set_label_position("right")
-        xy_plt.yaxis.tick_right()
-        xy_plt.set_xlabel("X (m)", loc="right")
-        xy_plt.set_aspect("equal", "datalim")
-
-        if obstacles is not None:
-            for obst in obstacles:
-                obst_patch = obst.plt_patch()
-                obst_patch.set_label("obstacle")
-                xy_plt.add_patch(obst_patch)
-
-        alpha = 1 if len(trajectories) <= 1 else 0.25
-        for i in range(len(trajectories)):
-            data_frame = trajectories[i].to_data_frame()
-
-            if len(trajectories) <= 1 or cls.PLOT_TESTS_XYZ:
-                x_plt.plot(data_frame[:, 0], data_frame[:, 1], alpha=alpha)
-                y_plt.plot(data_frame[:, 0], data_frame[:, 2], alpha=alpha)
-                z_plt.plot(data_frame[:, 0], data_frame[:, 3], alpha=alpha)
-                r_plt.plot(data_frame[:, 0], data_frame[:, 4], alpha=alpha)
-
-            label = None
-            if i == 0:
-                label = "tests" if len(trajectories) > 1 else "test"
-
-            data_linewidth_plot(
-                data_frame[:, 1],
-                data_frame[:, 2],
-                ax=xy_plt,
-                linewidth=cls.XY_TRAJECTORY_WIDTH,
-                label=label,
-                alpha=alpha,
-            )
-
-            if highlights is not None:
-                for timestamp in highlights:
-                    point = data_frame[
-                        abs(data_frame[:, 0] - (timestamp / cls.TIME_SCALE)).argsort()[
-                            0
-                        ]
-                    ]
-                    xy_plt.scatter(
-                        [point[1]],
-                        [point[2]],
-                        color=cls.HIGHLIGHT_COLOR,
-                        alpha=cls.HIGHLIGHT_ALPHA,
-                        s=cls.HIGHLIGHT_SIZE,
-                        label="uncertainty",
-                    )
-            # xyz_plt.plot3D(
-            #     [p.x for p in trj.positions],
-            #     [p.y for p in trj.positions],
-            #     [p.z for p in trj.positions],
-            # )
-
-        if len(trajectories) > 1:
-            if ave_trajectory is None:
-                ave_trajectory = cls.average(trajectories)
-            data_frame = ave_trajectory.to_data_frame()
-            x_plt.plot(
-                data_frame[:, 0], data_frame[:, 1], label="test ave.", color="red"
-            )
-            y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="red")
-            z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="red")
-            r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="red")
-            data_linewidth_plot(
-                data_frame[:, 1],
-                data_frame[:, 2],
-                ax=xy_plt,
-                linewidth=cls.XY_TRAJECTORY_WIDTH,
-                color="red",
-            )
-        else:
-            ave_trajectory = trajectories[0]
-
-        if goal != None:
-            data_frame = goal.to_data_frame()
-            x_plt.plot(data_frame[:, 0], data_frame[:, 1], color="blue")
-            y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="blue")
-            z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="blue")
-            r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="blue")
-
-            data_linewidth_plot(
-                data_frame[:, 1],
-                data_frame[:, 2],
-                ax=xy_plt,
-                linewidth=cls.XY_TRAJECTORY_WIDTH,
-                color="blue",
-                label="original",
-            )
-
-            # xyz_plt.plot3D(
-            #     [p.x for p in goal.positions],
-            #     [p.y for p in goal.positions],
-            #     [p.z for p in goal.positions],
-            # )
-
-        if distance is True and obstacles is not None and len(obstacles) > 0:
-            distance = ave_trajectory.min_distance_to_obstacles(obstacles)
-        if distance is not None and type(distance) is not bool:
-            fig.text(
-                0.71,
-                0.03,
-                f"distance:{round(distance,2)}",
-                ha="center",
-                bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
-            )
-        if highlights is not None:
-            for timestamp in highlights:
-                x_plt.axvline(
-                    timestamp / cls.TIME_SCALE,
-                    color=cls.HIGHLIGHT_COLOR,
-                    alpha=cls.HIGHLIGHT_ALPHA,
-                    linewidth=1.75,
-                )
-                y_plt.axvline(
-                    timestamp / cls.TIME_SCALE,
-                    color=cls.HIGHLIGHT_COLOR,
-                    alpha=cls.HIGHLIGHT_ALPHA,
-                    linewidth=1.75,
-                )
-                z_plt.axvline(
-                    timestamp / cls.TIME_SCALE,
-                    color=cls.HIGHLIGHT_COLOR,
-                    alpha=cls.HIGHLIGHT_ALPHA,
-                    linewidth=1.75,
-                )
-                r_plt.axvline(
-                    timestamp / cls.TIME_SCALE,
-                    color=cls.HIGHLIGHT_COLOR,
-                    alpha=cls.HIGHLIGHT_ALPHA,
-                    linewidth=1.75,
-                )
-        handles, labels = plt.gca().get_legend_handles_labels()
-        by_label = dict(zip(labels, handles))
-        fig.legend(
-            by_label.values(),
-            by_label.keys(),
-            loc="upper center",
-            ncol=3 if obstacles is None else 4,
-        )
-        if save:
-            if filename is None:
-                filename = file_prefix + file_helper.time_filename(add_host=True)
-            os.makedirs(cls.DIR, exist_ok=True)
-            plot_file = f"{cls.DIR}{filename}.png"
-            fig.savefig(plot_file)
-            plt.close(fig)
-            if cls.WEBDAV_DIR is not None:
-                file_helper.upload(f"{cls.DIR}{filename}.png", cls.WEBDAV_DIR)
-            return plot_file
-        else:
-            plt.ion()
-            plt.show()
 
     def allign_origin(self):
         origin = copy.deepcopy(self.positions[0])
@@ -668,35 +450,3 @@ class Trajectory(object):
         files = [path + f for f in os.listdir(path) if f.endswith(".ulg")]
         trjs = [cls.extract_from_log(f, ignore_automodes) for f in files]
         return trjs
-
-
-class data_linewidth_plot:
-    def __init__(self, x, y, **kwargs):
-        self.ax = kwargs.pop("ax", plt.gca())
-        self.fig = self.ax.get_figure()
-        self.lw_data = kwargs.pop("linewidth", 1)
-        self.lw = 1
-        self.fig.canvas.draw()
-
-        self.ppd = 72.0 / self.fig.dpi
-        self.trans = self.ax.transData.transform
-        (self.linehandle,) = self.ax.plot([], [], **kwargs)
-        if "label" in kwargs:
-            kwargs.pop("label")
-        (self.line,) = self.ax.plot(x, y, **kwargs)
-        self.line.set_color(self.linehandle.get_color())
-        self._resize()
-        self.cid = self.fig.canvas.mpl_connect("draw_event", self._resize)
-
-    def _resize(self, event=None):
-        lw = ((self.trans((1, self.lw_data)) - self.trans((0, 0))) * self.ppd)[1]
-        if lw != self.lw:
-            self.line.set_linewidth(lw)
-            self.lw = lw
-            self._redraw_later()
-
-    def _redraw_later(self):
-        self.timer = self.fig.canvas.new_timer(interval=10)
-        self.timer.single_shot = True
-        self.timer.add_callback(lambda: self.fig.canvas.draw_idle())
-        self.timer.start()
