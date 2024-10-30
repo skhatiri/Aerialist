@@ -19,6 +19,9 @@ class Plot(object):
     HIGHLIGHT_COLOR = "red"
     HIGHLIGHT_ALPHA = 0.25
     HIGHLIGHT_SIZE = 25
+    WAYPOINT_COLOR = "green"
+    WAYPOINT_ALPHA = 0.25
+    WAYPOINT_SIZE = 36
 
     @classmethod
     def plot_test(
@@ -44,6 +47,7 @@ class Plot(object):
                     None if test.simulation is None else test.simulation.obstacles
                 ),
                 filename=filename,
+                waypoints=(None if test.mission is None else test.mission.waypoints),
             )
 
     # @classmethod
@@ -83,6 +87,7 @@ class Plot(object):
         file_prefix="",
         ave_trajectory: Trajectory = None,
         filename=None,
+        waypoints: List[Obstacle.Position] = None,
     ):
         fig = plt.figure(tight_layout=True)
 
@@ -113,6 +118,16 @@ class Plot(object):
                 obst_patch = obst.plt_patch()
                 obst_patch.set_label("obstacle")
                 xy_plt.add_patch(obst_patch)
+
+        if waypoints is not None:
+            xy_plt.scatter(
+                [wp.x for wp in waypoints],
+                [wp.y for wp in waypoints],
+                color=cls.WAYPOINT_COLOR,
+                alpha=cls.WAYPOINT_ALPHA,
+                s=cls.WAYPOINT_SIZE,
+                label="waypoint",
+            )
 
         alpha = 1 if len(trajectories) <= 1 else 0.25
         for i in range(len(trajectories)):
@@ -191,7 +206,7 @@ class Plot(object):
                 ax=xy_plt,
                 linewidth=trajectories[0].VEHICLE_WIDTH,
                 color="blue",
-                label="original",
+                label="baseline",
             )
 
             # xyz_plt.plot3D(
