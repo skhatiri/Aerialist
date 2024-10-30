@@ -148,11 +148,18 @@ class Trajectory(object):
         return type(self)(down_sampled)
 
     def min_distance_to_obstacles(self, obstacles: List[Obstacle]):
-        line = self.to_line()
+        line = self.to_thick_line()
         return min(obst.distance(line) for obst in obstacles)
 
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
-        return Obstacle.distance_to_many(obstacles, self.to_line())
+        return Obstacle.distance_to_many(
+            obstacles, self.to_line(), (self.VEHICLE_WIDTH / 2)
+        )
+
+    def to_thick_line(self):
+        line = self.to_line()
+        thick_line = line.buffer(self.VEHICLE_WIDTH / 2)
+        return thick_line
 
     def to_line(self) -> LineString:
         points = self.to_data_frame()[:, 1:4]

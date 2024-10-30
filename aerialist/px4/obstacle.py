@@ -164,9 +164,16 @@ class Obstacle(object):
         }
 
     @classmethod
-    def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
+    def distance_to_many(
+        cls, obstacles: List[Obstacle], line: LineString, buffer_width: float
+    ):
         boxes = [o.geometry for o in obstacles]
-        dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
+        dist = min(
+            [
+                sum([b.distance(Point(*p).buffer(buffer_width)) for b in boxes])
+                for p in line.coords
+            ]
+        )
         return dist
 
     @classmethod
