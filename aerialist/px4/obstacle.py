@@ -177,6 +177,16 @@ class Obstacle(object):
         return dist
 
     @classmethod
+    def minimum_gap(cls, obstacles: List[Obstacle]):
+        boxes = [o.geometry for o in obstacles]
+        gaps = []
+        for i in range(len(boxes) - 1):
+            for j in range(i + 1, len(boxes)):
+                gaps.append(boxes[i].distance(boxes[j]))
+        print(gaps)
+        return min(gaps)
+
+    @classmethod
     def from_coordinates(cls, coordinates: List[float]):
         size = Obstacle.Size(coordinates[0], coordinates[1], coordinates[2])
         position = Obstacle.Position(

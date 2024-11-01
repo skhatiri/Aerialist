@@ -88,6 +88,7 @@ class Plot(object):
         ave_trajectory: Trajectory = None,
         filename=None,
         waypoints: List[Obstacle.Position] = None,
+        gap: float = None,
     ):
         fig = plt.figure(tight_layout=True)
 
@@ -217,11 +218,16 @@ class Plot(object):
 
         if distance is True and obstacles is not None and len(obstacles) > 0:
             distance = ave_trajectory.min_distance_to_obstacles(obstacles)
+        if gap is None and obstacles is not None and len(obstacles) > 1:
+            gap = obstacles[0].minimum_gap(obstacles)
         if distance is not None and type(distance) is not bool:
+            dist_text = f"distance:{round(distance,2)}"
+            if gap is not None:
+                dist_text += f" | gap:{round(gap,2)}"
             fig.text(
-                0.71,
+                0.67,
                 0.03,
-                f"distance:{round(distance,2)}",
+                dist_text,
                 ha="center",
                 bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
             )
