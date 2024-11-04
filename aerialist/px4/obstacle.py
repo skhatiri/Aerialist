@@ -183,7 +183,6 @@ class Obstacle(object):
         for i in range(len(boxes) - 1):
             for j in range(i + 1, len(boxes)):
                 gaps.append(boxes[i].distance(boxes[j]))
-        print(gaps)
         return min(gaps)
 
     @classmethod
