@@ -348,6 +348,7 @@ class DroneTestResult:
         UNKNOWN = "unknown"
         FAIL = "fail"
         TIMEOUT = "timeout"
+        STUCK = "stuck"
         ERROR = "error"
 
     def __init__(
