@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum
 from typing import List
 import munch
 import yaml
@@ -342,14 +343,23 @@ class AgentConfig:
 
 
 class DroneTestResult:
+    class Status(Enum):
+        PASS = "pass"
+        UNKNOWN = "unknown"
+        FAIL = "fail"
+        TIMEOUT = "timeout"
+        ERROR = "error"
+
     def __init__(
         self,
         log_file: str = None,
         variable: type = AssertionConfig.TRAJECTORY,
         record=None,
+        status: Status = Status.UNKNOWN,
     ) -> None:
         self.log_file = log_file
         self.record = record
+        self.status = status
         if variable == "trajectory":
             variable = AssertionConfig.TRAJECTORY
         self.variable = variable
