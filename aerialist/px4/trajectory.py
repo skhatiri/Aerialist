@@ -30,6 +30,7 @@ class Trajectory(object):
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
     TIME_SCALE = 1000000.0
     VEHICLE_WIDTH = 0.25  # meters
+    WAYPOINT_WIDTH = 0.40  # meters - possibly bigger than vechicle width to be visible
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()

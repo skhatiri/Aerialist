@@ -4,6 +4,7 @@ import os
 from statistics import median
 from typing import List
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from decouple import config
 
 from .drone_test import DroneTest, DroneTestResult
@@ -21,7 +22,6 @@ class Plot(object):
     HIGHLIGHT_SIZE = 25
     WAYPOINT_COLOR = "green"
     WAYPOINT_ALPHA = 0.25
-    WAYPOINT_SIZE = 36
 
     @classmethod
     def plot_test(
@@ -121,12 +121,28 @@ class Plot(object):
                 xy_plt.add_patch(obst_patch)
 
         if waypoints is not None:
+            for wp in waypoints:
+                waypint_patch = mpatches.Circle(
+                    (
+                        wp.x,
+                        wp.y,
+                    ),
+                    trajectories[0].WAYPOINT_WIDTH,
+                    edgecolor=cls.WAYPOINT_COLOR,
+                    facecolor=cls.WAYPOINT_COLOR,
+                    fill=True,
+                    alpha=cls.WAYPOINT_ALPHA,
+                    # label="waypoint",
+                )
+                xy_plt.add_patch(waypint_patch)
+
+            # workaround for circular legend item
             xy_plt.scatter(
-                [wp.x for wp in waypoints],
-                [wp.y for wp in waypoints],
+                [],
+                [],
                 color=cls.WAYPOINT_COLOR,
                 alpha=cls.WAYPOINT_ALPHA,
-                s=cls.WAYPOINT_SIZE,
+                s=49,
                 label="waypoint",
             )
 
