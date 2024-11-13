@@ -254,7 +254,7 @@ def plot_test(args):
     else:
         test = DroneTest()
     if args.log is not None:
-        if args.log.endswith(".ulg"):
+        if args.log.endswith(".ulg") or args.log.endswith(".bag"):
             test_results = [DroneTestResult(args.log)]
         else:
             test_results = DroneTestResult.load_folder(args.log)
