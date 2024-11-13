@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum
-from typing import List
+from typing import List, Union
 import munch
 import yaml
 from decouple import config
@@ -292,7 +292,7 @@ class AssertionConfig:
     def __init__(
         self,
         log_file: str = None,
-        variable: type = TRAJECTORY,
+        variable: Union[type, str] = "trajectory",
         expectation=None,
     ) -> None:
         self.log_file = log_file
@@ -354,7 +354,7 @@ class DroneTestResult:
     def __init__(
         self,
         log_file: str = None,
-        variable: type = AssertionConfig.TRAJECTORY,
+        variable: Union[type, str] = "trajectory",
         record=None,
         status: Status = Status.UNKNOWN,
     ) -> None:
