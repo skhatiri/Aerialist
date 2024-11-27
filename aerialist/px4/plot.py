@@ -325,7 +325,7 @@ class Plot(object):
                 self._redraw_later()
 
         def _redraw_later(self):
-            self.timer = self.fig.canvas.new_timer(interval=10)
+            self.timer = self.fig.canvas.new_timer(interval=1)
             self.timer.single_shot = True
             self.timer.add_callback(lambda: self.fig.canvas.draw_idle())
             self.timer.start()
