@@ -1,4 +1,5 @@
 from __future__ import annotations
+from decouple import config
 from typing import List, NamedTuple
 from shapely.geometry import box, LineString, Point
 from shapely import affinity
@@ -10,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class Obstacle(object):
+    USE_RADIANS = config("USE_RADIANS", cast=bool, default=False)
+
     class Size(NamedTuple):
         l: float
         w: float
@@ -45,7 +48,9 @@ class Obstacle(object):
                 rect = box(-size.l / 2, -size.w / 2, size.l / 2, size.w / 2)
             else:
                 rect = box(0, 0, size.l, size.w)
-            self.geometry = affinity.rotate(rect, position.r, "centroid")
+            self.geometry = affinity.rotate(
+                rect, position.r, "centroid", use_radians=self.USE_RADIANS
+            )
             self.geometry = affinity.translate(self.geometry, position.x, position.y)
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
         if shape == self.CYLINDER:
@@ -85,17 +90,17 @@ class Obstacle(object):
             self.position.r,
         ]
 
-    def degree_to_radians(self) -> Obstacle:
-        return Obstacle(
-            self.size,
-            Obstacle.Position(
-                self.position.x,
-                self.position.y,
-                self.position.z,
-                math.radians(self.position.r),
-            ),
-            self.shape,
-        )
+    def get_radians(self):
+        if self.USE_RADIANS:
+            return self.position.r
+        else:
+            return math.radians(self.position.r)
+
+    def get_degrees(self):
+        if self.USE_RADIANS:
+            return math.degrees(self.position.r)
+        else:
+            return self.position.r
 
     def plt_patch(self):
         if self.shape == self.BOX:
@@ -106,7 +111,7 @@ class Obstacle(object):
                 ),
                 self.size.l,
                 self.size.w,
-                self.position.r,
+                self.get_degrees(),
                 rotation_point="center",
                 edgecolor="gray",
                 facecolor="gray",
