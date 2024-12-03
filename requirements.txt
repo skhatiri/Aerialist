@@ -20,4 +20,4 @@ h5py==3.9.0
 setuptools==39.0.1
 requests~=2.18.4
 bagpy==0.5
-yq=3.4.3
+yq==3.4.3
