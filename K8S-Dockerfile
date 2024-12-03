@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 
 RUN apt-get update \
     && apt-get install -y git wget curl python3-pip python3-dev \
@@ -22,4 +22,4 @@ RUN pip3 install -r requirements.txt
 COPY . .
 RUN chmod +x ./aerialist/__main__.py
 COPY ./template.env ./.env
-RUN mkdir -p /io/ ./results/logs/
+RUN mkdir -p /io/ ./results/logs/ ./tmp/
