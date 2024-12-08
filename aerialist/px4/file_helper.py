@@ -214,10 +214,10 @@ def download(src_file: str, dest_path: str) -> str:
     cloud_path = src_file
     if is_webdav_address(src_file):
         cloud_path = get_webdav_path(src_file)
+    # Ensure the destination directory exists locally
+    os.makedirs(dest_path, exist_ok=True)
     dest_path += path.basename(cloud_path)
     try:
-        # Ensure the destination directory exists locally
-        os.makedirs(dest_path, exist_ok=True)
         webdav_client.download_file(cloud_path, dest_path)
         RETRIES = 0
     except RequestException as e:
