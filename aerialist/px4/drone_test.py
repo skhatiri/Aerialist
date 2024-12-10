@@ -151,7 +151,7 @@ class DroneTest:
     ) -> List[DroneTestResult]:
         tests_folder = file_helper.get_local_folder(tests_folder)
         test_files = file_helper.list_files_in_folder(
-            folder=test_files,
+            folder=tests_folder,
             name_pattern=pattern,
             search_root=not from_sub_folders,
             search_subfolders=from_sub_folders,
