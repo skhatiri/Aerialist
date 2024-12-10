@@ -142,6 +142,24 @@ class DroneTest:
 
         return params
 
+    @classmethod
+    def load_folder(
+        cls,
+        tests_folder: str,
+        pattern: str = "*.yaml",
+        from_sub_folders: bool = False,
+    ) -> List[DroneTestResult]:
+        tests_folder = file_helper.get_local_folder(tests_folder)
+        test_files = file_helper.list_files_in_folder(
+            folder=test_files,
+            name_pattern=pattern,
+            search_root=not from_sub_folders,
+            search_subfolders=from_sub_folders,
+            search_recursive=False,
+        )
+        tests = [DroneTest.from_yaml(f) for f in test_files]
+        return tests
+
 
 class DroneConfig:
     CF_PORT = 14550
@@ -373,6 +391,9 @@ class DroneTestResult:
         cls, logs_folder: str, variable: type = AssertionConfig.TRAJECTORY
     ) -> List[DroneTestResult]:
         logs_folder = file_helper.get_local_folder(logs_folder)
-        logs = file_helper.get_logs_address(logs_folder)
+        logs = file_helper.list_files_in_folder(
+            folder=logs_folder,
+            name_pattern="*.ulg",
+        )
         results = [DroneTestResult(log, variable) for log in logs]
         return results
