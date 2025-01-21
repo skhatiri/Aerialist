@@ -27,7 +27,7 @@ setuptools.setup(
         "python-decouple==3.6",
         "csv-logger==1.3.0",
         "statsmodels==0.13.2",
-        "webdavclient3==3.14.6",
+        "webdav4==0.9.4",
         "ruptures==1.1.7",
         "shapely==1.8.4",
         "validators==0.20.0",
