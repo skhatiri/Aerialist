@@ -130,7 +130,7 @@ def upload(src_file: str, dest_path: str) -> str:
     if is_webdav_address(dest_path):
         cloud_path = get_webdav_path(dest_path)
     try:
-        webdav_client.upload_file(src_file, cloud_path)
+        webdav_client.upload_file(src_file, cloud_path, overwrite=True)
         RETRIES = 0
     except RequestException as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")
@@ -182,7 +182,9 @@ def upload_dir(src_dir: str, dest_dir: str) -> str:
                     "\\", "/"
                 )
                 try:
-                    webdav_client.upload_file(local_file_path, remote_file_path)
+                    webdav_client.upload_file(
+                        local_file_path, remote_file_path, overwrite=True
+                    )
                 except RequestException as e:
                     logger.error(
                         f"webdav connection lost while uploading file: retrying {RETRIES}"
@@ -213,6 +215,8 @@ def download(src_file: str, dest_path: str) -> str:
     cloud_path = src_file
     if is_webdav_address(src_file):
         cloud_path = get_webdav_path(src_file)
+    # Ensure the destination directory exists locally
+    os.makedirs(dest_path, exist_ok=True)
     dest_path += path.basename(cloud_path)
     try:
         webdav_client.download_file(cloud_path, dest_path)
