@@ -53,7 +53,6 @@ class Simulator(object):
                 f"DONT_RUN=1 make -C {self.PX4_DIR} px4_sitl_default gazebo; "
             )
             sim_command += f". {self.PX4_DIR}Tools/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
-            # sim_command += f". {self.PX4_DIR}Tools/simulation/gazebo/setup_gazebo.bash {self.PX4_DIR} {self.PX4_DIR}build/px4_sitl_default; "
             sim_command += (
                 "export ROS_PACKAGE_PATH=${ROS_PACKAGE_PATH}:"
                 + f"{self.PX4_DIR[:-1]}; "
@@ -66,24 +65,32 @@ class Simulator(object):
             tree_count = 0
             apartment_count = 0
             box_count = 0
-            obstacle_string = ""
+            obstacle_string = "["
+            first_obstacle = True
             if self.config.obstacles is not None and len(self.config.obstacles) > 0:
                 for obstacle in self.config.obstacles:
+                    if first_obstacle:
+                        first_obstacle = False
+                    elif not first_obstacle:
+                        obstacle_string += ","
                     if obstacle.shape == "BOX":
                         box_count += 1
                         box_name = "box_" + str(box_count)
-                        obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},box,{box_name},{obstacle.size.w},{obstacle.size.l},{obstacle.size.h},end,"
+                        obstacle_string += "["
+                        obstacle_string += f'{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},"box",{box_name},{obstacle.size.w},{obstacle.size.l},{obstacle.size.h}]'
                     if obstacle.shape == "TREE":
                         tree_count += 1
                         tree_name = "tree_" + str(tree_count)
-                        obstacle_string += f"{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},tree,{tree_name},end,"
-
+                        obstacle_string += "["
+                        obstacle_string += f'{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},"tree",{tree_name}]'
                     if obstacle.shape == "APARTMENT":
                         apartment_count += 1
                         apartment_name = "apartment_" + str(apartment_count)
-                        obstacle_string += f'{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},"apartment",{apartment_name},end,'
+                        obstacle_string += "["
+                        obstacle_string += f'{obstacle.position.y},{obstacle.position.x},{obstacle.position.z},{math.radians(-obstacle.position.r)},"apartment",{apartment_name}]'
 
-            if obstacle_string != "":
+            obstacle_string += "]"
+            if obstacle_string != "[]":
                 sim_command += f"obstacle_string:={obstacle_string} "
 
         logger.info("executing:" + sim_command)

@@ -389,6 +389,9 @@ class Trajectory(object):
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
         return Obstacle.distance_to_many(obstacles, self.to_line())
 
+    def distance_to_obst_list(self, obstacles: List[Obstacle]):
+        return Obstacle.distance_list(obstacles, self.to_line())
+
     def min_max_dist_to_obstacle(self, obstacles: List[Obstacle]):
         return Obstacle.min_max_distance_to_many(obstacles, self.to_line())
 

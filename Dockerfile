@@ -25,8 +25,8 @@ RUN catkin build -w /src/catkin_ws &&\
     echo "source /src/catkin_ws/devel/setup.bash" >> ~/.bashrc  
 WORKDIR /src/aerialist/
 RUN pip3 install -r requirements.txt
+RUN pip3 install --upgrade anyio==3.5.0
 RUN pip2 install roslibpy
-RUN pip3 install roslibpy
 COPY . .
 RUN chmod +x ./aerialist/__main__.py
 COPY ./template.env ./.env

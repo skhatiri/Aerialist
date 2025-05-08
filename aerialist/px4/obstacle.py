@@ -146,13 +146,18 @@ class Obstacle(object):
                 "x": self.position.x,
                 "y": self.position.y,
                 "z": self.position.z,
-                "angle": self.position.r,
+                "r": self.position.r,
             },
             "shape": self.shape,
         }
 
     @classmethod
     def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
+        boxes = [o.geometry for o in obstacles]
+        dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
+        return dist
+
+    def distance_list(cls, obstacles: List[Obstacle], line: LineString):
         boxes = [o.geometry for o in obstacles]
         dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
         dist_list = [sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords]
@@ -192,7 +197,7 @@ class Obstacle(object):
             obstacle.position.x,
             obstacle.position.y,
             obstacle.position.z,
-            obstacle.position.angle,
+            obstacle.position.r,
         )
 
         obstacle_obj = Obstacle(size, position, obstacle.shape)

@@ -84,6 +84,20 @@ def arg_parse():
         default=[],
     )
     parser.add_argument(
+        "--obstacle3",
+        nargs=7,
+        type=float,
+        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
+        "--obstacle4",
+        nargs=7,
+        type=float,
+        help="obstacle poisition and size to put in simulation environment: [l,w,h,x,y,z,r] in order",
+        default=[],
+    )
+    parser.add_argument(
         "--world_file_name",
         nargs=1,
         help="name of the world file name",

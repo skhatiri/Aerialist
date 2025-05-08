@@ -2,6 +2,7 @@
 import subprocess
 import rospy
 import roslaunch
+import ast
 
 
 def run_tree_subprocess(tree_name, x, y, z, r):
@@ -52,11 +53,8 @@ def run_apartment_subprocess(apartment_name, x, y, z, r):
 def launch_node():
     # Iterate over the array and launch nodes
     rospy.init_node("dynamic_obstacle_launcher")
-    list1 = rospy.get_param("/dynamic_obstacle_launcher/obstacle_string").split(",end,")
-    obstacle_list = []
-    for temp in list1:
-        if len(temp) > 0:
-            obstacle_list.append(temp.split(","))
+    list1 = rospy.get_param("/dynamic_obstacle_launcher/obstacle_string")
+    obstacle_list = ast.literal_eval(list1)
 
     for temp in obstacle_list:
         node_name = temp[5]

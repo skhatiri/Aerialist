@@ -1,0 +1,97 @@
+[1mdiff --git a/Dockerfile b/Dockerfile[m
+[1mindex 7a34a93..a7a1db0 100644[m
+[1m--- a/Dockerfile[m
+[1m+++ b/Dockerfile[m
+[36m@@ -16,7 +16,12 @@[m [mRUN sudo apt install ros-melodic-stereo-image-proc ros-melodic-image-view -y[m
+ #Setting up the current tool [m
+ COPY ./requirements.txt /src/aerialist/requirements.txt[m
+ WORKDIR /src/catkin_ws/src/avoidance/[m
+[32m+[m[32mRUN catkin_create_pkg intermediate_image_save std_msgs rospy roscpp cv_bridge[m
+ RUN catkin_create_pkg spawn_obstacles std_msgs rospy roscpp cv_bridge[m
+[32m+[m[32mWORKDIR /src/catkin_ws/src/avoidance/intermediate_image_save/src[m
+[32m+[m[32mRUN mkdir -p nodes[m
+[32m+[m[32mWORKDIR /src/catkin_ws/src/avoidance/intermediate_image_save/src/nodes[m
+[32m+[m[32mCOPY aerialist/ros_node_script/scripts/ .[m
+ WORKDIR /src/catkin_ws/src/avoidance/spawn_obstacles/src[m
+ RUN mkdir -p nodes[m
+ WORKDIR /src/catkin_ws/src/avoidance/spawn_obstacles/src/nodes[m
+[1mdiff --git a/aerialist/entry.py b/aerialist/entry.py[m
+[1mindex a6b4562..9d9a718 100644[m
+[1m--- a/aerialist/entry.py[m
+[1m+++ b/aerialist/entry.py[m
+[36m@@ -4,6 +4,7 @@[m [mimport logging[m
+ import os[m
+ import sys[m
+ from decouple import config[m
+[32m+[m[32mimport time[m
+ [m
+ try:[m
+     from .px4.k8s_agent import K8sAgent[m
+[36m@@ -216,6 +217,8 @@[m [mdef run_experiment(args):[m
+     test_results = execute_test(test)[m
+     logger.info(f"LOG:{test_results[0].log_file}")[m
+     DroneTest.plot(test, test_results)[m
+[32m+[m[32m    logger.info("About to sleep for 1 minute. Go check your logs")[m
+[32m+[m[32m    time.sleep(300)[m
+     # if args.cloud:[m
+     #         exp.log = ulog_helper.upload(exp.log, args.output)[m
+     #     print(f"LOG:{exp.log}")[m
+[1mdiff --git a/aerialist/px4/drone_test.py b/aerialist/px4/drone_test.py[m
+[1mindex 9909be6..64ada9a 100644[m
+[1m--- a/aerialist/px4/drone_test.py[m
+[1m+++ b/aerialist/px4/drone_test.py[m
+[36m@@ -132,6 +132,8 @@[m [mclass DroneTest:[m
+     def plot([m
+         cls, test: DroneTest, results: List[DroneTestResult], obstacle_distance=True[m
+     ) -> str:[m
+[32m+[m[32m        logger.info("In the plot method")[m
+[32m+[m[32m        logger.info(test.agent.path)[m
+         distance = None[m
+         if obstacle_distance:[m
+             distance = True[m
+[36m@@ -231,7 +233,6 @@[m [mclass SimulationConfig:[m
+             else:[m
+                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)[m
+ [m
+[31m-      [m
+         if world_file_name is not None and len(world_file_name) > 0:[m
+             self.world_file_name = world_file_name[m
+ [m
+[1mdiff --git a/aerialist/px4/trajectory.py b/aerialist/px4/trajectory.py[m
+[1mindex a8e76f1..61b1ffd 100644[m
+[1m--- a/aerialist/px4/trajectory.py[m
+[1m+++ b/aerialist/px4/trajectory.py[m
+[36m@@ -87,6 +87,7 @@[m [mclass Trajectory(object):[m
+         filename=None,[m
+         upload_dir=None,[m
+     ):[m
+[32m+[m[32m        print("In the inner page of plot multiple")[m
+         fig = plt.figure(tight_layout=True)[m
+ [m
+         if cls.PLOT_R:[m
+[36m@@ -270,7 +271,9 @@[m [mclass Trajectory(object):[m
+             plot_file = f"{cls.DIR}{filename}.png"[m
+             fig.savefig(plot_file)[m
+             plt.close(fig)[m
+[32m+[m[32m            logger.info("Before uploading the file")[m
+             if cls.WEBDAV_DIR is not None:[m
+[32m+[m[32m                logger.info("About to upload the file")[m
+                 file_helper.upload(f"{cls.DIR}{filename}.png", upload_dir)[m
+             return plot_file[m
+         else:[m
+[1mdiff --git a/aerialist/resources/simulation/local_planner_stereo.launch b/aerialist/resources/simulation/local_planner_stereo.launch[m
+[1mindex 0ffcaf3..bcb6b08 100644[m
+[1m--- a/aerialist/resources/simulation/local_planner_stereo.launch[m
+[1m+++ b/aerialist/resources/simulation/local_planner_stereo.launch[m
+[36m@@ -41,6 +41,11 @@[m
+     <arg name="pointcloud_topics" value="$(arg pointcloud_topics)"/>[m
+   </include>[m
+ [m
+[32m+[m[32m    <node name="disparity_image_launcher" type="disparity_image_launch.py" pkg="intermediate_image_save" />[m
+[32m+[m[32m    <node name="histogram_image_listener" type="get_histogram_image.py" pkg="intermediate_image_save" />[m
+[32m+[m[32m    <node name="raw_image_listener" type="get_raw_image.py" pkg="intermediate_image_save" />[m
+[32m+[m[32m    <node name="disparity_image_listener" type="get_disparity_image.py" pkg="intermediate_image_save" />[m
+[32m+[m
+   <!-- Load custom console configuration -->[m
+   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find local_planner)/resource/custom_rosconsole.conf"/>[m
+ [m

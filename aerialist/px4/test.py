@@ -18,7 +18,7 @@ import zipfile
 logger = logging.getLogger(__name__)
 MAX_WEBDAV_RETRIES = 5
 RETRIES = 0
-
+webdav_client = None
 
 def get_local_file(file_path: str):
     if is_webdav_address(file_path):
@@ -55,19 +55,43 @@ def get_local_folder(folder_path: str):
 
 
 def init_webdav():
-    if config("WEBDAV_PASS", default=None):
+    try:
+        global webdav_client
+        options = {
+            "base_url": config("WEBDAV_HOST"),
+            "auth": (config("WEBDAV_USER"), config("WEBDAV_PASS")),
+            "timeout": 600,
+        }
+        webdav_client = Client(options)
+        print(f"webdav client initialized as {webdav_client}")
+        src_file = "webdav://test/case_studies/scenario4-5_10m.plan"
+        dest_path = "/home/prasun/Documents/Aerialist/aerialist/px4/"
+
+        global RETRIES
+        cloud_path = src_file
+        if is_webdav_address(src_file):
+            cloud_path = get_webdav_path(src_file)
+        dest_path += path.basename(cloud_path)
         try:
-            global webdav_client
-            webdav_client = Client(
-                base_url=config("WEBDAV_HOST"),
-                auth=(config("WEBDAV_USER"), config("WEBDAV_PASS")),
-                timeout=600
-            )
-        except Exception as e:
-            logger.error(e)
+            with open(dest_path, 'wb') as file_obj:
+                webdav_client.download_from(cloud_path, file_obj)
+            RETRIES = 0
+        except RequestException as e:
+            logger.error(f"webdav connection lost: retrying {RETRIES}")
+            sleep(20)
+            RETRIES += 1
+            if RETRIES <= MAX_WEBDAV_RETRIES:
+                init_webdav()
+                return download(src_file, dest_path)
+            else:
+                raise (e)
+        return dest_path
+
+    except Exception as e:
+        logger.error(e)
 
 
-init_webdav()
+
 
 
 def extract(log_address: str, topic: str, columns: List[str] = None) -> DataFrame:
@@ -113,7 +137,8 @@ def upload(src_file: str, dest_path: str) -> str:
     if is_webdav_address(dest_path):
         cloud_path = get_webdav_path(dest_path)
     try:
-        webdav_client.upload_file(src_file, cloud_path)
+        with open(src_file, 'rb') as file_obj:
+            webdav_client.upload_to(cloud_path, file_obj)
         RETRIES = 0
     except RequestException as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")
@@ -131,56 +156,26 @@ def upload_dir(src_dir: str, dest_dir: str) -> str:
     global RETRIES
     if is_webdav_address(dest_dir):
         cloud_dir = get_webdav_path(dest_dir)
-    else:
-        cloud_dir = dest_dir
+        try:
+            for root, dirs, files in os.walk(src_dir):
+                remote_root = os.path.join(cloud_dir, os.path.relpath(root, src_dir)).replace("\\", "/")
+                if not webdav_client.exists(remote_root):
+                    webdav_client.mkdir(remote_root)
 
-    try:
-        for root, dirs, files in os.walk(src_dir):
-            # Create the directory structure in WebDAV
-            relative_path = os.path.relpath(root, src_dir)
-            webdav_folder_path = os.path.join(cloud_dir, relative_path).replace("\\", "/")
-
-            # Create the directory on WebDAV if it doesn't exist
-            try:
-                if not webdav_client.exists(webdav_folder_path):
-                    webdav_client.mkdir(webdav_folder_path)
-            except RequestException as e:
-                logger.error(f"webdav connection lost while creating directory: retrying {RETRIES}")
-                sleep(20)
-                RETRIES += 1
-                if RETRIES <= MAX_WEBDAV_RETRIES:
-                    init_webdav()
-                    return upload_dir(src_dir, dest_dir)
-                else:
-                    raise (e)
-
-            # Upload each file in the directory
-            for file in files:
-                local_file_path = os.path.join(root, file)
-                remote_file_path = os.path.join(webdav_folder_path, file).replace("\\", "/")
-                try:
-                    webdav_client.upload_file(local_file_path, remote_file_path)
-                except RequestException as e:
-                    logger.error(f"webdav connection lost while uploading file: retrying {RETRIES}")
-                    sleep(20)
-                    RETRIES += 1
-                    if RETRIES <= MAX_WEBDAV_RETRIES:
-                        init_webdav()
-                        return upload_dir(src_dir, dest_dir)
-                    else:
-                        raise (e)
-
-        RETRIES = 0
-    except RequestException as e:
-        logger.error(f"webdav connection lost: retrying {RETRIES}")
-        sleep(20)
-        RETRIES += 1
-        if RETRIES <= MAX_WEBDAV_RETRIES:
-            init_webdav()
-            return upload_dir(src_dir, dest_dir)
-        else:
-            raise (e)
-
+                for file in files:
+                    local_file_path = os.path.join(root, file)
+                    remote_file_path = os.path.join(remote_root, file).replace("\\", "/")
+                    with open(local_file_path, 'rb') as file_obj:
+                        webdav_client.upload_to(remote_file_path, file_obj)
+        except RequestException as e:
+            logger.error(f"webdav connection lost: retrying {RETRIES}")
+            sleep(20)
+            RETRIES += 1
+            if RETRIES <= MAX_WEBDAV_RETRIES:
+                init_webdav()
+                return upload_dir(src_dir, dest_dir)
+            else:
+                raise (e)
     return dest_dir
 
 
@@ -191,7 +186,8 @@ def download(src_file: str, dest_path: str) -> str:
         cloud_path = get_webdav_path(src_file)
     dest_path += path.basename(cloud_path)
     try:
-        webdav_client.download_file(cloud_path, dest_path)
+        with open(dest_path, 'wb') as file_obj:
+            webdav_client.download_from(cloud_path, file_obj)
         RETRIES = 0
     except RequestException as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")
@@ -210,35 +206,8 @@ def download_dir(src_path: str, dest_path: str) -> str:
     cloud_path = src_path
     if is_webdav_address(src_path):
         cloud_path = get_webdav_path(src_path)
-
     try:
-        # Ensure the destination directory exists locally
-        os.makedirs(dest_path, exist_ok=True)
-
-        # Fetch the directory's contents
-        for item in webdav_client.ls(cloud_path):
-            item_path = item['href'].rstrip('/')
-            item_name = os.path.basename(item_path)
-            remote_item_path = f"{cloud_path}/{item_name}"
-            local_item_path = os.path.join(dest_path, item_name)
-
-            if item['type'] == 'directory':
-                # Recursively download directories
-                download_dir(remote_item_path, local_item_path)
-            else:
-                # Download files
-                try:
-                    webdav_client.download_file(remote_item_path, local_item_path)
-                except RequestException as e:
-                    logger.error(f"webdav connection lost: retrying {RETRIES}")
-                    sleep(20)
-                    RETRIES += 1
-                    if RETRIES <= MAX_WEBDAV_RETRIES:
-                        init_webdav()
-                        return download_dir(src_path, dest_path)
-                    else:
-                        raise (e)
-
+        webdav_client.download_directory(cloud_path, dest_path)
         RETRIES = 0
     except RequestException as e:
         logger.error(f"webdav connection lost: retrying {RETRIES}")
@@ -249,7 +218,6 @@ def download_dir(src_path: str, dest_path: str) -> str:
             return download_dir(src_path, dest_path)
         else:
             raise (e)
-
     return dest_path
 
 
@@ -259,13 +227,13 @@ def create_dir(path: str):
     if is_webdav_address(path):
         cloud_path = get_webdav_path(path)
     try:
-        if not webdav_client.exists(cloud_path):
+        if not webdav_client.check(cloud_path):
             current_path = ""
             folders = cloud_path.split("/")
             # Iterate through each folder and create it if it doesn't exist
             for folder in folders:
                 current_path = os.path.join(current_path, folder)
-                if not webdav_client.exists(current_path):
+                if not webdav_client.check(current_path):
                     webdav_client.mkdir(current_path)
         RETRIES = 0
     except RequestException as e:
@@ -304,3 +272,9 @@ def zip_files_folders(file_path_list):
             temp_file_path_ts = temp_file_path_ts + ".zip"
         zip_list.append(temp_file_path_ts)
     return zip_list
+
+
+print("CALLing init")
+init_webdav()
+print("finished calling init")
+# download("webdav://test/case_studies/scenario4-5_10m.plan","/home/prasun/Documents/Aerialist/aerialist/px4/")

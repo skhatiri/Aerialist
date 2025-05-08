@@ -54,7 +54,7 @@ def spawn_box():
           <visual name='visual'>
             <geometry>
               <box>
-                <size>{1} {2} {3}</size>
+                <size>{0} {1} {2}</size>
               </box>
               <mesh>
                 <scale>6 6 10</scale>
