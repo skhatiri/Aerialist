@@ -43,12 +43,15 @@ class Obstacle(object):
             self.geometry = affinity.rotate(rect, position.r, "centroid")
             self.geometry = affinity.translate(self.geometry, position.x, position.y)
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
+            if shape == "APARTMENT":
+                size = Obstacle.Size(20.0, 22.0, 14.0)
             self.size = size
             self.position = position
             # self.angle = angle
             self.shape = shape
             self.pattern_design = pattern_design
         elif shape == "TREE":
+            size = Obstacle.Size(1.5, 1.0, 2.5)
             self.size = size
             self.position = position
             # self.angle = angle
@@ -152,7 +155,7 @@ class Obstacle(object):
                     "x": self.position.x,
                     "y": self.position.y,
                     "z": self.position.z,
-                    "angle": self.position.r,
+                    "r": self.position.r,
                 },
                 "shape": self.shape
             }
@@ -167,7 +170,7 @@ class Obstacle(object):
                     "x": self.position.x,
                     "y": self.position.y,
                     "z": self.position.z,
-                    "angle": self.position.r,
+                    "r": self.position.r,
                 },
                 "shape": self.shape,
                 "pattern_design": self.pattern_design
@@ -212,7 +215,7 @@ class Obstacle(object):
             obstacle.position.x,
             obstacle.position.y,
             obstacle.position.z,
-            obstacle.position.angle,
+            obstacle.position.r,
         )
         if obstacle.pattern_design is not None:
             obstacle_obj = Obstacle(size, position, obstacle.shape,

@@ -225,7 +225,9 @@ class Trajectory(object):
         else:
             ave_trajectory = trajectories[0]
 
+        print("Before the original file is present")
         if goal != None:
+            print("The original file is present")
             data_frame = goal.to_data_frame()
             x_plt.plot(
                 data_frame[:, 0], data_frame[:, 1], label="original", color="blue"
