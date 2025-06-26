@@ -42,8 +42,8 @@ spec:
               mountPath: /src/aerialist/results
           tty: true
         - name: sim
-          image: skhatiri/aerialist
-          imagePullPolicy: Always
+          image: skhatiri/aerialist:refactor-docker-agent
+          # imagePullPolicy: Always
           stdin: true
           stdinOnce: true
           command: 
