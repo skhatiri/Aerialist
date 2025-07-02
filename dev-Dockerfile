@@ -9,14 +9,14 @@ RUN sudo apt-get update -y &&\
 RUN python3 -m pip install --upgrade pip
 
 #Setting up the current tool
-COPY ./requirements.txt /src/aerialist/requirements.txt
-WORKDIR /src/aerialist/
-RUN pip3 install -r requirements.txt
-RUN pip3 install --upgrade anyio==3.5.0
-COPY . .
-RUN chmod +x ./aerialist/__main__.py
-COPY ./template.env ./.env
-RUN mkdir -p /io/ ./results/logs/ tmp/
+# # COPY ./requirements.txt /src/aerialist/requirements.txt
+# WORKDIR /workspaces/Aerialist
+# RUN pip3 install -r requirements.txt
+# RUN pip3 install --upgrade anyio==3.5.0
+# # COPY . .
+# RUN chmod +x ./aerialist/__main__.py
+# COPY ./template.env ./.env
+# RUN mkdir -p /io/ ./results/logs/ tmp/
 # --- End Existing Python Setup ---
 
 # --- Additions for VS Code Server Workaround ---
