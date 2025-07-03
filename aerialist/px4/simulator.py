@@ -76,7 +76,27 @@ class Simulator(object):
                 if len(self.config.obstacles) > 3:
                     sim_command += f"obst4:=true obst4_x:={self.config.obstacles[3].position.y} obst4_y:={self.config.obstacles[3].position.x} obst4_z:={self.config.obstacles[3].position.z} obst4_l:={self.config.obstacles[3].size.w} obst4_w:={self.config.obstacles[3].size.l} obst4_h:={self.config.obstacles[3].size.h} obst4_yaw:={math.radians(-self.config.obstacles[3].position.r)} "
 
+            if self.config.wind is not None:
+                wind = self.config.wind.params
+                sim_command += (
+                    f"wind_enabled:=true "
+                    f"wind_mean_velocity:={wind.mean_velocity} "
+                    f"wind_max_velocity:={wind.max_velocity} "
+                    f"wind_direction:=\"{' '.join(map(str, wind.direction_mean))}\" "
+                    f"wind_direction_variance:={wind.direction_variance} "
+                    f"wind_gust_start:={wind.gust_start} "
+                    f"wind_gust_duration:={wind.gust_duration} "
+                    f"wind_gust_velocity_mean:={wind.gust_velocity_mean} "
+                    f"wind_gust_velocity_max:={wind.gust_velocity_max} "
+                    f"wind_gust_velocity_variance:={wind.gust_velocity_variance} "
+                    f"wind_gust_direction_mean:=\"{' '.join(map(str, wind.gust_direction_mean))}\" "
+                    f"wind_gust_direction_variance:={wind.gust_direction_variance} "
+                )
+
+
         logger.debug("executing:" + sim_command)
+        # print("\n🔧 FULL SIM COMMAND 🔧\n", sim_command, "\n")
+
         self.sim_process = subprocess.Popen(
             sim_command,
             shell=True,
@@ -93,7 +113,9 @@ class Simulator(object):
             self.bkgnd.start()
             # self.bkgnd
         else:
-            raise (Exception("Simulator could not start"))
+            # raise (Exception("Simulator could not start"))
+            print("Simulator launch failed. See logs above.")
+            return
 
     def start(self) -> bool:
         try:

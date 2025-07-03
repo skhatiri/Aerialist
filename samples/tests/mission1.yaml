@@ -18,6 +18,20 @@ simulation:
       z: 0
       r: 0
 
+  wind:
+    mean_velocity: 5.0
+    max_velocity: 15.0
+    velocity_variance: 0.5
+    direction_mean: [1, 0, 0]
+    direction_variance: 0.1
+    gust_start: 0
+    gust_duration: 0
+    gust_velocity_mean: 0
+    gust_velocity_max: 20.0
+    gust_velocity_variance: 0
+    gust_direction_mean: [1, 0, 0]
+    gust_direction_variance: 0
+
 test:
   commands_file: samples/flights/mission1-commands.csv
 

@@ -1,4 +1,20 @@
 <launch>
+
+    <arg name="wind_enabled" default="false" />
+    <arg name="wind_mean_velocity" default="4.0" />
+    <arg name="wind_max_velocity" default="20.0" />
+    <arg name="wind_velocity_variance" default="0.0" />
+    <arg name="wind_direction" default="1 1 0" />
+    <arg name="wind_direction_variance" default="4.0" />
+    <arg name="wind_gust_start" default="0.0" />
+    <arg name="wind_gust_duration" default="0.0" />
+    <arg name="wind_gust_velocity_mean" default="0.0" />
+    <arg name="wind_gust_velocity_max" default="20.0" />
+    <arg name="wind_gust_velocity_variance" default="4.0" />
+    <arg name="wind_gust_direction_mean" default="1 1 0" />
+    <arg name="wind_gust_direction_variance" default="4.0" />
+
+
     <arg name="box_path" default="aerialist/resources/simulation/box.xacro" />
     <arg name="world_file_name"    default="simple_obstacle" />
     <arg name="world_path" default="$(find avoidance)/sim/worlds/$(arg world_file_name).world" />
@@ -53,7 +69,29 @@
 
     <param name="use_sim_time" value="true" />
 
+    <!-- add wind -->
+    <group if="$(arg wind_enabled)">
+        <gazebo>
+            <plugin name="wind_plugin" filename="libgazebo_wind_plugin.so">
+            <frameId>base_link</frameId>
+            <robotNamespace/>
+            <windVelocityMean>$(arg wind_mean_velocity)</windVelocityMean>
+            <windVelocityMax>$(arg wind_max_velocity)</windVelocityMax>
+            <windVelocityVariance>$(arg wind_velocity_variance)</windVelocityVariance>
+            <windDirectionMean>$(arg wind_direction)</windDirectionMean>
+            <windDirectionVariance>$(arg wind_direction_variance)</windDirectionVariance>
+            <windGustStart>$(arg wind_gust_start)</windGustStart>
+            <windGustDuration>$(arg wind_gust_duration)</windGustDuration>
+            <windGustVelocityMean>$(arg wind_gust_velocity_mean)</windGustVelocityMean>
+            <windGustVelocityMax>$(arg wind_gust_velocity_max)</windGustVelocityMax>
+            <windGustVelocityVariance>$(arg wind_gust_velocity_variance)</windGustVelocityVariance>
+            <windGustDirectionMean>$(arg wind_gust_direction_mean)</windGustDirectionMean>
+            <windGustDirectionVariance>$(arg wind_gust_direction_variance)</windGustDirectionVariance>
+            <windPubTopic>world_wind</windPubTopic>
+            </plugin>
+        </gazebo>
 
+    </group>
 
     <!-- add obstacles -->
     <group if="$(arg obst)">
