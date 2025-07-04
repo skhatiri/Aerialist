@@ -95,8 +95,7 @@ class Simulator(object):
 
 
         logger.debug("executing:" + sim_command)
-        # print("\n🔧 FULL SIM COMMAND 🔧\n", sim_command, "\n")
-
+        
         self.sim_process = subprocess.Popen(
             sim_command,
             shell=True,

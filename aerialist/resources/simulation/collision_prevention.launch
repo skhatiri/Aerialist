@@ -16,6 +16,7 @@
 
 
     <arg name="box_path" default="aerialist/resources/simulation/box.xacro" />
+    <arg name="wind_path" default="aerialist/resources/simulation/wind_plugin_model.sdf.xacro"/>
     <arg name="world_file_name"    default="simple_obstacle" />
     <arg name="world_path" default="$(find avoidance)/sim/worlds/$(arg world_file_name).world" />
     <arg name="pointcloud_topics" default="[/camera/depth/points]"/>
@@ -71,27 +72,29 @@
 
     <!-- add wind -->
     <group if="$(arg wind_enabled)">
-        <gazebo>
-            <plugin name="wind_plugin" filename="libgazebo_wind_plugin.so">
-            <frameId>base_link</frameId>
-            <robotNamespace/>
-            <windVelocityMean>$(arg wind_mean_velocity)</windVelocityMean>
-            <windVelocityMax>$(arg wind_max_velocity)</windVelocityMax>
-            <windVelocityVariance>$(arg wind_velocity_variance)</windVelocityVariance>
-            <windDirectionMean>$(arg wind_direction)</windDirectionMean>
-            <windDirectionVariance>$(arg wind_direction_variance)</windDirectionVariance>
-            <windGustStart>$(arg wind_gust_start)</windGustStart>
-            <windGustDuration>$(arg wind_gust_duration)</windGustDuration>
-            <windGustVelocityMean>$(arg wind_gust_velocity_mean)</windGustVelocityMean>
-            <windGustVelocityMax>$(arg wind_gust_velocity_max)</windGustVelocityMax>
-            <windGustVelocityVariance>$(arg wind_gust_velocity_variance)</windGustVelocityVariance>
-            <windGustDirectionMean>$(arg wind_gust_direction_mean)</windGustDirectionMean>
-            <windGustDirectionVariance>$(arg wind_gust_direction_variance)</windGustDirectionVariance>
-            <windPubTopic>world_wind</windPubTopic>
-            </plugin>
-        </gazebo>
+        <node name="spawn_wind_plugin_model"
+            pkg="gazebo_ros"
+            type="spawn_model"
+            output="screen"
+            args="-sdf -file $(find xacro)/xacro --inorder \
+                    $(arg wind_path) \
+                    wind_velocity_mean:=$(arg wind_mean_velocity) \
+                    wind_velocity_max:=$(arg wind_max_velocity) \
+                    wind_velocity_variance:=$(arg wind_velocity_variance) \
+                    wind_direction_mean:=$(arg wind_direction) \
+                    wind_direction_variance:=$(arg wind_direction_variance) \
+                    wind_gust_start:=$(arg wind_gust_start) \
+                    wind_gust_duration:=$(arg wind_gust_duration) \
+                    wind_gust_velocity_mean:=$(arg wind_gust_velocity_mean) \
+                    wind_gust_velocity_max:=$(arg wind_gust_velocity_max) \
+                    wind_gust_velocity_variance:=$(arg wind_gust_velocity_variance) \
+                    wind_gust_direction_mean:=$(arg wind_gust_direction_mean) \
+                    wind_gust_direction_variance:=$(arg wind_gust_direction_variance) \
+                    -model wind_plugin_model"/>
+
 
     </group>
+
 
     <!-- add obstacles -->
     <group if="$(arg obst)">
