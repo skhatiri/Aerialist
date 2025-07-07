@@ -1,10 +1,26 @@
 <launch>
+
     <arg name="box_path" default="aerialist/resources/simulation/box.xacro" />
+    <arg name="wind_path" default="aerialist/resources/simulation/wind_plugin.xacro"/>
     <arg name="world_file_name"    default="simple_obstacle" />
     <arg name="world_path" default="$(find avoidance)/sim/worlds/$(arg world_file_name).world" />
     <arg name="pointcloud_topics" default="[/camera/depth/points]"/>
     <arg name="gui" default="true"/>
     <arg name="rviz" default="true"/>
+
+    <arg name="wind_enabled" default="false"/>
+    <arg name="velocity_mean" default="4.0"/>
+    <arg name="velocity_max" default="20.0"/>
+    <arg name="velocity_variance" default="0.0"/>
+    <arg name="direction" default="1 1 0"/>
+    <arg name="direction_variance" default="0.0"/>
+    <arg name="gust_start" default="0"/>
+    <arg name="gust_duration" default="0"/>
+    <arg name="gust_velocity_mean" default="0"/>
+    <arg name="gust_velocity_max" default="20.0"/>
+    <arg name="gust_velocity_variance" default="0"/>
+    <arg name="gust_direction" default="1 0 0"/>
+    <arg name="gust_direction_variance" default="0"/>
     
     <arg name="obst" default = "false"/>
     <arg name="obst_x" default = "0"/>
@@ -53,7 +69,29 @@
 
     <param name="use_sim_time" value="true" />
 
-
+    <!-- add wind -->
+    <group if="$(arg wind_enabled)">
+        <param name="wind_plugin_sdf"
+                command="$(find xacro)/xacro.py $(arg wind_path)
+                        velocity_mean:=$(arg velocity_mean)
+                        velocity_max:=$(arg velocity_max)
+                        velocity_variance:=$(arg velocity_variance)
+                        direction:='$(arg direction)'
+                        direction_variance:=$(arg direction_variance)
+                        gust_start:=$(arg gust_start)
+                        gust_duration:=$(arg gust_duration)
+                        gust_velocity_mean:=$(arg gust_velocity_mean)
+                        gust_velocity_max:=$(arg gust_velocity_max)
+                        gust_velocity_variance:=$(arg gust_velocity_variance)
+                        gust_direction:='$(arg gust_direction)'
+                        gust_direction_variance:=$(arg gust_direction_variance)"/>
+                        
+        <node name="spawn_wind_plugin_model"
+                pkg="gazebo_ros"
+                type="spawn_model"
+                output="screen"
+                args="-param wind_plugin_sdf -sdf -model wind_plugin"/>
+    </group>
 
     <!-- add obstacles -->
     <group if="$(arg obst)">

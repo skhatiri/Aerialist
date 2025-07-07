@@ -1,0 +1,41 @@
+FROM ubuntu:latest
+
+# Install crosstool-ng dependencies
+RUN apt-get update && \
+    apt-get install -y gcc g++ gperf bison flex texinfo help2man make libncurses5-dev \
+    python3-dev autoconf automake libtool libtool-bin gawk wget bzip2 xz-utils unzip \
+    patch rsync meson ninja-build
+
+# Install crosstool-ng
+RUN wget http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.26.0.tar.bz2 && \
+    tar -xjf crosstool-ng-1.26.0.tar.bz2 && \
+    cd crosstool-ng-1.26.0 && \
+    ./configure --prefix=/crosstool-ng-1.26.0/out && \
+    make && \
+    make install
+
+ENV PATH=$PATH:/crosstool-ng-1.26.0/out/bin
+
+WORKDIR /sysroot_build
+
+# --- NEW: Create a non-root user and switch to it ---
+RUN useradd -ms /bin/bash ctuser
+
+# Create the working directory and set ownership to ctuser
+RUN mkdir -p /sysroot_build && chown ctuser:ctuser /sysroot_build
+
+# Switch to the non-root user
+USER ctuser
+
+# Copy your chosen config file for crosstool-ng (e.g., x86_64-gcc-8.5.0-glibc-2.28.config)
+# You would need to create or download this config.
+# For example, you might find example configs in the crosstool-ng source or community.
+# For demonstration, let's assume you have a config named 'my_glibc_2_28.config'
+COPY x86_64-gcc-8.5.0-glibc-2.28.config .config
+
+# Build the sysroot
+RUN ct-ng build
+
+# The sysroot will be in /sysroot_build/toolchain-dirc/build/<target-triple>/sysroot
+# You will need to extract this directory from the container after building.
+# Example path: /sysroot_build/toolchain-dirc/build/x86_64-pc-linux-gnu/sysroot
