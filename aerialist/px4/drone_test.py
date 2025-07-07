@@ -8,8 +8,6 @@ from .obstacle import Obstacle
 from .trajectory import Trajectory
 from . import file_helper
 
-from .wind import Wind  
-
 
 class DroneTest:
     def __init__(
@@ -108,11 +106,6 @@ class DroneTest:
                     for p in self.simulation.obstacles[3].to_params():
                         params += f"{p} "
 
-            if self.simulation.wind is not None:
-                params += "--wind "
-                for p in self.simulation.wind.to_params():
-                    params += f"{p} "
-                    
         if self.test is not None:
             if self.test.commands_file is not None:
                 params += f"--commands '{self.test.commands_file}' "
@@ -219,7 +212,6 @@ class SimulationConfig:
         headless=True,
         obstacles: List[Obstacle] | List[float] = None,
         home_position: List[float] = None,
-        wind: Wind | dict = None
     ) -> None:
         self.simulator = simulator
         self.world = world
@@ -236,13 +228,6 @@ class SimulationConfig:
                 self.obstacles = Obstacle.from_dict_multiple(obstacles)
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
-        
-        self.wind = None
-        if wind is not None:
-            if isinstance(wind, Wind):
-                self.wind = wind
-            else:
-                self.wind = Wind(Wind.Params(**wind)) 
 
     def to_dict(self):
         dic = {}
@@ -256,9 +241,7 @@ class SimulationConfig:
         if self.obstacles is not None:
             dic["obstacles"] = [obs.to_dict() for obs in self.obstacles]
         if self.home_position is not None:
-            dic["home_position"] = self.home_position       
-        if self.wind is not None:
-            dic["wind"] = self.wind.to_dict()
+            dic["home_position"] = self.home_position
         return dic
 
 

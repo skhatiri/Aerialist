@@ -53,5 +53,3 @@ nodeLanguageServer/**
 nodeLanguageServer.*/**
 .idea/
 k8s-config.yaml
-extracted_sysroot/
-build/

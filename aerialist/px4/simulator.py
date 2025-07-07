@@ -29,9 +29,6 @@ class Simulator(object):
     AVOIDANCE_BOX = config(
         "AVOIDANCE_BOX", default="aerialist/resources/simulation/box.xacro"
     )
-    WIND_CONFIG = config(
-        "WIND_CONFIG", default="aerialist/resources/simulation/wind_plugin.xacro"
-    )
     COPY_DIR = config("LOGS_COPY_DIR", None)
     LAND_TIMEOUT = 20
 
@@ -78,29 +75,8 @@ class Simulator(object):
                     sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[2].position.x} obst3_z:={self.config.obstacles[2].position.z} obst3_l:={self.config.obstacles[2].size.w} obst3_w:={self.config.obstacles[2].size.l} obst3_h:={self.config.obstacles[2].size.h} obst3_yaw:={math.radians(-self.config.obstacles[2].position.r)} "
                 if len(self.config.obstacles) > 3:
                     sim_command += f"obst4:=true obst4_x:={self.config.obstacles[3].position.y} obst4_y:={self.config.obstacles[3].position.x} obst4_z:={self.config.obstacles[3].position.z} obst4_l:={self.config.obstacles[3].size.w} obst4_w:={self.config.obstacles[3].size.l} obst4_h:={self.config.obstacles[3].size.h} obst4_yaw:={math.radians(-self.config.obstacles[3].position.r)} "
-            
-            sim_command += f"wind_path:={self.WIND_CONFIG} "
-            if self.config.wind is not None:
-                wind = self.config.wind.params
-                sim_command += (
-                    f"wind_enabled:=true "
-                    f"velocity_mean:={wind.velocity_mean} "
-                    f"velocity_max:={wind.velocity_max} "
-                    f"velocity_variance:={wind.velocity_variance} "
-                    f"direction:=\"{' '.join(map(str, wind.direction))}\" "
-                    f"direction_variance:={wind.direction_variance} "
-                    f"gust_start:={wind.gust_start} "
-                    f"gust_duration:={wind.gust_duration} "
-                    f"gust_velocity_mean:={wind.gust_velocity_mean} "
-                    f"gust_velocity_max:={wind.gust_velocity_max} "
-                    f"gust_velocity_variance:={wind.gust_velocity_variance} "
-                    f"gust_direction:=\"{' '.join(map(str, wind.gust_direction))}\" "
-                    f"gust_direction_variance:={wind.gust_direction_variance} "
-                )
-
 
         logger.debug("executing:" + sim_command)
-        
         self.sim_process = subprocess.Popen(
             sim_command,
             shell=True,
@@ -117,9 +93,7 @@ class Simulator(object):
             self.bkgnd.start()
             # self.bkgnd
         else:
-            # raise (Exception("Simulator could not start"))
-            print("Simulator launch failed. See logs above.")
-            return
+            raise (Exception("Simulator could not start"))
 
     def start(self) -> bool:
         try:
