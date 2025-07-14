@@ -6,7 +6,7 @@ drone:
 simulation:
   simulator: ros #{gazebo, jmavsim, ros} 
   speed: 1
-  headless: true
+  headless: false
   obstacles:
   - size:
       l: 5
@@ -17,6 +17,20 @@ simulation:
       y: 3
       z: 0
       r: 0
+
+  wind:
+    velocity_mean: 5.0
+    velocity_max: 20.0
+    velocity_variance: 0.0
+    direction: [1, 0, 0]
+    direction_variance: 0.0
+    gust_start: 0
+    gust_duration: 0
+    gust_velocity_mean: 0
+    gust_velocity_max: 20.0
+    gust_velocity_variance: 0
+    gust_direction: [1, 0, 0]
+    gust_direction_variance: 0
 
 test:
   commands_file: samples/flights/mission1-commands.csv
