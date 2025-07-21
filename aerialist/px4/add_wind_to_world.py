@@ -30,7 +30,7 @@ def insert_wind_plugin(world_path, wind, at_top=True):
 
     if wind is None:
         if existing_plugin is not None:
-            logger.debug(f"❌ Removed wind plugin from {world_path}")
+            logger.info(f"❌ Removed wind plugin from {world_path}")
         return  # Done: plugin was removed (if present), and no new one will be added
 
     # Create new wind plugin
@@ -67,4 +67,4 @@ def insert_wind_plugin(world_path, wind, at_top=True):
 
     tree.write(world_path, xml_declaration=True, encoding='utf-8')
 
-    logger.debug(f"✅ Wind plugin inserted into {world_path} (position: {'top' if at_top else 'bottom'})")
+    logger.info(f"✅ Wind plugin inserted into {world_path} (position: {'top' if at_top else 'bottom'})")
