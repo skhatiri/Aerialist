@@ -23,7 +23,7 @@ spec:
       containers:
         - name: init
           image: skhatiri/aerialist:k8s
-          imagePullPolicy: Always
+          # imagePullPolicy: Always
           stdin: true
           stdinOnce: false
           command:
@@ -42,12 +42,15 @@ spec:
               mountPath: /src/aerialist/results
           tty: true
         - name: sim
-          image: skhatiri/aerialist
-          imagePullPolicy: Always
+          image: skhatiri/aerialist-wind
+          imagePullPolicy: Never
           stdin: true
           stdinOnce: true
           command: 
-          tty: true            
+          tty: true
+          env:
+            - name: SIMULATION_TIMEOUT
+              value: '600'            
           volumeMounts:
             - mountPath: /root/.kube/config
               name: vol-k8s-conf
@@ -60,7 +63,7 @@ spec:
         - name: dockerhub
       initContainers:
       restartPolicy: Never
-      activeDeadlineSeconds: 600
+      activeDeadlineSeconds: 1000
   completions: 1
   suspend: false
   # activeDeadlineSeconds: 1000

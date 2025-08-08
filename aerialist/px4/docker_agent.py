@@ -9,6 +9,7 @@ import asyncio
 from . import file_helper
 from .drone_test import AgentConfig, DroneTest, DroneTestResult
 from .test_agent import TestAgent
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +72,10 @@ class DockerAgent(TestAgent):
         exec_process = subprocess.run(self.docker_cmd, shell=True, capture_output=True)
         self.process_output(
             exec_process.returncode,
-            exec_process.stdout.decode("ascii"),
-            exec_process.stderr.decode("ascii"),
+            exec_process.stdout.decode("utf-8", errors="strict")
+,
+            exec_process.stdout.decode("utf-8", errors="strict")
+,
             True,
         )
         logger.info("test execution finished")
@@ -86,13 +89,25 @@ class DockerAgent(TestAgent):
         )
         stdout, stderr = await exec_process.communicate()
         self.process_output(
-            exec_process.returncode, stdout.decode("ascii"), stderr.decode("ascii")
+            exec_process.returncode, stdout.decode("utf-8", errors="strict"), stderr.decode("utf-8", errors="strict")
         )
         logger.info("test execution finished")
 
     def process_output(self, returncode, stdout, stderr, print_logs=False):
         try:
-            container_log = stdout[stdout.find("LOG:") + 4 :].split()[0]
+            container_log = None
+
+            # First try the standard "LOG:" pattern
+            if "LOG:" in stdout:
+                container_log = stdout.split("LOG:")[1].split()[0]
+            # Fallback: look for "logging started:"
+            elif "logging started:" in stdout:
+                container_log = stdout.split("logging started:")[1].split()[0]
+            else:
+                logger.error("No log path found in stdout. Patterns checked: 'LOG:', 'logging started:'")
+                if print_logs:
+                    logger.info(stdout)
+                return  # Exit early since no logs were found
 
             if self.USE_VOLUME:
                 volume_folder = self.config.agent.path
@@ -103,7 +118,9 @@ class DockerAgent(TestAgent):
                 else:
                     log_add = f"{self.config.agent.path}{self.container_id[:12]}.ulg"
                 self.docker_cp_export(container_log, log_add)
+
             self.results.append(DroneTestResult(log_add))
+
             if print_logs:
                 logger.info("************************************")
                 logger.info("Logs from the Docker container:")
@@ -112,13 +129,18 @@ class DockerAgent(TestAgent):
                 if stderr:
                     logger.error(stderr)
                 logger.info("************************************")
-        except:
+
+        except Exception as e:
+            logger.error(f"Error processing output: {e}")
             if stdout:
                 logger.info(stdout)
             if stderr:
                 logger.error(stderr)
 
-        subprocess.run(f"docker kill {self.container_id}", shell=True)
+        if hasattr(self, 'container_id'):
+            subprocess.run(f"docker kill {self.container_id}", shell=True)
+        else:
+            logger.info("No container_id found; skipping kill.")
 
     def import_config(self):
         if self.config.agent.id is None:
@@ -249,12 +271,14 @@ class DockerAgent(TestAgent):
         return container_config
 
     def docker_cp_import(self, src, dest):
+        logger.debug(f"docker_cp_import: src={src}, dest={dest}")
         subprocess.run(
             f"docker cp '{src}' {self.container_id}:'{dest}'",
             shell=True,
         )
 
     def docker_cp_export(self, src, dest):
+        logger.debug(f"docker_cp_import: src={src}, dest={dest}")
         subprocess.run(
             f"docker cp {self.container_id}:'{src}' '{dest}'",
             shell=True,

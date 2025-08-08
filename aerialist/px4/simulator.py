@@ -10,6 +10,8 @@ import logging
 from . import file_helper
 from .drone_test import SimulationConfig
 import math
+from . import add_wind_to_world
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +57,21 @@ class Simulator(object):
                 sim_command += f"PX4_SIM_SPEED_FACTOR={self.config.speed} "
             sim_command += f"make -C {self.PX4_DIR} px4_sitl {self.config.simulator}"
         elif self.config.simulator == SimulationConfig.ROS:
+            
+            if self.config.wind is not None:
+                wind = self.config.wind.params
+                source = f"aerialist/resources/simulation/{self.AVOIDANCE_WORLD}.world"
+                add_wind_to_world.insert_wind_plugin(source, wind)
+
+                try:
+                    destination = os.path.join(self.CATKIN_DIR, "src/avoidance/avoidance/sim/worlds/")
+                    os.makedirs(destination, exist_ok=True)
+                    shutil.copy(source, destination)
+                    logger.debug(f"Copied world file to {destination}")
+                except Exception as e:
+                    logger.error(f"Failed to copy world file: {e}")
+                    raise
+
             self.log_dir = self.ROS_LOG_DIR
             sim_command += f"source {self.CATKIN_DIR}devel/setup.bash; "
             sim_command += (
@@ -79,6 +96,8 @@ class Simulator(object):
                     sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[2].position.x} obst3_z:={self.config.obstacles[2].position.z} obst3_l:={self.config.obstacles[2].size.w} obst3_w:={self.config.obstacles[2].size.l} obst3_h:={self.config.obstacles[2].size.h} obst3_yaw:={-self.config.obstacles[2].get_radians()} "
                 if len(self.config.obstacles) > 3:
                     sim_command += f"obst4:=true obst4_x:={self.config.obstacles[3].position.y} obst4_y:={self.config.obstacles[3].position.x} obst4_z:={self.config.obstacles[3].position.z} obst4_l:={self.config.obstacles[3].size.w} obst4_w:={self.config.obstacles[3].size.l} obst4_h:={self.config.obstacles[3].size.h} obst4_yaw:={-self.config.obstacles[3].get_radians()} "
+
+            
 
         logger.debug("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
