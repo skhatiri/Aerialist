@@ -23,7 +23,7 @@ spec:
       containers:
         - name: init
           image: skhatiri/aerialist:k8s
-          # imagePullPolicy: Always
+          imagePullPolicy: Always
           stdin: true
           stdinOnce: false
           command:
@@ -42,7 +42,7 @@ spec:
               mountPath: /src/aerialist/results
           tty: true
         - name: sim
-          image: skhatiri/aerialist-wind
+          image: skhatiri/aerialist
           imagePullPolicy: Never
           stdin: true
           stdinOnce: true
@@ -58,6 +58,13 @@ spec:
               subPath: k8s-config.yaml
             - name: host-path-volume
               mountPath: /src/aerialist/results
+          resources:
+            requests:
+              cpu: 6000m
+              memory: 2000Mi
+            limits:
+              cpu: 6000m
+              memory: 4000Mi
       affinity:
       imagePullSecrets:
         - name: dockerhub

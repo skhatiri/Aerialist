@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
 MAX_WEBDAV_RETRIES = 5
 RETRIES = 0
 
+def copy_local(src, dst_folder):
+    os.makedirs(dst_folder, exist_ok=True)
+    dst = os.path.join(dst_folder, os.path.basename(src))
+    shutil.copy(src, dst)
+    return dst
 
 def get_local_file(file_path: str):
     if is_webdav_address(file_path):
@@ -278,7 +283,6 @@ def download_dir(src_path: str, dest_path: str) -> str:
         else:
             raise (e)
     return dest_path
-
 
 def create_dir(path: str):
     global RETRIES

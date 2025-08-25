@@ -4,16 +4,16 @@ class Wind:
     class Params(NamedTuple):
         velocity_mean: float
         velocity_max: float
-        velocity_variance: float
         direction: Tuple[float, float, float]
-        direction_variance: float
-        gust_start: float
-        gust_duration: float
-        gust_velocity_mean: float
-        gust_velocity_max: float
-        gust_velocity_variance: float
-        gust_direction: Tuple[float, float, float]
-        gust_direction_variance: float
+        velocity_variance: float = 0
+        direction_variance: float = 0
+        gust_start: float = 0
+        gust_duration: float = 0
+        gust_velocity_mean: float = 0
+        gust_velocity_max: float = 0
+        gust_velocity_variance: float = 0
+        gust_direction: Tuple[float, float, float] = [0, 0, 0]
+        gust_direction_variance: float = 0
 
     def __init__(self, params: Params) -> None:
         self.params = params
