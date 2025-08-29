@@ -18,20 +18,11 @@ simulation:
       z: 0
       r: 0
 
-  wind:
-    velocity_mean: 5
-    velocity_max: 15.0
-    # velocity_variance: 0.0
-    direction: [1, 1, 0]
-    # direction_variance: 0.0
-    # gust_start: 0
-    # gust_duration: 0
-    # gust_velocity_mean: 0
-    # gust_velocity_max: 15.0
-    # gust_velocity_variance: 0
-    # gust_direction: [0, 0, 0]
-    # gust_direction_variance: 0
-
+  # wind:
+  #   velocity_mean: 3
+  #   velocity_max: 5.0
+  #   direction: [1, 0, 0]
+    
   # home_position: [lat,lon,alt]  
 test:
   commands_file: samples/flights/mission1-commands.csv
@@ -43,6 +34,6 @@ assertion:
 agent:
   engine: k8s # {k8s, docker, local}
   count: 3
-  path: /home/ali/UniBern/PHD/UAVProjects/Aerialist/results # webdav://test/ # /home/git/Aerialist/results 
+  path: /tmp/Aerialist-results # webdav://test/ # /home/git/Aerialist/results 
   id: yaml-test
 

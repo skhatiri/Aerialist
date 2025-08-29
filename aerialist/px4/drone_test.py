@@ -250,7 +250,7 @@ class SimulationConfig:
             if isinstance(wind, Wind):
                 self.wind = wind
             else:
-                self.wind = Wind(Wind.Params(**wind))
+                self.wind = Wind(**wind)
 
     def to_dict(self):
         dic = {}
