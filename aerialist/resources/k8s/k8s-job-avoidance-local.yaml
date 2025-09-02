@@ -43,7 +43,7 @@ spec:
           tty: true
         - name: sim
           image: skhatiri/aerialist
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           stdin: true
           stdinOnce: true
           command: 

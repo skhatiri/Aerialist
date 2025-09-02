@@ -9,7 +9,6 @@ from decouple import config
 import logging
 from . import file_helper
 from .drone_test import SimulationConfig
-import math
 import shutil
 
 logger = logging.getLogger(__name__)
@@ -25,7 +24,10 @@ class Simulator(object):
     ROS_LOG_DIR = config("ROS_HOME", default=None)
     GAZEBO_GUI_AVOIDANCE = True
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
-    AVOIDANCE_WORLD_PATH = config("AVOIDANCE_WORLD_PATH", default="aerialist/resources/simulation/collision_prevention.world")
+    AVOIDANCE_WORLD_PATH = config(
+        "AVOIDANCE_WORLD_PATH",
+        default="aerialist/resources/simulation/collision_prevention.world",
+    )
     AVOIDANCE_LAUNCH = config(
         "AVOIDANCE_LAUNCH",
         default="aerialist/resources/simulation/collision_prevention.launch",
@@ -57,14 +59,16 @@ class Simulator(object):
                 sim_command += f"PX4_SIM_SPEED_FACTOR={self.config.speed} "
             sim_command += f"make -C {self.PX4_DIR} px4_sitl {self.config.simulator}"
         elif self.config.simulator == SimulationConfig.ROS:
-            
+
             if self.config.wind is not None:
                 wind = self.config.wind
                 source = self.AVOIDANCE_WORLD_PATH
                 wind.insert_wind_plugin(source)
 
                 try:
-                    destination = os.path.join(self.CATKIN_DIR, "src/avoidance/avoidance/sim/worlds/")
+                    destination = os.path.join(
+                        self.CATKIN_DIR, "src/avoidance/avoidance/sim/worlds/"
+                    )
                     os.makedirs(destination, exist_ok=True)
                     shutil.copy(source, destination)
                     logger.debug(f"Copied world file to {destination}")

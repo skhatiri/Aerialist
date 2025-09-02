@@ -9,7 +9,6 @@ import asyncio
 from . import file_helper
 from .drone_test import AgentConfig, DroneTest, DroneTestResult
 from .test_agent import TestAgent
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -72,10 +71,8 @@ class DockerAgent(TestAgent):
         exec_process = subprocess.run(self.docker_cmd, shell=True, capture_output=True)
         self.process_output(
             exec_process.returncode,
-            exec_process.stdout.decode("utf-8", errors="strict")
-,
-            exec_process.stdout.decode("utf-8", errors="strict")
-,
+            exec_process.stdout.decode("utf-8", errors="strict"),
+            exec_process.stdout.decode("utf-8", errors="strict"),
             True,
         )
         logger.info("test execution finished")
@@ -89,7 +86,9 @@ class DockerAgent(TestAgent):
         )
         stdout, stderr = await exec_process.communicate()
         self.process_output(
-            exec_process.returncode, stdout.decode("utf-8", errors="strict"), stderr.decode("utf-8", errors="strict")
+            exec_process.returncode,
+            stdout.decode("utf-8", errors="strict"),
+            stderr.decode("utf-8", errors="strict"),
         )
         logger.info("test execution finished")
 
@@ -104,7 +103,9 @@ class DockerAgent(TestAgent):
             elif "logging started:" in stdout:
                 container_log = stdout.split("logging started:")[1].split()[0]
             else:
-                logger.error("No log path found in stdout. Patterns checked: 'LOG:', 'logging started:'")
+                logger.error(
+                    "No log path found in stdout. Patterns checked: 'LOG:', 'logging started:'"
+                )
                 if print_logs:
                     logger.info(stdout)
                 return  # Exit early since no logs were found
@@ -137,7 +138,7 @@ class DockerAgent(TestAgent):
             if stderr:
                 logger.error(stderr)
 
-        if hasattr(self, 'container_id'):
+        if hasattr(self, "container_id"):
             subprocess.run(f"docker kill {self.container_id}", shell=True)
         else:
             logger.info("No container_id found; skipping kill.")

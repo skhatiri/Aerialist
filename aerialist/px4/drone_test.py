@@ -9,7 +9,8 @@ from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
 from . import file_helper
-from .wind import Wind  
+from .wind import Wind
+
 
 class DroneTest:
     LOAD_HOME_FROM_LOG = config("LOAD_HOME_FROM_LOG", cast=bool, default=True)

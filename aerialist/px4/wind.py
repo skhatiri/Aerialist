@@ -6,20 +6,22 @@ logger = logging.getLogger(__name__)
 
 
 class Wind:
-    def __init__(self,
-                 velocity_mean: float,
-                 velocity_max: float,
-                 direction: Tuple[float, float, float],
-                 velocity_variance: float = 0,
-                 direction_variance: float = 0,
-                 gust_start: float = 0,
-                 gust_duration: float = 0,
-                 gust_velocity_mean: float = 0,
-                 gust_velocity_max: float = 0,
-                 gust_velocity_variance: float = 0,
-                 gust_direction: Tuple[float, float, float] = (0, 0, 0),
-                 gust_direction_variance: float = 0):
-        
+    def __init__(
+        self,
+        velocity_mean: float,
+        velocity_max: float,
+        direction: Tuple[float, float, float],
+        velocity_variance: float = 0,
+        direction_variance: float = 0,
+        gust_start: float = 0,
+        gust_duration: float = 0,
+        gust_velocity_mean: float = 0,
+        gust_velocity_max: float = 0,
+        gust_velocity_variance: float = 0,
+        gust_direction: Tuple[float, float, float] = (0, 0, 0),
+        gust_direction_variance: float = 0,
+    ):
+
         self.velocity_mean = velocity_mean
         self.velocity_max = velocity_max
         self.direction = direction
@@ -79,10 +81,10 @@ class Wind:
             return  # Done: plugin was removed (if present), and no new one will be added
 
         # Create new wind plugin
-        plugin = ET.Element("plugin", attrib={
-            "name": "wind_plugin",
-            "filename": "libgazebo_wind_plugin.so"
-        })
+        plugin = ET.Element(
+            "plugin",
+            attrib={"name": "wind_plugin", "filename": "libgazebo_wind_plugin.so"},
+        )
 
         def add_tag(tag, text):
             el = ET.SubElement(plugin, tag)
@@ -110,6 +112,8 @@ class Wind:
         else:
             world_tag.append(plugin)
 
-        tree.write(world_path, xml_declaration=True, encoding='utf-8')
+        tree.write(world_path, xml_declaration=True, encoding="utf-8")
 
-        logger.info(f"✅ Wind plugin inserted into {world_path} (position: {'top' if at_top else 'bottom'})")
+        logger.info(
+            f"✅ Wind plugin inserted into {world_path} (position: {'top' if at_top else 'bottom'})"
+        )
