@@ -20,10 +20,11 @@ Aerialist can connect both to a cloud Kubernetes cluster, or a local instance (m
       ```
 
 ## Using Local Kubernetes Instance (Experimental)
-Note: Make sure to use this branch (ie. refactor-docker-agent) to build the docker image
+
+Note: Make sure to use the latest branch (ie. refactor-docker-agent) to build the docker image
 This guide explains how to set up a local Kubernetes instance using Docker Desktop for the purpose of running a specific task.
 
-1. **Install Docker Desktop**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) on your Ubuntu 20.04 machine.
+1. **Install Docker Desktop**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) on your Ubuntu machine.
 
 2. **Enable Local Kubernetes**: In Docker Desktop, enable local Kubernetes. You can find this option in the Docker Desktop settings.
 
