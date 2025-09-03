@@ -47,9 +47,12 @@ Hence, Aerialist models a UAV test case with the following set of *test properti
 
 - **Environment**: Simulation settings such as the used simulator, physics of the simulated UAV, simulation world (e.g., surface material, UAV’s initial position), surrounding objects (e.g., obstacles size, position), weather conditions (e.g., wind, lighting), etc.
 
+  Aerialist also supports simulating **wind conditions** in the test environment. Users can specify wind parameters such as mean and maximum velocity, as well as wind direction, directly in the YAML configuration. This enables more realistic UAV testing under environmental disturbances and allows researchers to evaluate system robustness against weather-related factors.
+
 - **Commands**: Timestamped external commands from the ground control station (GCS) or the remote controller (RC) to the UAV during the flight (e.g., change  flight mode, go in a specific direction, enter mission mode).
 
 - **Expectation (optional)**: a time series of certain sensor readings that the test flights are expected to follow closely.
+
 
 ### UAV Testing Competition
 
