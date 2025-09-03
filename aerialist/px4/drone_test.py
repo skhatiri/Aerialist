@@ -9,6 +9,7 @@ from .command import Command
 from .obstacle import Obstacle
 from .trajectory import Trajectory
 from . import file_helper
+from .wind import Wind
 
 
 class DroneTest:
@@ -122,6 +123,10 @@ class DroneTest:
                     params += "--obstacle4 "
                     for p in self.simulation.obstacles[3].to_params():
                         params += f"{p} "
+            if self.simulation.wind is not None:
+                params += "--wind "
+                for p in self.simulation.wind.to_params():
+                    params += f"{p} "
 
         if self.mission is not None:
             if self.mission.commands_file is not None:
@@ -221,6 +226,7 @@ class SimulationConfig:
         headless=True,
         obstacles: List[Obstacle] | List[float] = None,
         home_position: List[float] = None,
+        wind: Wind | dict = None,
         timeout: int = -1,
     ) -> None:
         self.simulator = simulator
@@ -240,6 +246,13 @@ class SimulationConfig:
             else:
                 self.obstacles = Obstacle.from_coordinates_multiple(obstacles)
 
+        self.wind = None
+        if wind is not None:
+            if isinstance(wind, Wind):
+                self.wind = wind
+            else:
+                self.wind = Wind(**wind)
+
     def to_dict(self):
         dic = {}
         if self.simulator is not None:
@@ -255,6 +268,8 @@ class SimulationConfig:
             dic["home_position"] = self.home_position
         if self.timeout > 0:
             dic["timeout"] = self.timeout
+        if self.wind is not None:
+            dic["wind"] = self.wind.to_dict()
         return dic
 
 

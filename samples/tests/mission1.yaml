@@ -18,6 +18,11 @@ simulation:
       z: 0
       r: 0
 
+  # wind:
+  #   velocity_mean: 3.0
+  #   velocity_max: 5.0
+  #   direction: [1, 0, 0]
+
 test:
   commands_file: samples/flights/mission1-commands.csv
 

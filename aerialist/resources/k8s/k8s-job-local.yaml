@@ -17,7 +17,7 @@ spec:
           hostPath:
             path: VOLUME
       containers:
-        - imagePullPolicy: Always
+        - imagePullPolicy: IfNotPresent
           name: container-0
           image: skhatiri/aerialist
           stdin: true

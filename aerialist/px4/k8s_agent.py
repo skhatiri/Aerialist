@@ -55,7 +55,7 @@ class K8sAgent(DockerAgent):
             else:
                 template = self.DEFAULT_LOCAL_KUBE_TEMPLATE
 
-            host_volume_prefix = "/host_mnt"
+            host_volume_prefix = "/host_mnt/"
             kube_cmd = self.KUBE_LOCAL_CMD.format(
                 name=self.config.agent.id,
                 command=cmd,
