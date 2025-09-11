@@ -19,7 +19,7 @@ spec:
       containers:
         - imagePullPolicy: IfNotPresent
           name: container-0
-          image: skhatiri/aerialist
+          image: skhatiri/aerialist:0.3.0
           stdin: true
           stdinOnce: false
           command:

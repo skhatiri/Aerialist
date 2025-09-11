@@ -22,7 +22,7 @@ spec:
           name: vol-k8s-conf
       containers:
         - name: init
-          image: skhatiri/aerialist:k8s
+          image: skhatiri/aerialist:k8s_0.3.0
           imagePullPolicy: IfNotPresent
           stdin: true
           stdinOnce: false
@@ -42,7 +42,7 @@ spec:
               mountPath: /src/aerialist/results
           tty: true
         - name: sim
-          image: skhatiri/aerialist
+          image: skhatiri/aerialist:0.3.0
           imagePullPolicy: IfNotPresent
           stdin: true
           stdinOnce: true
