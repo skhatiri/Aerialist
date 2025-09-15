@@ -53,9 +53,8 @@ class K8sAgent(DockerAgent):
             else:
                 template = self.DEFAULT_LOCAL_KUBE_TEMPLATE
 
-            # Fix: Ensure proper path handling without double slashes
-            host_volume = self.config.agent.path.rstrip('/')
-            
+            host_volume = self.config.agent.path.rstrip("/")
+
             kube_cmd = self.KUBE_LOCAL_CMD.format(
                 name=self.config.agent.id,
                 command=cmd,
@@ -168,6 +167,11 @@ class K8sAgent(DockerAgent):
 
         # Assertion Config
         container_config.assertion = None
+        # if self.config.assertion is not None:
+        #     if self.config.assertion.log_file is not None:
+        #         k8s_config.assertion.log_file = file_helper.upload(
+        #             self.config.assertion.log_file, cloud_folder
+        #         )
 
         if container_config.agent is not None:
             container_config.agent.engine = AgentConfig.LOCAL
@@ -180,61 +184,6 @@ class K8sAgent(DockerAgent):
             self.container_test_yaml, cloud_folder
         )
         logger.info(f"files uploaded")
-        return container_config
-
-    def copy_files_volume(self):
-        volume_folder = self.config.agent.path
-        container_config = deepcopy(self.config)
-        os.makedirs(volume_folder, exist_ok=True)
-
-        # Drone Config
-        if self.config.drone is not None:
-            if self.config.drone.mission_file is not None:
-                container_config.drone.mission_file = file_helper.copy(
-                    self.config.drone.mission_file, volume_folder
-                ).replace(volume_folder, self.VOLUME_PATH)
-            if (
-                self.config.drone.params is None
-                and self.config.drone.params_file is not None
-            ):
-                container_config.drone.params_file = file_helper.copy(
-                    self.config.drone.params_file, volume_folder
-                ).replace(volume_folder, self.VOLUME_PATH)
-
-        # Test Config
-        if self.config.mission is not None:
-            self.config.mission.save_commands_list_if_needed(self.config.agent.path)
-            if (
-                self.config.mission.commands_file is not None
-                and self.config.mission.commands is not None
-                and len(self.config.mission.commands)
-                > self.config.mission.MAX_INLINE_COMMANDS
-            ):
-                container_config.mission.commands_file = file_helper.copy(
-                    self.config.mission.commands_file, volume_folder
-                ).replace(volume_folder, self.VOLUME_PATH)
-
-        # Assertion Config
-        container_config.assertion = None
-
-        if container_config.agent is not None:
-            container_config.agent.engine = AgentConfig.LOCAL
-            container_config.agent.count = 1
-            container_config.agent.path = None
-
-        # CRITICAL FIX: Create YAML file on host but command expects container path
-        yaml_filename = f"{self.config.agent.id}.yaml"
-        yaml_host_path = os.path.join(volume_folder, yaml_filename)
-
-        # Create the YAML file on the host filesystem 
-        container_config.to_yaml(yaml_host_path)
-
-        # But tell the command to look for it at the container mount point
-        # The volume maps host volume_folder -> VOLUME_PATH in container
-        # So the file will be accessible at VOLUME_PATH + yaml_filename
-        self.container_test_yaml = os.path.join(self.VOLUME_PATH, yaml_filename)
-
-        logger.info(f"files copied")
         return container_config
 
     async def wait_success(self, job_id):
