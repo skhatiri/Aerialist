@@ -377,12 +377,26 @@ class AgentConfig:
 
 class DroneTestResult:
     class Status(Enum):
-        PASS = "pass"
+        # unknown: no information about the test result.
         UNKNOWN = "unknown"
-        FAIL = "fail"
-        TIMEOUT = "timeout"
-        STUCK = "stuck"
+        # pending: the test is still in progress.
+        PENDING = "pending"
+        # error: an unexpected runtime error occurred during the test execution.
         ERROR = "error"
+
+        # collision: The robot collided to the obstacles during the test.
+        COLLISION = "collision"
+        # safety_stop (stuck): The robot is unable to move further due to a collision prevention fail-safe mechanism. It will remain stationary until the timeout reaches.
+        SAFETY_STOP = "safety_stop"
+        # blocked (local minima): The robot keeps looking for a way to move forward between obstacles until the timeout reaches. It is moving close to/ around obstacles with no/limited progress towards the goal.
+        BLOCKED = "blocked"
+        # timeout: General timeout before reaching the goal, except the above conditions.
+        TIMEOUT = "timeout"
+        # failure: General failure to reach the goal, except above conditions.
+        FAILURE = "failure"
+
+        # success (pass): The robot reaches the goal in time, without any collisions to the obstacles.
+        SUCCESS = "success"
 
     def __init__(
         self,

@@ -13,6 +13,7 @@ from .test_agent import TestAgent
 logger = logging.getLogger(__name__)
 
 
+# extension_hint: implement a subclass for the specific usecase, handing setting up the docker container, executing the tests, copying files in and out, and parsing the results
 class DockerAgent(TestAgent):
     CMD = "python3 aerialist exec --test {test_file}"
     DOCKER_CMD = "docker exec -it {id} {cmd}"
@@ -120,7 +121,10 @@ class DockerAgent(TestAgent):
                     log_add = f"{self.config.agent.path}{self.container_id[:12]}.ulg"
                 self.docker_cp_export(container_log, log_add)
 
-            self.results.append(DroneTestResult(log_add))
+            # extension_hint: infer the test status from the log
+            # extension_hint: use usecase specific trajectory class as the variable type
+            result = DroneTestResult(log_add, status=DroneTestResult.UNKNOWN)
+            self.results.append(result)
 
             if print_logs:
                 logger.info("************************************")

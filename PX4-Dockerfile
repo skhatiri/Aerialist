@@ -1,3 +1,4 @@
+### base image containing ROS Melodic and PX4 development environment
 FROM px4io/px4-dev-ros-melodic:2021-09-08
 
 # Setting up PX4-Autopilot

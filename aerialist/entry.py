@@ -5,7 +5,6 @@ import os
 import sys
 from decouple import config
 
-
 try:
     from .px4.k8s_agent import K8sAgent
     from .px4.local_agent import LocalAgent
@@ -20,6 +19,10 @@ try:
         DroneTestResult,
     )
     from .px4.plot import Plot
+
+    # extension_hint: import usecase specific trajectory class
+    # extension_hint: import usecase specific agent class
+
 except:
     from px4.k8s_agent import K8sAgent
     from px4.local_agent import LocalAgent
@@ -34,6 +37,9 @@ except:
         DroneTestResult,
     )
     from px4.plot import Plot
+
+    # extension_hint: import usecase specific trajectory class
+    # extension_hint: import usecase specific agent class
 
 
 logger = logging.getLogger(__name__)
@@ -240,6 +246,7 @@ def execute_test(test: DroneTest):
         agent = DockerAgent(test)
     if test.agent.engine == AgentConfig.K8S:
         agent = K8sAgent(test)
+    # extension_hint: use usecase specific agent here
 
     logger.info("running the test...")
     test_results = agent.run()
@@ -292,6 +299,9 @@ def config_loggers():
 
 def main():
     try:
+        # extension_hint: should refer to usecase specific trajectory class
+        # todo: move this to a better place
+        # AssertionConfig.TRAJECTORY = Trajectory
         config_loggers()
         args = arg_parse()
         logger.info(f"preparing the test ...{args}")

@@ -8,6 +8,7 @@ import pandas as pd
 import similaritymeasures
 import ruptures as rpt
 from shapely.geometry import LineString
+import shapely
 from decouple import config
 from tslearn.barycenters import softdtw_barycenter
 import warnings
@@ -30,6 +31,9 @@ class Trajectory(object):
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
     TIME_SCALE = 1000000.0
     VEHICLE_WIDTH = 0.25  # meters
+    CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE = False
+    VEHICLE_SHAPE = Obstacle.CYLINDER
+    VEHICLE_SIZE = Obstacle.Size(r=0.125, h=0.25)
     WAYPOINT_WIDTH = 0.40  # meters - possibly bigger than vechicle width to be visible
 
     def __init__(self, positions: List[Position]) -> None:
@@ -149,13 +153,24 @@ class Trajectory(object):
         return type(self)(down_sampled)
 
     def min_distance_to_obstacles(self, obstacles: List[Obstacle]):
-        line = self.to_thick_line()
-        return min(obst.distance(line) for obst in obstacles)
+        if not self.CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE:
+            line = self.to_thick_line()
+            return min(obst.distance(line) for obst in obstacles)
+        else:
+            coverage = self.get_covered_geometries()
+            coverage_union = shapely.union_all(coverage)
+            return min(obst.distance(coverage_union) for obst in obstacles)
 
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
-        return Obstacle.distance_to_many(
-            obstacles, self.to_line(), (self.VEHICLE_WIDTH / 2)
-        )
+        if not self.CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE:
+            return Obstacle.distance_to_many(
+                obstacles, self.to_line(), (self.VEHICLE_WIDTH / 2)
+            )
+        else:
+            obstacles = [o.geometry for o in obstacles]
+            coverage = self.get_covered_geometries()
+            dist = min([sum([b.distance(c) for b in obstacles]) for c in coverage])
+            return dist
 
     def to_thick_line(self):
         line = self.to_line()
@@ -166,6 +181,22 @@ class Trajectory(object):
         points = self.to_data_frame()[:, 1:4]
         line = LineString(points)
         return line
+
+    def get_covered_geometries(self):
+        """get the covered area of the trajectory considering vechile shape and size"""
+        points = self.to_data_frame()
+        shapes = [
+            Obstacle(
+                self.VEHICLE_SIZE,
+                Obstacle.Position(
+                    p[1], p[2], 0, p[4] if Obstacle.USE_RADIANS else math.degrees(p[4])
+                ),
+                self.VEHICLE_SHAPE,
+            )
+            for p in points
+        ]
+        geometries = [s.geometry for s in shapes]
+        return geometries
 
     @classmethod
     def extract(cls, address: str) -> Trajectory:
