@@ -52,19 +52,18 @@ class K8sAgent(DockerAgent):
         )
         logger.debug("docker command:" + cmd)
 
-        host_volume_prefix = ""
-
         if self.USE_VOLUME:
             if self.config.simulation.simulator == SimulationConfig.ROS:
                 template = self.ROS_LOCAL_KUBE_TEMPLATE
             else:
                 template = self.DEFAULT_LOCAL_KUBE_TEMPLATE
 
-            host_volume_prefix = "/host_mnt/"
+            host_volume = self.config.agent.path.rstrip("/")
+
             kube_cmd = self.KUBE_LOCAL_CMD.format(
                 name=self.config.agent.id,
                 command=cmd,
-                host_volume=host_volume_prefix + self.config.agent.path,
+                host_volume=host_volume,
                 runs=self.config.agent.count,
                 template=template,
             )
@@ -88,7 +87,7 @@ class K8sAgent(DockerAgent):
         if kube_prc.returncode == 0:
             logger.info("waiting for k8s job to finish ...")
             loop = asyncio.get_event_loop()
-            succes = loop.run_until_complete(self.wait_success(self.config.agent.id))
+            success = loop.run_until_complete(self.wait_success(self.config.agent.id))
             logger.info("k8s job finished")
             if self.USE_VOLUME:
                 local_folder = self.config.agent.path

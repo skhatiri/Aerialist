@@ -269,9 +269,15 @@ class DockerAgent(TestAgent):
             container_config.agent.count = 1
             container_config.agent.path = None
 
-        self.container_test_yaml = container_config.to_yaml(
-            f"{volume_folder}{self.config.agent.id}.yaml"
-        ).replace(volume_folder, self.VOLUME_PATH)
+        # Save YAML file
+        yaml_filename = f"{self.config.agent.id}.yaml"
+        yaml_host_path = os.path.join(volume_folder, yaml_filename)
+        # create the YAML file on the host filesystem
+        container_config.to_yaml(yaml_host_path)
+        # convert the host address to container adress
+        # the volume maps host volume_folder -> VOLUME_PATH in container
+        self.container_test_yaml = os.path.join(self.VOLUME_PATH, yaml_filename)
+
         logger.info(f"files copied")
         return container_config
 
