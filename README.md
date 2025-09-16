@@ -216,7 +216,7 @@ Using a predefined [test-description yaml file](samples/tests/template-test.yaml
 ```yaml
 # template-test.yaml
 robot:
-  type: px4_sitl # type of the drone to connect to {px4_sitl, px4_ros, px4_cf}
+  port: px4_sitl # type of the drone to connect to {px4_sitl, px4_ros, px4_cf}
   #params: #PX4 parameters : https://docs.px4.io/main/en/advanced_config/parameter_reference.html
     # {parameter_name}: {parameter_value} #(keep datatype -> e.g, 1.0 for float, 1 for int)
     # CP_DIST: 1.0

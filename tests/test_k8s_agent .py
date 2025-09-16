@@ -28,7 +28,7 @@ class TestK8sAgent(unittest.TestCase):
             headless=True, simulator=SimulationConfig.GAZEBO
         )
         drone_config = RobotConfig(
-            type=RobotConfig.PX4_SITL_PORT,
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
@@ -52,7 +52,7 @@ class TestK8sAgent(unittest.TestCase):
             headless=True, simulator=SimulationConfig.GAZEBO
         )
         drone_config = RobotConfig(
-            type=RobotConfig.PX4_SITL_PORT,
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )

@@ -1,5 +1,5 @@
 robot:
-  type: px4_ros #{sitl, ros, cf}
+  port: px4_ros #{sitl, ros, cf}
   params_file: samples/flights/mission1-params.csv 
   mission_file: samples/flights/mission1.plan
 

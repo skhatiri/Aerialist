@@ -19,7 +19,7 @@ class Drone(object):
     def __init__(self, config: RobotConfig) -> None:
         super().__init__()
         self.config = config
-        self.address = f"udp://:{self.config.type}"
+        self.address = f"udp://:{self.config.port}"
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect_async(self.address))
 

@@ -1,5 +1,5 @@
 robot:
-  type: px4_sitl #{sitl, ros, cf}
+  port: px4_sitl #{sitl, ros, cf}
   #params: #PX4 parameters : https://docs.px4.io/main/en/advanced_config/parameter_reference.html
     # {parameter_name}: {parameter_value} #(keep datatype -> e.g, 1.0 for float, 1 for int)
     # CP_DIST: 1.0

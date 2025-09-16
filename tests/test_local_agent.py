@@ -33,7 +33,7 @@ class TestLocalAgent(unittest.TestCase):
     def test_drone(self):
         """needs the simulator to be already running"""
         drone_config = RobotConfig(
-            type=RobotConfig.PX4_SITL_PORT,
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
@@ -47,7 +47,7 @@ class TestLocalAgent(unittest.TestCase):
             headless=False, simulator=SimulationConfig.GAZEBO
         )
         drone_config = RobotConfig(
-            type=RobotConfig.PX4_SITL_PORT,
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )

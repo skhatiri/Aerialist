@@ -92,8 +92,8 @@ class AerialistTest:
         # CMD must be updated if the interface in entry.py changes
         params = "exec "
         if self.robot is not None:
-            if self.robot.type is not None:
-                params += f"--robot {self.robot.type} "
+            if self.robot.port is not None:
+                params += f"--robot {self.robot.port} "
             if self.robot.params_file is not None:
                 params += f"--params '{self.robot.params_file}' "
             if self.robot.mission_file is not None:
@@ -175,22 +175,22 @@ class RobotConfig:
 
     def __init__(
         self,
-        type: int | str = PX4_SITL_PORT,
+        port: int | str = PX4_SITL_PORT,
         params: dict = None,
         params_file: str = None,
         mission_file: str = None,
     ) -> None:
-        if isinstance(type, int):
-            self.type = type
+        if isinstance(port, int):
+            self.port = port
         else:
-            if type.isdigit():
-                self.type = int(type)
-            if type == "px4_sitl" or type == "sitl" or type == "sim":
-                self.type = self.PX4_SITL_PORT
-            if type == "px4_ros" or type == "ros" or type == "avoidance":
-                self.type = self.PX4_ROS_PORT
-            if type == "px4_cf" or type == "cf" or type == "hw":
-                self.type = self.PX4_CF_PORT
+            if port.isdigit():
+                self.port = int(port)
+            if port == "px4_sitl" or port == "sitl" or port == "sim":
+                self.port = self.PX4_SITL_PORT
+            if port == "px4_ros" or port == "ros" or port == "avoidance":
+                self.port = self.PX4_ROS_PORT
+            if port == "px4_cf" or port == "cf" or port == "hw":
+                self.port = self.PX4_CF_PORT
         self.params = params
         self.params_file = params_file
         if params is None and params_file is not None:
@@ -204,8 +204,8 @@ class RobotConfig:
 
     def to_dict(self):
         dic = {}
-        if self.type is not None:
-            dic["type"] = self.type
+        if self.port is not None:
+            dic["port"] = self.port
         if self.params is not None:
             dic["params"] = self.params
         elif self.params_file is not None:

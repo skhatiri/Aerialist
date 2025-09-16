@@ -1,5 +1,5 @@
 robot:
-  type: px4_sitl #{sitl, ros, cf}
+  port: px4_sitl #{sitl, ros, cf}
   
 simulation:
   simulator: gazebo #{gazebo,jmavsim,ros} 

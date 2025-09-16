@@ -198,7 +198,7 @@ def run_experiment(args):
 
     else:
         robot_config = RobotConfig(
-            type=args.robot,
+            port=args.robot,
             params_file=args.params,
             mission_file=args.mission,
         )
