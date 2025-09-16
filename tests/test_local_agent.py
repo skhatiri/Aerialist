@@ -32,13 +32,13 @@ class TestLocalAgent(unittest.TestCase):
 
     def test_drone(self):
         """needs the simulator to be already running"""
-        drone_config = RobotConfig(
+        robot_config = RobotConfig(
             port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
         test_config = MissionConfig(commands="aerialist/resources/logs/t0.ulg")
-        drone = Drone(drone_config)
+        drone = Drone(robot_config)
         drone.schedule_test(test_config)
         drone.run_scheduled()
 
@@ -46,7 +46,7 @@ class TestLocalAgent(unittest.TestCase):
         simulation_config = SimulationConfig(
             headless=False, simulator=SimulationConfig.GAZEBO
         )
-        drone_config = RobotConfig(
+        robot_config = RobotConfig(
             port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
@@ -56,7 +56,7 @@ class TestLocalAgent(unittest.TestCase):
             "aerialist/resources/logs/t0.ulg", variable=AssertionConfig.TRAJECTORY
         )
         test = AerialistTest(
-            drone_config, simulation_config, test_config, assertion_config
+            robot_config, simulation_config, test_config, assertion_config
         )
         agent = LocalAgent(test)
         agent.run(test)

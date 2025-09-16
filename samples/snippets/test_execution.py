@@ -10,7 +10,7 @@ test = AerialistTest.from_yaml("samples/tests/mission1-local.yaml")
 ### just a few samples here
 # test.simulation.obstacles = [Obstacle()]
 # test.agent.engine=test.agent.DOCKER
-# test.drone.mission_file = new_mission_file_address
+# test.robot.mission_file = new_mission_file_address
 #
 
 ### execute the test using the docker agent
