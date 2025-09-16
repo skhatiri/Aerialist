@@ -4,6 +4,8 @@ from typing import List, Union
 import munch
 import yaml
 from decouple import config
+import logging
+
 
 from .command import Command
 from .obstacle import Obstacle
@@ -11,6 +13,7 @@ from .trajectory import Trajectory
 from . import file_helper
 from .wind import Wind
 
+logger = logging.getLogger(__name__)
 
 class AerialistTest:
     LOAD_HOME_FROM_LOG = config("LOAD_HOME_FROM_LOG", cast=bool, default=True)
@@ -50,12 +53,14 @@ class AerialistTest:
         if data_dict.robot is not None:
             config.robot = RobotConfig(**data_dict.robot)
         elif data_dict.drone is not None:  # for compatibility with old versions
+            logger.warning("'drone' key is deprecated. Please use 'robot' instead in your test files.",)
             config.robot = RobotConfig(**data_dict.drone)
         if data_dict.simulation is not None:
             config.simulation = SimulationConfig(**data_dict.simulation)
         if data_dict.mission is not None:
             config.mission = MissionConfig(**data_dict.mission)
         elif data_dict.test is not None:  # for compatibility with old versions
+            logger.warning("'test' key is deprecated. Please use 'mission' instead in your test files.",            )
             config.mission = MissionConfig(**data_dict.test)
         if data_dict.assertion is not None:
             config.assertion = AssertionConfig(**data_dict.assertion)
