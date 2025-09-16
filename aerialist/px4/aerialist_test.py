@@ -12,18 +12,18 @@ from . import file_helper
 from .wind import Wind
 
 
-class DroneTest:
+class AerialistTest:
     LOAD_HOME_FROM_LOG = config("LOAD_HOME_FROM_LOG", cast=bool, default=True)
 
     def __init__(
         self,
-        drone: DroneConfig = None,
+        robot: RobotConfig = None,
         simulation: SimulationConfig = None,
         mission: MissionConfig = None,
         assertion: AssertionConfig = None,
         agent: AgentConfig = None,
     ) -> None:
-        self.drone = drone
+        self.robot = robot
         self.simulation = simulation
         self.mission = mission
         self.assertion = assertion
@@ -47,8 +47,10 @@ class DroneTest:
         with open(file_address) as file:
             data_dict = munch.DefaultMunch.fromYAML(file, None)
         config = cls()
-        if data_dict.drone is not None:
-            config.drone = DroneConfig(**data_dict.drone)
+        if data_dict.robot is not None:
+            config.robot = RobotConfig(**data_dict.robot)
+        elif data_dict.drone is not None:  # for compatibility with old versions
+            config.robot = RobotConfig(**data_dict.drone)
         if data_dict.simulation is not None:
             config.simulation = SimulationConfig(**data_dict.simulation)
         if data_dict.mission is not None:
@@ -60,7 +62,7 @@ class DroneTest:
         if data_dict.agent is not None:
             config.agent = AgentConfig(**data_dict.agent)
         return cls(
-            config.drone,
+            config.robot,
             config.simulation,
             config.mission,
             config.assertion,
@@ -74,8 +76,8 @@ class DroneTest:
 
     def to_dict(self):
         dic = {}
-        if self.drone is not None:
-            dic["drone"] = self.drone.to_dict()
+        if self.robot is not None:
+            dic["robot"] = self.robot.to_dict()
         if self.simulation is not None:
             dic["simulation"] = self.simulation.to_dict()
         if self.mission is not None:
@@ -89,13 +91,13 @@ class DroneTest:
     def cmd_params(self):
         # CMD must be updated if the interface in entry.py changes
         params = "exec "
-        if self.drone is not None:
-            if self.drone.port is not None:
-                params += f"--drone {self.drone.port} "
-            if self.drone.params_file is not None:
-                params += f"--params '{self.drone.params_file}' "
-            if self.drone.mission_file is not None:
-                params += f"--mission '{self.drone.mission_file}' "
+        if self.robot is not None:
+            if self.robot.type is not None:
+                params += f"--robot {self.robot.type} "
+            if self.robot.params_file is not None:
+                params += f"--params '{self.robot.params_file}' "
+            if self.robot.mission_file is not None:
+                params += f"--mission '{self.robot.mission_file}' "
         if self.simulation is not None:
             if self.simulation.simulator is not None:
                 params += f"--simulator {self.simulation.simulator} "
@@ -153,7 +155,7 @@ class DroneTest:
         tests_folder: str,
         pattern: str = "*.yaml",
         from_sub_folders: bool = False,
-    ) -> List[DroneTestResult]:
+    ) -> List[AerialistTestResult]:
         tests_folder = file_helper.get_local_folder(tests_folder)
         test_files = file_helper.list_files_in_folder(
             folder=tests_folder,
@@ -162,33 +164,33 @@ class DroneTest:
             search_subfolders=from_sub_folders,
             search_recursive=False,
         )
-        tests = [DroneTest.from_yaml(f) for f in test_files]
+        tests = [AerialistTest.from_yaml(f) for f in test_files]
         return tests
 
 
-class DroneConfig:
-    CF_PORT = 14550
-    SITL_PORT = 14540
-    ROS_PORT = 14541
+class RobotConfig:
+    PX4_CF_PORT = 14550
+    PX4_SITL_PORT = 14540
+    PX4_ROS_PORT = 14541
 
     def __init__(
         self,
-        port: int | str = SITL_PORT,
+        type: int | str = PX4_SITL_PORT,
         params: dict = None,
         params_file: str = None,
         mission_file: str = None,
     ) -> None:
-        if isinstance(port, int):
-            self.port = port
+        if isinstance(type, int):
+            self.type = type
         else:
-            if port.isdigit():
-                self.port = int(port)
-            if port == "sitl" or port == "sim":
-                self.port = self.SITL_PORT
-            if port == "ros" or port == "avoidance":
-                self.port = self.ROS_PORT
-            if port == "cf" or port == "hw":
-                self.port = self.CF_PORT
+            if type.isdigit():
+                self.type = int(type)
+            if type == "px4_sitl" or type == "sitl" or type == "sim":
+                self.type = self.PX4_SITL_PORT
+            if type == "px4_ros" or type == "ros" or type == "avoidance":
+                self.type = self.PX4_ROS_PORT
+            if type == "px4_cf" or type == "cf" or type == "hw":
+                self.type = self.PX4_CF_PORT
         self.params = params
         self.params_file = params_file
         if params is None and params_file is not None:
@@ -202,8 +204,8 @@ class DroneConfig:
 
     def to_dict(self):
         dic = {}
-        if self.port is not None:
-            dic["port"] = self.port
+        if self.type is not None:
+            dic["type"] = self.type
         if self.params is not None:
             dic["params"] = self.params
         elif self.params_file is not None:
@@ -375,7 +377,7 @@ class AgentConfig:
         return dic
 
 
-class DroneTestResult:
+class AerialistTestResult:
     class Status(Enum):
         # unknown: no information about the test result.
         UNKNOWN = "unknown"
@@ -418,11 +420,11 @@ class DroneTestResult:
     @classmethod
     def load_folder(
         cls, logs_folder: str, variable: type = AssertionConfig.TRAJECTORY
-    ) -> List[DroneTestResult]:
+    ) -> List[AerialistTestResult]:
         logs_folder = file_helper.get_local_folder(logs_folder)
         logs = file_helper.list_files_in_folder(
             folder=logs_folder,
             name_pattern="*.ulg",
         )
-        results = [DroneTestResult(log, variable) for log in logs]
+        results = [AerialistTestResult(log, variable) for log in logs]
         return results

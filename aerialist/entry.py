@@ -9,14 +9,14 @@ try:
     from .px4.k8s_agent import K8sAgent
     from .px4.local_agent import LocalAgent
     from .px4.docker_agent import DockerAgent
-    from .px4.drone_test import (
+    from .px4.aerialist_test import (
         AssertionConfig,
-        DroneConfig,
-        DroneTest,
+        RobotConfig,
+        AerialistTest,
         SimulationConfig,
         MissionConfig,
         AgentConfig,
-        DroneTestResult,
+        AerialistTestResult,
     )
     from .px4.plot import Plot
 
@@ -27,14 +27,14 @@ except:
     from px4.k8s_agent import K8sAgent
     from px4.local_agent import LocalAgent
     from px4.docker_agent import DockerAgent
-    from px4.drone_test import (
+    from px4.aerialist_test import (
         AssertionConfig,
-        DroneConfig,
-        DroneTest,
+        RobotConfig,
+        AerialistTest,
         SimulationConfig,
         MissionConfig,
         AgentConfig,
-        DroneTestResult,
+        AerialistTestResult,
     )
     from px4.plot import Plot
 
@@ -53,12 +53,12 @@ def arg_parse():
     parser = subparsers.add_parser(name="exec", description="executes a UAV test")
     parser.add_argument("--test", default=None, help="test description yaml file")
 
-    # drone configs
+    # robot configs
     parser.add_argument(
-        "--drone",
-        default=config("DRONE", default="sitl"),
+        "--robot",
+        default=config("ROBOT", default="px4_sitl"),
         # choices=["sitl", "cf", "ros"],
-        help="type of the drone to conect to",
+        help="type of the robot to conect to",
     )
     parser.add_argument(
         "--mission",
@@ -124,7 +124,7 @@ def arg_parse():
         "--home",
         nargs=3,
         type=float,
-        help="home position to place the drone: [lat,lon,alt] in order",
+        help="home position to place the robot: [lat,lon,alt] in order",
         default=None,
     )
 
@@ -187,7 +187,7 @@ def arg_parse():
 
 def run_experiment(args):
     if args.test is not None:
-        test = DroneTest.from_yaml(args.test)
+        test = AerialistTest.from_yaml(args.test)
         if test.agent is None:
             test.agent = AgentConfig(
                 engine=args.agent,
@@ -197,8 +197,8 @@ def run_experiment(args):
             )
 
     else:
-        drone_config = DroneConfig(
-            port=args.drone,
+        robot_config = RobotConfig(
+            type=args.robot,
             params_file=args.params,
             mission_file=args.mission,
         )
@@ -223,8 +223,8 @@ def run_experiment(args):
             path=args.path,
             id=args.id,
         )
-        test = DroneTest(
-            drone=drone_config,
+        test = AerialistTest(
+            robot=robot_config,
             simulation=simulation_config,
             mission=test_config,
             assertion=assertion_config,
@@ -238,7 +238,7 @@ def run_experiment(args):
     #     print(f"LOG:{exp.log}")
 
 
-def execute_test(test: DroneTest):
+def execute_test(test: AerialistTest):
     logger.info("setting up the test environment...")
     if test.agent.engine == AgentConfig.LOCAL:
         agent = LocalAgent(test)
@@ -257,14 +257,14 @@ def execute_test(test: DroneTest):
 
 def plot_test(args):
     if args.test is not None:
-        test = DroneTest.from_yaml(args.test)
+        test = AerialistTest.from_yaml(args.test)
     else:
-        test = DroneTest()
+        test = AerialistTest()
     if args.log is not None:
         if args.log.endswith(".ulg") or args.log.endswith(".bag"):
-            test_results = [DroneTestResult(args.log)]
+            test_results = [AerialistTestResult(args.log)]
         else:
-            test_results = DroneTestResult.load_folder(args.log)
+            test_results = AerialistTestResult.load_folder(args.log)
 
     Plot.plot_test(test, test_results)
 

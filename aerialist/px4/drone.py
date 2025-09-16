@@ -4,7 +4,7 @@ import sched
 from mavsdk import System, action, asyncio
 from decouple import config
 from .command import Command, FlightMode, DefaultCommands
-from .drone_test import DroneConfig, MissionConfig
+from .aerialist_test import RobotConfig, MissionConfig
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +16,10 @@ class Drone(object):
     DEFAULT_PARAMS = config("PARAMS", default=None)
     TIME_SCALE = 1000000
 
-    def __init__(self, config: DroneConfig) -> None:
+    def __init__(self, config: RobotConfig) -> None:
         super().__init__()
         self.config = config
-        self.address = f"udp://:{self.config.port}"
+        self.address = f"udp://:{self.config.type}"
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect_async(self.address))
 

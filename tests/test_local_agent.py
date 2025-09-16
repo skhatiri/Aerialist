@@ -2,10 +2,10 @@ import unittest
 import os
 import logging
 from aerialist.px4.drone import Drone
-from aerialist.px4.drone_test import (
+from aerialist.px4.aerialist_test import (
     AssertionConfig,
-    DroneConfig,
-    DroneTest,
+    RobotConfig,
+    AerialistTest,
     SimulationConfig,
     MissionConfig,
 )
@@ -32,8 +32,8 @@ class TestLocalAgent(unittest.TestCase):
 
     def test_drone(self):
         """needs the simulator to be already running"""
-        drone_config = DroneConfig(
-            port=DroneConfig.SITL_PORT,
+        drone_config = RobotConfig(
+            type=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
@@ -46,8 +46,8 @@ class TestLocalAgent(unittest.TestCase):
         simulation_config = SimulationConfig(
             headless=False, simulator=SimulationConfig.GAZEBO
         )
-        drone_config = DroneConfig(
-            port=DroneConfig.SITL_PORT,
+        drone_config = RobotConfig(
+            type=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
@@ -55,7 +55,9 @@ class TestLocalAgent(unittest.TestCase):
         assertion_config = AssertionConfig(
             "aerialist/resources/logs/t0.ulg", variable=AssertionConfig.TRAJECTORY
         )
-        test = DroneTest(drone_config, simulation_config, test_config, assertion_config)
+        test = AerialistTest(
+            drone_config, simulation_config, test_config, assertion_config
+        )
         agent = LocalAgent(test)
         agent.run(test)
 

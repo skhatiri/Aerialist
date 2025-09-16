@@ -1,12 +1,12 @@
-drone:
-  port: sitl #{sitl, ros, cf}
+robot:
+  type: px4_sitl #{sitl, ros, cf}
   
 simulation:
   simulator: gazebo #{gazebo,jmavsim,ros} 
   speed: 1
   headless: true
 
-test:
+mission:
   commands_file: samples/flights/manual1.ulg
 
 assertion:

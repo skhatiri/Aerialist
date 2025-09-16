@@ -7,7 +7,12 @@ import subprocess
 from typing import List
 from decouple import config
 from .docker_agent import DockerAgent
-from .drone_test import AgentConfig, DroneTest, DroneTestResult, SimulationConfig
+from .aerialist_test import (
+    AgentConfig,
+    AerialistTest,
+    AerialistTestResult,
+    SimulationConfig,
+)
 from . import file_helper
 
 logger = logging.getLogger(__name__)
@@ -35,9 +40,9 @@ class K8sAgent(DockerAgent):
     USE_VOLUME = config("KUBE_USE_VOLUME", cast=bool, default=False)
     VOLUME_PATH = config("KUBE_VOLUME_PATH", default="/src/aerialist/results/")
 
-    def __init__(self, config: DroneTest) -> None:
+    def __init__(self, config: AerialistTest) -> None:
         self.config = config
-        self.results: List[DroneTestResult] = []
+        self.results: List[AerialistTestResult] = []
         self.container_config = self.import_config()
 
     def run(self):
@@ -101,7 +106,7 @@ class K8sAgent(DockerAgent):
                     or path.basename(test_log)
                     != path.basename(self.config.mission.commands_file)
                 ):
-                    self.results.append(DroneTestResult(local_folder + test_log))
+                    self.results.append(AerialistTestResult(local_folder + test_log))
             if len(self.results) == 0:
                 logger.error(f"k8s job {self.config.agent.id} failed")
                 raise Exception(f"k8s job {self.config.agent.id} failed")
@@ -140,17 +145,17 @@ class K8sAgent(DockerAgent):
         file_helper.create_dir(cloud_folder)
 
         # Drone Config
-        if self.config.drone is not None:
-            if self.config.drone.mission_file is not None:
-                container_config.drone.mission_file = file_helper.upload(
-                    self.config.drone.mission_file, cloud_folder
+        if self.config.robot is not None:
+            if self.config.robot.mission_file is not None:
+                container_config.robot.mission_file = file_helper.upload(
+                    self.config.robot.mission_file, cloud_folder
                 )
             if (
-                self.config.drone.params is None
-                and self.config.drone.params_file is not None
+                self.config.robot.params is None
+                and self.config.robot.params_file is not None
             ):
-                container_config.drone.params_file = file_helper.upload(
-                    self.config.drone.params_file, cloud_folder
+                container_config.robot.params_file = file_helper.upload(
+                    self.config.robot.params_file, cloud_folder
                 )
 
         # Test Config

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from decouple import config
 
-from .drone_test import DroneTest, DroneTestResult
+from .aerialist_test import AerialistTest, AerialistTestResult
 from .trajectory import Trajectory
 from .obstacle import Obstacle
 from . import file_helper
@@ -26,8 +26,8 @@ class Plot(object):
     @classmethod
     def plot_test(
         cls,
-        test: DroneTest,
-        results: List[DroneTestResult],
+        test: AerialistTest,
+        results: List[AerialistTestResult],
         obstacle_distance=True,
         filename=None,
     ) -> str:
