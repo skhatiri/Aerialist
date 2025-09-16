@@ -1,5 +1,5 @@
-drone:
-  port: ros #{sitl, ros, cf}
+robot:
+  port: px4_ros #{sitl, ros, cf}
   params_file: samples/flights/mission1-params.csv #csv file with the same structure as above 
   mission_file: samples/flights/mission1.plan
 
@@ -24,7 +24,7 @@ simulation:
   #   direction: [1, 0, 0]
     
   # home_position: [lat,lon,alt]  
-test:
+mission:
   commands_file: samples/flights/mission1-commands.csv
 
 assertion:

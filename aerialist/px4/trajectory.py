@@ -16,7 +16,7 @@ from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
 
-
+# extension_hint: implement a subclass for the specific usecase, handling the trajectory extraction from the log files and configurations for distance calculation and plotting
 class Trajectory(object):
     USE_GPS = config("USE_GPS", default=False, cast=bool)
     IGNORE_AUTO_MODES = False
@@ -29,12 +29,14 @@ class Trajectory(object):
     SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
-    TIME_SCALE = 1000000.0
-    VEHICLE_WIDTH = 0.25  # meters
-    CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE = False
-    VEHICLE_SHAPE = Obstacle.CYLINDER
-    VEHICLE_SIZE = Obstacle.Size(r=0.125, h=0.25)
-    WAYPOINT_WIDTH = 0.40  # meters - possibly bigger than vechicle width to be visible
+    TIME_SCALE = 1000000.0 # to convert timestamps to seconds (here from microseconds), depends on the log source
+    
+    # extension_hint: update the below vehicle width, shape and size according to the vehicle type in the child class
+    VEHICLE_WIDTH = 0.25  # meters (used for distance to obstacles and thickness of the trajctory plot)
+    CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE = False # whether to consider the vehicle shape and size for distance to obstacles, or just as a line with a width
+    VEHICLE_SHAPE = Obstacle.CYLINDER # approximate shape of the vehicle for distance calculation: Obstacle.CYLINDER or Obstacle.BOX
+    VEHICLE_SIZE = Obstacle.Size(r=0.125, h=0.25, l=0, w=0) # size of the vehicle for distance calculation according to the shape above
+    WAYPOINT_WIDTH = 0.40  # meters - used in the trajectory plots (possibly bigger than vechicle width to be visible)
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()

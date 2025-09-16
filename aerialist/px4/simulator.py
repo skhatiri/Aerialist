@@ -8,7 +8,7 @@ import threading
 from decouple import config
 import logging
 from . import file_helper
-from .drone_test import SimulationConfig
+from .aerialist_test import SimulationConfig
 import shutil
 
 logger = logging.getLogger(__name__)

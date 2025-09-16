@@ -1,10 +1,10 @@
 import unittest
 import os
 import logging
-from aerialist.px4.drone_test import (
+from aerialist.px4.aerialist_test import (
     AssertionConfig,
-    DroneConfig,
-    DroneTest,
+    RobotConfig,
+    AerialistTest,
     AgentConfig,
     SimulationConfig,
     MissionConfig,
@@ -27,8 +27,8 @@ class TestK8sAgent(unittest.TestCase):
         simulation_config = SimulationConfig(
             headless=True, simulator=SimulationConfig.GAZEBO
         )
-        drone_config = DroneConfig(
-            port=DroneConfig.SITL_PORT,
+        drone_config = RobotConfig(
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
@@ -41,7 +41,7 @@ class TestK8sAgent(unittest.TestCase):
             count=2,
             path="https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/",
         )
-        test = DroneTest(
+        test = AerialistTest(
             drone_config, simulation_config, test_config, assertion_config, runner
         )
         agent = K8sAgent(test)
@@ -51,8 +51,8 @@ class TestK8sAgent(unittest.TestCase):
         simulation_config = SimulationConfig(
             headless=True, simulator=SimulationConfig.GAZEBO
         )
-        drone_config = DroneConfig(
-            port=DroneConfig.SITL_PORT,
+        drone_config = RobotConfig(
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
@@ -68,7 +68,7 @@ class TestK8sAgent(unittest.TestCase):
             count=1,
             path="https://filer.cloudlab.zhaw.ch/remote.php/webdav/tests/",
         )
-        test = DroneTest(
+        test = AerialistTest(
             drone_config, simulation_config, test_config, assertion_config, runner
         )
         agent = LocalAgent(test)
