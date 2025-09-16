@@ -1,11 +1,11 @@
 from typing import List
-from .drone_test import DroneTest, DroneTestResult
+from .aerialist_test import AerialistTest, AerialistTestResult
 
 
 class TestAgent(object):
-    def __init__(self, config: DroneTest) -> None:
+    def __init__(self, config: AerialistTest) -> None:
         self.config = config
-        self.results: List[DroneTestResult] = []
+        self.results: List[AerialistTestResult] = []
 
-    def run(self) -> DroneTestResult:
+    def run(self) -> AerialistTestResult:
         pass

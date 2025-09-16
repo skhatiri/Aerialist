@@ -1,10 +1,10 @@
-from aerialist.px4.drone_test import DroneTest
+from aerialist.px4.aerialist_test import AerialistTest
 from aerialist.px4.docker_agent import DockerAgent
 from aerialist.px4.plot import Plot
 
 
 ### load a yaml test file
-test = DroneTest.from_yaml("samples/tests/mission1-local.yaml")
+test = AerialistTest.from_yaml("samples/tests/mission1-local.yaml")
 
 ### manipulate test properties
 ### just a few samples here

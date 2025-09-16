@@ -7,12 +7,13 @@ from typing import List
 from decouple import config
 import asyncio
 from . import file_helper
-from .drone_test import AgentConfig, DroneTest, DroneTestResult
+from .aerialist_test import AgentConfig, AerialistTest, AerialistTestResult
 from .test_agent import TestAgent
 
 logger = logging.getLogger(__name__)
 
 
+# extension_hint: implement a subclass for the specific usecase, handling setting up the docker container, executing the tests, copying files in and out, and parsing the results
 class DockerAgent(TestAgent):
     CMD = "python3 aerialist exec --test {test_file}"
     DOCKER_CMD = "docker exec -it {id} {cmd}"
@@ -24,9 +25,9 @@ class DockerAgent(TestAgent):
     USE_VOLUME = config("DOCKER_USE_VOLUME", cast=bool, default=False)
     VOLUME_PATH = config("DOCKER_VOLUME_PATH", default="/src/aerialist/results/")
 
-    def __init__(self, config: DroneTest) -> None:
+    def __init__(self, config: AerialistTest) -> None:
         self.config = config
-        self.results: List[DroneTestResult] = []
+        self.results: List[AerialistTestResult] = []
 
         # for the moment, containers needs to be created before import_config if using docker_cp, and after it if using volumes
         if self.USE_VOLUME:
@@ -120,7 +121,10 @@ class DockerAgent(TestAgent):
                     log_add = f"{self.config.agent.path}{self.container_id[:12]}.ulg"
                 self.docker_cp_export(container_log, log_add)
 
-            self.results.append(DroneTestResult(log_add))
+            # extension_hint: infer the test status from the log
+            # extension_hint: use usecase specific trajectory class as the variable type
+            result = AerialistTestResult(log_add, status=AerialistTestResult.Status.UNKNOWN)
+            self.results.append(result)
 
             if print_logs:
                 logger.info("************************************")
@@ -165,20 +169,20 @@ class DockerAgent(TestAgent):
         container_config = deepcopy(self.config)
         os.makedirs(volume_folder, exist_ok=True)
         # Drone Config
-        if self.config.drone is not None:
-            if self.config.drone.mission_file is not None:
-                self.docker_cp_import(self.config.drone.mission_file, self.VOLUME_PATH)
-                container_config.drone.mission_file = (
-                    f"{self.VOLUME_PATH}{path.basename(self.config.drone.mission_file)}"
+        if self.config.robot is not None:
+            if self.config.robot.mission_file is not None:
+                self.docker_cp_import(self.config.robot.mission_file, self.VOLUME_PATH)
+                container_config.robot.mission_file = (
+                    f"{self.VOLUME_PATH}{path.basename(self.config.robot.mission_file)}"
                 )
 
             if (
-                self.config.drone.params is None
-                and self.config.drone.params_file is not None
+                self.config.robot.params is None
+                and self.config.robot.params_file is not None
             ):
-                self.docker_cp_import(self.config.drone.params_file, self.VOLUME_PATH)
-                container_config.drone.params_file = (
-                    f"{self.VOLUME_PATH}{path.basename(self.config.drone.params_file)}"
+                self.docker_cp_import(self.config.robot.params_file, self.VOLUME_PATH)
+                container_config.robot.params_file = (
+                    f"{self.VOLUME_PATH}{path.basename(self.config.robot.params_file)}"
                 )
 
         # Test Config
@@ -226,17 +230,17 @@ class DockerAgent(TestAgent):
         os.makedirs(volume_folder, exist_ok=True)
 
         # Drone Config
-        if self.config.drone is not None:
-            if self.config.drone.mission_file is not None:
-                container_config.drone.mission_file = file_helper.copy(
-                    self.config.drone.mission_file, volume_folder
+        if self.config.robot is not None:
+            if self.config.robot.mission_file is not None:
+                container_config.robot.mission_file = file_helper.copy(
+                    self.config.robot.mission_file, volume_folder
                 ).replace(volume_folder, self.VOLUME_PATH)
             if (
-                self.config.drone.params is None
-                and self.config.drone.params_file is not None
+                self.config.robot.params is None
+                and self.config.robot.params_file is not None
             ):
-                container_config.drone.params_file = file_helper.copy(
-                    self.config.drone.params_file, volume_folder
+                container_config.robot.params_file = file_helper.copy(
+                    self.config.robot.params_file, volume_folder
                 ).replace(volume_folder, self.VOLUME_PATH)
 
         # Test Config

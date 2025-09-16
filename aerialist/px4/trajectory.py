@@ -8,6 +8,7 @@ import pandas as pd
 import similaritymeasures
 import ruptures as rpt
 from shapely.geometry import LineString
+import shapely
 from decouple import config
 from tslearn.barycenters import softdtw_barycenter
 import warnings
@@ -15,7 +16,7 @@ from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
 
-
+# extension_hint: implement a subclass for the specific usecase, handling the trajectory extraction from the log files and configurations for distance calculation and plotting
 class Trajectory(object):
     USE_GPS = config("USE_GPS", default=False, cast=bool)
     IGNORE_AUTO_MODES = False
@@ -28,9 +29,14 @@ class Trajectory(object):
     SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
-    TIME_SCALE = 1000000.0
-    VEHICLE_WIDTH = 0.25  # meters
-    WAYPOINT_WIDTH = 0.40  # meters - possibly bigger than vechicle width to be visible
+    TIME_SCALE = 1000000.0 # to convert timestamps to seconds (here from microseconds), depends on the log source
+    
+    # extension_hint: update the below vehicle width, shape and size according to the vehicle type in the child class
+    VEHICLE_WIDTH = 0.25  # meters (used for distance to obstacles and thickness of the trajctory plot)
+    CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE = False # whether to consider the vehicle shape and size for distance to obstacles, or just as a line with a width
+    VEHICLE_SHAPE = Obstacle.CYLINDER # approximate shape of the vehicle for distance calculation: Obstacle.CYLINDER or Obstacle.BOX
+    VEHICLE_SIZE = Obstacle.Size(r=0.125, h=0.25, l=0, w=0) # size of the vehicle for distance calculation according to the shape above
+    WAYPOINT_WIDTH = 0.40  # meters - used in the trajectory plots (possibly bigger than vechicle width to be visible)
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()
@@ -149,13 +155,24 @@ class Trajectory(object):
         return type(self)(down_sampled)
 
     def min_distance_to_obstacles(self, obstacles: List[Obstacle]):
-        line = self.to_thick_line()
-        return min(obst.distance(line) for obst in obstacles)
+        if not self.CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE:
+            line = self.to_thick_line()
+            return min(obst.distance(line) for obst in obstacles)
+        else:
+            coverage = self.get_covered_geometries()
+            coverage_union = shapely.union_all(coverage)
+            return min(obst.distance(coverage_union) for obst in obstacles)
 
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
-        return Obstacle.distance_to_many(
-            obstacles, self.to_line(), (self.VEHICLE_WIDTH / 2)
-        )
+        if not self.CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE:
+            return Obstacle.distance_to_many(
+                obstacles, self.to_line(), (self.VEHICLE_WIDTH / 2)
+            )
+        else:
+            obstacles = [o.geometry for o in obstacles]
+            coverage = self.get_covered_geometries()
+            dist = min([sum([b.distance(c) for b in obstacles]) for c in coverage])
+            return dist
 
     def to_thick_line(self):
         line = self.to_line()
@@ -166,6 +183,22 @@ class Trajectory(object):
         points = self.to_data_frame()[:, 1:4]
         line = LineString(points)
         return line
+
+    def get_covered_geometries(self):
+        """get the covered area of the trajectory considering vechile shape and size"""
+        points = self.to_data_frame()
+        shapes = [
+            Obstacle(
+                self.VEHICLE_SIZE,
+                Obstacle.Position(
+                    p[1], p[2], 0, p[4] if Obstacle.USE_RADIANS else math.degrees(p[4])
+                ),
+                self.VEHICLE_SHAPE,
+            )
+            for p in points
+        ]
+        geometries = [s.geometry for s in shapes]
+        return geometries
 
     @classmethod
     def extract(cls, address: str) -> Trajectory:

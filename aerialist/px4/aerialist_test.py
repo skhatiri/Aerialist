@@ -4,6 +4,8 @@ from typing import List, Union
 import munch
 import yaml
 from decouple import config
+import logging
+
 
 from .command import Command
 from .obstacle import Obstacle
@@ -11,19 +13,20 @@ from .trajectory import Trajectory
 from . import file_helper
 from .wind import Wind
 
+logger = logging.getLogger(__name__)
 
-class DroneTest:
+class AerialistTest:
     LOAD_HOME_FROM_LOG = config("LOAD_HOME_FROM_LOG", cast=bool, default=True)
 
     def __init__(
         self,
-        drone: DroneConfig = None,
+        robot: RobotConfig = None,
         simulation: SimulationConfig = None,
         mission: MissionConfig = None,
         assertion: AssertionConfig = None,
         agent: AgentConfig = None,
     ) -> None:
-        self.drone = drone
+        self.robot = robot
         self.simulation = simulation
         self.mission = mission
         self.assertion = assertion
@@ -47,20 +50,24 @@ class DroneTest:
         with open(file_address) as file:
             data_dict = munch.DefaultMunch.fromYAML(file, None)
         config = cls()
-        if data_dict.drone is not None:
-            config.drone = DroneConfig(**data_dict.drone)
+        if data_dict.robot is not None:
+            config.robot = RobotConfig(**data_dict.robot)
+        elif data_dict.drone is not None:  # for compatibility with old versions
+            logger.warning("'drone' key is deprecated. Please use 'robot' instead in your test files.",)
+            config.robot = RobotConfig(**data_dict.drone)
         if data_dict.simulation is not None:
             config.simulation = SimulationConfig(**data_dict.simulation)
         if data_dict.mission is not None:
             config.mission = MissionConfig(**data_dict.mission)
         elif data_dict.test is not None:  # for compatibility with old versions
+            logger.warning("'test' key is deprecated. Please use 'mission' instead in your test files.",            )
             config.mission = MissionConfig(**data_dict.test)
         if data_dict.assertion is not None:
             config.assertion = AssertionConfig(**data_dict.assertion)
         if data_dict.agent is not None:
             config.agent = AgentConfig(**data_dict.agent)
         return cls(
-            config.drone,
+            config.robot,
             config.simulation,
             config.mission,
             config.assertion,
@@ -74,8 +81,8 @@ class DroneTest:
 
     def to_dict(self):
         dic = {}
-        if self.drone is not None:
-            dic["drone"] = self.drone.to_dict()
+        if self.robot is not None:
+            dic["robot"] = self.robot.to_dict()
         if self.simulation is not None:
             dic["simulation"] = self.simulation.to_dict()
         if self.mission is not None:
@@ -89,13 +96,13 @@ class DroneTest:
     def cmd_params(self):
         # CMD must be updated if the interface in entry.py changes
         params = "exec "
-        if self.drone is not None:
-            if self.drone.port is not None:
-                params += f"--drone {self.drone.port} "
-            if self.drone.params_file is not None:
-                params += f"--params '{self.drone.params_file}' "
-            if self.drone.mission_file is not None:
-                params += f"--mission '{self.drone.mission_file}' "
+        if self.robot is not None:
+            if self.robot.port is not None:
+                params += f"--robot {self.robot.port} "
+            if self.robot.params_file is not None:
+                params += f"--params '{self.robot.params_file}' "
+            if self.robot.mission_file is not None:
+                params += f"--mission '{self.robot.mission_file}' "
         if self.simulation is not None:
             if self.simulation.simulator is not None:
                 params += f"--simulator {self.simulation.simulator} "
@@ -153,7 +160,7 @@ class DroneTest:
         tests_folder: str,
         pattern: str = "*.yaml",
         from_sub_folders: bool = False,
-    ) -> List[DroneTestResult]:
+    ) -> List[AerialistTestResult]:
         tests_folder = file_helper.get_local_folder(tests_folder)
         test_files = file_helper.list_files_in_folder(
             folder=tests_folder,
@@ -162,18 +169,18 @@ class DroneTest:
             search_subfolders=from_sub_folders,
             search_recursive=False,
         )
-        tests = [DroneTest.from_yaml(f) for f in test_files]
+        tests = [AerialistTest.from_yaml(f) for f in test_files]
         return tests
 
 
-class DroneConfig:
-    CF_PORT = 14550
-    SITL_PORT = 14540
-    ROS_PORT = 14541
+class RobotConfig:
+    PX4_CF_PORT = 14550
+    PX4_SITL_PORT = 14540
+    PX4_ROS_PORT = 14541
 
     def __init__(
         self,
-        port: int | str = SITL_PORT,
+        port: int | str = PX4_SITL_PORT,
         params: dict = None,
         params_file: str = None,
         mission_file: str = None,
@@ -183,12 +190,12 @@ class DroneConfig:
         else:
             if port.isdigit():
                 self.port = int(port)
-            if port == "sitl" or port == "sim":
-                self.port = self.SITL_PORT
-            if port == "ros" or port == "avoidance":
-                self.port = self.ROS_PORT
-            if port == "cf" or port == "hw":
-                self.port = self.CF_PORT
+            if port == "px4_sitl" or port == "sitl" or port == "sim":
+                self.port = self.PX4_SITL_PORT
+            if port == "px4_ros" or port == "ros" or port == "avoidance":
+                self.port = self.PX4_ROS_PORT
+            if port == "px4_cf" or port == "cf" or port == "hw":
+                self.port = self.PX4_CF_PORT
         self.params = params
         self.params_file = params_file
         if params is None and params_file is not None:
@@ -375,14 +382,28 @@ class AgentConfig:
         return dic
 
 
-class DroneTestResult:
+class AerialistTestResult:
     class Status(Enum):
-        PASS = "pass"
+        # unknown: no information about the test result.
         UNKNOWN = "unknown"
-        FAIL = "fail"
-        TIMEOUT = "timeout"
-        STUCK = "stuck"
+        # pending: the test is still in progress.
+        PENDING = "pending"
+        # error: an unexpected runtime error occurred during the test execution.
         ERROR = "error"
+
+        # collision: The robot collided to the obstacles during the test.
+        COLLISION = "collision"
+        # safety_stop (stuck): The robot is unable to move further due to a collision prevention fail-safe mechanism. It will remain stationary until the timeout reaches.
+        SAFETY_STOP = "safety_stop"
+        # blocked (local minima): The robot keeps looking for a way to move forward between obstacles until the timeout reaches. It is moving close to/ around obstacles with no/limited progress towards the goal.
+        BLOCKED = "blocked"
+        # timeout: General timeout before reaching the goal, except the above conditions.
+        TIMEOUT = "timeout"
+        # failure: General failure to reach the goal, except above conditions.
+        FAILURE = "failure"
+
+        # success (pass): The robot reaches the goal in time, without any collisions to the obstacles.
+        SUCCESS = "success"
 
     def __init__(
         self,
@@ -404,11 +425,11 @@ class DroneTestResult:
     @classmethod
     def load_folder(
         cls, logs_folder: str, variable: type = AssertionConfig.TRAJECTORY
-    ) -> List[DroneTestResult]:
+    ) -> List[AerialistTestResult]:
         logs_folder = file_helper.get_local_folder(logs_folder)
         logs = file_helper.list_files_in_folder(
             folder=logs_folder,
             name_pattern="*.ulg",
         )
-        results = [DroneTestResult(log, variable) for log in logs]
+        results = [AerialistTestResult(log, variable) for log in logs]
         return results

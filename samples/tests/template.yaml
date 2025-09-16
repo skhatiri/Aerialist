@@ -1,5 +1,5 @@
-drone:
-  port: sitl # conected drone type {sitl, ros, cf}
+robot:
+  port: px4_sitl # conected drone type {sitl, ros, cf}
   params_file: path/to/params.csv # params file address
   mission_file: path/to/mission.plan # input mission file address
 
@@ -10,7 +10,7 @@ simulation:
   obstacles: [l,w,h, x,y,z, r] # box size, position, and rotation 
   home_position: [lat,lon,alt] # starting position of the drone   
 
-test:
+mission:
   commands_file: path/to/commands.csv # runtime commands file address
 
 assertion:
