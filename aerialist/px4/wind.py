@@ -51,6 +51,34 @@ class Wind:
             "gust_direction_variance": self.gust_direction_variance,
         }
 
+
+    @staticmethod
+    def remove_wind_plugin(world_path):
+        """Remove wind plugin from world file if it exists"""
+        tree = ET.parse(world_path)
+        root = tree.getroot()
+
+        world_tag = None
+        for elem in root.iter("world"):
+            if elem.attrib.get("name") == "default":
+                world_tag = elem
+                break
+
+        if world_tag is None:
+            logger.warning("No <world name='default'> found.")
+            return
+
+        removed = False
+        for plugin in world_tag.findall("plugin"):
+            if plugin.attrib.get("name") == "wind_plugin":
+                world_tag.remove(plugin)
+                removed = True
+
+        if removed:
+            tree.write(world_path, xml_declaration=True, encoding="utf-8")
+            logger.info(f"❌ Removed wind plugin from {world_path}")
+
+            
     def insert_wind_plugin(self, world_path, at_top=True):
         tree = ET.parse(world_path)
         root = tree.getroot()
