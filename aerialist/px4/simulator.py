@@ -10,6 +10,7 @@ import logging
 from . import file_helper
 from .aerialist_test import SimulationConfig
 import shutil
+from .wind import Wind
 
 logger = logging.getLogger(__name__)
 
@@ -59,22 +60,25 @@ class Simulator(object):
                 sim_command += f"PX4_SIM_SPEED_FACTOR={self.config.speed} "
             sim_command += f"make -C {self.PX4_DIR} px4_sitl {self.config.simulator}"
         elif self.config.simulator == SimulationConfig.ROS:
-
+            
+            source = self.AVOIDANCE_WORLD_PATH
             if self.config.wind is not None:
                 wind = self.config.wind
-                source = self.AVOIDANCE_WORLD_PATH
                 wind.insert_wind_plugin(source)
+            else:
+                Wind.remove_wind_plugin(source)
 
-                try:
-                    destination = os.path.join(
-                        self.CATKIN_DIR, "src/avoidance/avoidance/sim/worlds/"
-                    )
-                    os.makedirs(destination, exist_ok=True)
-                    shutil.copy(source, destination)
-                    logger.debug(f"Copied world file to {destination}")
-                except Exception as e:
-                    logger.error(f"Failed to copy world file: {e}")
-                    raise
+
+            try:
+                destination = os.path.join(
+                    self.CATKIN_DIR, "src/avoidance/avoidance/sim/worlds/"
+                )
+                os.makedirs(destination, exist_ok=True)
+                shutil.copy(source, destination)
+                logger.debug(f"Copied world file to {destination}")
+            except Exception as e:
+                logger.error(f"Failed to copy world file: {e}")
+                raise
 
             self.log_dir = self.ROS_LOG_DIR
             sim_command += f"source {self.CATKIN_DIR}devel/setup.bash; "
