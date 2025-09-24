@@ -238,6 +238,12 @@ simulation:
       y: 3
       z: 0
       r: 0
+
+  wind:
+    velocity_mean: 3       # mean wind velocity in m/s
+    velocity_max: 5.0      # maximum wind velocity in m/s
+    direction: [1, 0, 0]   # wind direction as a 3D vector [x,y,z]
+
   # home_position: # home position to place the drone [lat,lon,alt]  
 mission:
   commands_file: samples/flights/mission1-commands.csv # runtime commands file address
