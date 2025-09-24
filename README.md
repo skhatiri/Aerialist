@@ -347,7 +347,7 @@ Feel free to use the [Discussions](https://github.com/skhatiri/Aerialist/discuss
 
 You can also contact us directly using email:
 
-- Sajad Khatiri (Zurich University of Applied Sciences) - <mazr@zhaw.ch>
+- Sajad Khatiri - <s.khatiri@gmail.com>
 
 <!-- ## Contributing
 
