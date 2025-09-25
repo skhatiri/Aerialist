@@ -1,4 +1,5 @@
 from datetime import datetime
+import fnmatch
 from time import sleep
 from typing import List
 from decouple import config
@@ -305,6 +306,56 @@ def create_dir(path: str):
             raise (e)
 
 
-def get_logs_address(path):
-    files = [path + f for f in os.listdir(path) if f.endswith(".ulg")]
-    return files
+def list_files_in_folder(
+    folder: str,
+    name_pattern: str,
+    search_root: bool = True,
+    search_subfolders: bool = False,
+    search_recursive: bool = False,
+) -> List[str]:
+    """
+    List files in a folder matching a name pattern, with flexible search options.
+
+    Args:
+        folder (str): The folder to search for files.
+        name_pattern (str): Pattern to match file names (e.g., '*.yaml').
+        search_root (bool): Whether to include files in the root folder.
+        search_subfolders (bool): Whether to search in direct subfolders.
+        recursive (bool): Whether to search all subfolders recursively.
+
+    Returns:
+        List[str]: List of paths to the located files.
+    """
+    # Ensure the folder exists
+    if not os.path.exists(folder) or not os.path.isdir(folder):
+        raise ValueError(f"The folder '{folder}' does not exist or is not a directory.")
+
+    located_files = []
+
+    # Search in the root folder
+    if search_root:
+        for file in os.listdir(folder):
+            if os.path.isfile(os.path.join(folder, file)) and fnmatch.fnmatch(
+                file, name_pattern
+            ):
+                located_files.append(os.path.join(folder, file))
+
+    # Search in direct subfolders
+    if search_subfolders and not search_recursive:
+        for subfolder in os.listdir(folder):
+            subfolder_path = os.path.join(folder, subfolder)
+            if os.path.isdir(subfolder_path):
+                for file in os.listdir(subfolder_path):
+                    if os.path.isfile(
+                        os.path.join(subfolder_path, file)
+                    ) and fnmatch.fnmatch(file, name_pattern):
+                        located_files.append(os.path.join(subfolder_path, file))
+
+    # Search recursively in all subfolders
+    if search_recursive:
+        for root, _, files in os.walk(folder):
+            for file in files:
+                if fnmatch.fnmatch(file, name_pattern):
+                    located_files.append(os.path.join(root, file))
+    located_files.sort()
+    return located_files

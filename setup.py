@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="aerialist",
-    version="0.2.02",
+    version="0.3.0",
     author="Sajad Khatiri",
     author_email="s.khatiri@gmail.com",
     description="UAV Test Bench",
@@ -31,12 +31,15 @@ setuptools.setup(
         "ruptures==1.1.7",
         "shapely==1.8.4",
         "validators==0.20.0",
-        "pyyaml==6.0",
+        "pyyaml==6.0.2",
         "munch==2.5.0",
         "rospkg==1.4.0",
         "defusedxml==0.7.1",
         "tslearn== 0.5.2",
         "h5py==3.9.0",
+        "setuptools==39.0.1",
+        "requests~=2.18.4",
+        "bagpy==0.5",
     ],
     entry_points={"console_scripts": ["aerialist=aerialist.entry:main"]},
 )

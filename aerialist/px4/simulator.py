@@ -8,19 +8,27 @@ import threading
 from decouple import config
 import logging
 from . import file_helper
-from .drone_test import SimulationConfig
-import math
+from .aerialist_test import SimulationConfig
+import shutil
+from .wind import Wind
 
 logger = logging.getLogger(__name__)
 
 
 class Simulator(object):
-    PX4_DIR = config("PX4_HOME")
-    CATKIN_DIR = config("CATKIN_HOME")
-    PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
-    ROS_LOG_DIR = config("ROS_HOME")
+    PX4_DIR = config("PX4_HOME", default=None)
+    CATKIN_DIR = config("CATKIN_HOME", default=None)
+    if PX4_DIR is not None:
+        PX4_LOG_DIR = PX4_DIR + "build/px4_sitl_default/tmp/rootfs/"
+    else:
+        PX4_LOG_DIR = None
+    ROS_LOG_DIR = config("ROS_HOME", default=None)
     GAZEBO_GUI_AVOIDANCE = True
     AVOIDANCE_WORLD = config("AVOIDANCE_WORLD", default="collision_prevention")
+    AVOIDANCE_WORLD_PATH = config(
+        "AVOIDANCE_WORLD_PATH",
+        default="aerialist/resources/simulation/collision_prevention.world",
+    )
     AVOIDANCE_LAUNCH = config(
         "AVOIDANCE_LAUNCH",
         default="aerialist/resources/simulation/collision_prevention.launch",
@@ -29,13 +37,14 @@ class Simulator(object):
     AVOIDANCE_BOX = config(
         "AVOIDANCE_BOX", default="aerialist/resources/simulation/box.xacro"
     )
-    COPY_DIR = config("LOGS_COPY_DIR", None)
+    COPY_DIR = config("LOGS_COPY_DIR", default=None)
     LAND_TIMEOUT = 20
 
     def __init__(self, config: SimulationConfig) -> None:
         super().__init__()
         self.config = config
-
+        if self.config.timeout <= 0 and self.SIMULATION_TIMEOUT > 0:
+            self.config.timeout = self.SIMULATION_TIMEOUT
         sim_command = ""
         if config.home_position is not None:
             sim_command += f"export PX4_HOME_LAT={self.config.home_position[0]} ; export PX4_HOME_LON={self.config.home_position[1]} ; export PX4_HOME_ALT={self.config.home_position[2]} ; "
@@ -51,6 +60,26 @@ class Simulator(object):
                 sim_command += f"PX4_SIM_SPEED_FACTOR={self.config.speed} "
             sim_command += f"make -C {self.PX4_DIR} px4_sitl {self.config.simulator}"
         elif self.config.simulator == SimulationConfig.ROS:
+            
+            source = self.AVOIDANCE_WORLD_PATH
+            if self.config.wind is not None:
+                wind = self.config.wind
+                wind.insert_wind_plugin(source)
+            else:
+                Wind.remove_wind_plugin(source)
+
+
+            try:
+                destination = os.path.join(
+                    self.CATKIN_DIR, "src/avoidance/avoidance/sim/worlds/"
+                )
+                os.makedirs(destination, exist_ok=True)
+                shutil.copy(source, destination)
+                logger.debug(f"Copied world file to {destination}")
+            except Exception as e:
+                logger.error(f"Failed to copy world file: {e}")
+                raise
+
             self.log_dir = self.ROS_LOG_DIR
             sim_command += f"source {self.CATKIN_DIR}devel/setup.bash; "
             sim_command += (
@@ -68,13 +97,13 @@ class Simulator(object):
             sim_command += f"exec roslaunch {self.AVOIDANCE_LAUNCH} gui:={str((not self.config.headless) and self.GAZEBO_GUI_AVOIDANCE).lower()} rviz:={str(False and not self.config.headless).lower()} world_file_name:={self.AVOIDANCE_WORLD} box_path:={self.AVOIDANCE_BOX} "
             if self.config.obstacles != None:
                 if len(self.config.obstacles) > 0:
-                    sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.w} obst_w:={self.config.obstacles[0].size.l} obst_h:={self.config.obstacles[0].size.h} obst_yaw:={math.radians(-self.config.obstacles[0].position.r)} "
+                    sim_command += f"obst:=true obst_x:={self.config.obstacles[0].position.y} obst_y:={self.config.obstacles[0].position.x} obst_z:={self.config.obstacles[0].position.z} obst_l:={self.config.obstacles[0].size.w} obst_w:={self.config.obstacles[0].size.l} obst_h:={self.config.obstacles[0].size.h} obst_yaw:={-self.config.obstacles[0].get_radians()} "
                 if len(self.config.obstacles) > 1:
-                    sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.w} obst2_w:={self.config.obstacles[1].size.l} obst2_h:={self.config.obstacles[1].size.h} obst2_yaw:={math.radians(-self.config.obstacles[1].position.r)} "
+                    sim_command += f"obst2:=true obst2_x:={self.config.obstacles[1].position.y} obst2_y:={self.config.obstacles[1].position.x} obst2_z:={self.config.obstacles[1].position.z} obst2_l:={self.config.obstacles[1].size.w} obst2_w:={self.config.obstacles[1].size.l} obst2_h:={self.config.obstacles[1].size.h} obst2_yaw:={-self.config.obstacles[1].get_radians()} "
                 if len(self.config.obstacles) > 2:
-                    sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[2].position.x} obst3_z:={self.config.obstacles[2].position.z} obst3_l:={self.config.obstacles[2].size.w} obst3_w:={self.config.obstacles[2].size.l} obst3_h:={self.config.obstacles[2].size.h} obst3_yaw:={math.radians(-self.config.obstacles[2].position.r)} "
+                    sim_command += f"obst3:=true obst3_x:={self.config.obstacles[2].position.y} obst3_y:={self.config.obstacles[2].position.x} obst3_z:={self.config.obstacles[2].position.z} obst3_l:={self.config.obstacles[2].size.w} obst3_w:={self.config.obstacles[2].size.l} obst3_h:={self.config.obstacles[2].size.h} obst3_yaw:={-self.config.obstacles[2].get_radians()} "
                 if len(self.config.obstacles) > 3:
-                    sim_command += f"obst4:=true obst4_x:={self.config.obstacles[3].position.y} obst4_y:={self.config.obstacles[3].position.x} obst4_z:={self.config.obstacles[3].position.z} obst4_l:={self.config.obstacles[3].size.w} obst4_w:={self.config.obstacles[3].size.l} obst4_h:={self.config.obstacles[3].size.h} obst4_yaw:={math.radians(-self.config.obstacles[3].position.r)} "
+                    sim_command += f"obst4:=true obst4_x:={self.config.obstacles[3].position.y} obst4_y:={self.config.obstacles[3].position.x} obst4_z:={self.config.obstacles[3].position.z} obst4_l:={self.config.obstacles[3].size.w} obst4_w:={self.config.obstacles[3].size.l} obst4_h:={self.config.obstacles[3].size.h} obst4_yaw:={-self.config.obstacles[3].get_radians()} "
 
         logger.debug("executing:" + sim_command)
         self.sim_process = subprocess.Popen(
@@ -166,8 +195,8 @@ class Simulator(object):
                     )
 
                 if (
-                    self.SIMULATION_TIMEOUT > 0
-                    and time.perf_counter() - start_time > self.SIMULATION_TIMEOUT
+                    self.config.timeout > 0
+                    and time.perf_counter() - start_time > self.config.timeout
                 ):
                     logger.error(
                         "Simulation Timeout. Terminating the rest of the execution..."

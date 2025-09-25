@@ -6,9 +6,13 @@ import logging
 import subprocess
 from typing import List
 from decouple import config
-from .command import Command
 from .docker_agent import DockerAgent
-from .drone_test import AgentConfig, DroneTest, DroneTestResult, SimulationConfig
+from .aerialist_test import (
+    AgentConfig,
+    AerialistTest,
+    AerialistTestResult,
+    SimulationConfig,
+)
 from . import file_helper
 
 logger = logging.getLogger(__name__)
@@ -36,19 +40,17 @@ class K8sAgent(DockerAgent):
     USE_VOLUME = config("KUBE_USE_VOLUME", cast=bool, default=False)
     VOLUME_PATH = config("KUBE_VOLUME_PATH", default="/src/aerialist/results/")
 
-    def __init__(self, config: DroneTest) -> None:
+    def __init__(self, config: AerialistTest) -> None:
         self.config = config
-        self.results: List[DroneTestResult] = []
-        self.k8s_config = self.import_config()
+        self.results: List[AerialistTestResult] = []
+        self.container_config = self.import_config()
 
     def run(self):
         cmd = self.CMD.format(
-            test_file=self.k8s_test_yaml,
+            test_file=self.container_test_yaml,
             timeout=self.DOCKER_TIMEOUT,
         )
         logger.debug("docker command:" + cmd)
-
-        host_volume_prefix = ""
 
         if self.USE_VOLUME:
             if self.config.simulation.simulator == SimulationConfig.ROS:
@@ -56,11 +58,12 @@ class K8sAgent(DockerAgent):
             else:
                 template = self.DEFAULT_LOCAL_KUBE_TEMPLATE
 
-            host_volume_prefix = "/host_mnt"
+            host_volume = self.config.agent.path.rstrip("/")
+
             kube_cmd = self.KUBE_LOCAL_CMD.format(
                 name=self.config.agent.id,
                 command=cmd,
-                host_volume=host_volume_prefix + self.config.agent.path,
+                host_volume=host_volume,
                 runs=self.config.agent.count,
                 template=template,
             )
@@ -84,7 +87,7 @@ class K8sAgent(DockerAgent):
         if kube_prc.returncode == 0:
             logger.info("waiting for k8s job to finish ...")
             loop = asyncio.get_event_loop()
-            succes = loop.run_until_complete(self.wait_success(self.config.agent.id))
+            success = loop.run_until_complete(self.wait_success(self.config.agent.id))
             logger.info("k8s job finished")
             if self.USE_VOLUME:
                 local_folder = self.config.agent.path
@@ -92,17 +95,17 @@ class K8sAgent(DockerAgent):
                 local_folder = f"{self.WEBDAV_LOCAL_DIR}{self.config.agent.id}/"
                 os.makedirs(local_folder, exist_ok=True)
                 logger.info(f"downloading simulation logs to {local_folder}")
-                file_helper.download_dir(self.k8s_config.agent.path, local_folder)
+                file_helper.download_dir(self.container_config.agent.path, local_folder)
                 logger.debug("files downloaded")
 
             for test_log in os.listdir(local_folder):
                 if test_log.endswith(".ulg") and (
-                    self.config.test is None
-                    or self.config.test.commands_file is None
+                    self.config.mission is None
+                    or self.config.mission.commands_file is None
                     or path.basename(test_log)
-                    != path.basename(self.config.test.commands_file)
+                    != path.basename(self.config.mission.commands_file)
                 ):
-                    self.results.append(DroneTestResult(local_folder + test_log))
+                    self.results.append(AerialistTestResult(local_folder + test_log))
             if len(self.results) == 0:
                 logger.error(f"k8s job {self.config.agent.id} failed")
                 raise Exception(f"k8s job {self.config.agent.id} failed")
@@ -129,116 +132,64 @@ class K8sAgent(DockerAgent):
         self.config.agent.path += self.config.agent.id + "/"
 
         if self.USE_VOLUME:
-            k8s_config = self.copy_files_volume()
+            container_config = self.copy_files_volume()
         else:
-            k8s_config = self.copy_files_cloud()
-        return k8s_config
+            container_config = self.copy_files_cloud()
+        return container_config
 
     def copy_files_cloud(self):
         cloud_folder = self.config.agent.path
 
-        k8s_config = deepcopy(self.config)
+        container_config = deepcopy(self.config)
         file_helper.create_dir(cloud_folder)
 
         # Drone Config
-        if self.config.drone is not None:
-            if self.config.drone.mission_file is not None:
-                k8s_config.drone.mission_file = file_helper.upload(
-                    self.config.drone.mission_file, cloud_folder
+        if self.config.robot is not None:
+            if self.config.robot.mission_file is not None:
+                container_config.robot.mission_file = file_helper.upload(
+                    self.config.robot.mission_file, cloud_folder
                 )
-            if self.config.drone.params_file is not None:
-                k8s_config.drone.params_file = file_helper.upload(
-                    self.config.drone.params_file, cloud_folder
+            if (
+                self.config.robot.params is None
+                and self.config.robot.params_file is not None
+            ):
+                container_config.robot.params_file = file_helper.upload(
+                    self.config.robot.params_file, cloud_folder
                 )
 
         # Test Config
-        if self.config.test is not None:
+        if self.config.mission is not None:
+            self.config.mission.save_commands_list_if_needed(self.WEBDAV_LOCAL_DIR)
             if (
-                self.config.test.commands is not None
-                and self.config.test.commands_file is None
+                self.config.mission.commands_file is not None
+                and self.config.mission.commands is not None
+                and len(self.config.mission.commands)
+                > self.config.mission.MAX_INLINE_COMMANDS
             ):
-                self.config.test.commands_file = (
-                    f"{self.WEBDAV_LOCAL_DIR}{file_helper.time_filename()}.csv"
-                )
-                Command.save_csv(
-                    self.config.test.commands, self.config.test.commands_file
-                )
-            if self.config.test.commands_file is not None:
-                k8s_config.test.commands_file = file_helper.upload(
-                    self.config.test.commands_file, cloud_folder
+                container_config.mission.commands_file = file_helper.upload(
+                    self.config.mission.commands_file, cloud_folder
                 )
 
         # Assertion Config
-        k8s_config.assertion = None
+        container_config.assertion = None
         # if self.config.assertion is not None:
         #     if self.config.assertion.log_file is not None:
         #         k8s_config.assertion.log_file = file_helper.upload(
         #             self.config.assertion.log_file, cloud_folder
         #         )
 
-        if k8s_config.agent is not None:
-            k8s_config.agent.engine = AgentConfig.LOCAL
-            k8s_config.agent.count = 1
+        if container_config.agent is not None:
+            container_config.agent.engine = AgentConfig.LOCAL
+            container_config.agent.count = 1
 
-        self.k8s_test_yaml = k8s_config.to_yaml(
+        self.container_test_yaml = container_config.to_yaml(
             f"{self.WEBDAV_LOCAL_DIR}{self.config.agent.id}.yaml"
         )
-        self.k8s_test_yaml = file_helper.upload(self.k8s_test_yaml, cloud_folder)
+        self.container_test_yaml = file_helper.upload(
+            self.container_test_yaml, cloud_folder
+        )
         logger.info(f"files uploaded")
-        return k8s_config
-
-    def copy_files_volume(self):
-        volume_folder = self.config.agent.path
-
-        k8s_config = deepcopy(self.config)
-        os.makedirs(volume_folder, exist_ok=True)
-
-        # Drone Config
-        if self.config.drone is not None:
-            if self.config.drone.mission_file is not None:
-                k8s_config.drone.mission_file = file_helper.copy(
-                    self.config.drone.mission_file, volume_folder
-                ).replace(volume_folder, self.VOLUME_PATH)
-            if self.config.drone.params_file is not None:
-                k8s_config.drone.params_file = file_helper.copy(
-                    self.config.drone.params_file, volume_folder
-                ).replace(volume_folder, self.VOLUME_PATH)
-
-        # Test Config
-        if self.config.test is not None:
-            if (
-                self.config.test.commands is not None
-                and self.config.test.commands_file is None
-            ):
-                self.config.test.commands_file = (
-                    f"/tmp/{file_helper.time_filename()}.csv"
-                )
-                Command.save_csv(
-                    self.config.test.commands, self.config.test.commands_file
-                )
-            if self.config.test.commands_file is not None:
-                k8s_config.test.commands_file = file_helper.copy(
-                    self.config.test.commands_file, volume_folder
-                ).replace(volume_folder, self.VOLUME_PATH)
-
-        # Assertion Config
-        k8s_config.assertion = None
-        # if self.config.assertion is not None:
-        #     if self.config.assertion.log_file is not None:
-        #         k8s_config.assertion.log_file = file_helper.upload(
-        #             self.config.assertion.log_file, cloud_folder
-        #         )
-
-        if k8s_config.agent is not None:
-            k8s_config.agent.engine = AgentConfig.LOCAL
-            k8s_config.agent.count = 1
-            k8s_config.agent.path = None
-
-        self.k8s_test_yaml = k8s_config.to_yaml(
-            f"{volume_folder}{self.config.agent.id}.yaml"
-        ).replace(volume_folder, self.VOLUME_PATH)
-        logger.info(f"files copied")
-        return k8s_config
+        return container_config
 
     async def wait_success(self, job_id):
         completed = await asyncio.create_subprocess_shell(

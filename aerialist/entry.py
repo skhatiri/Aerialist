@@ -5,33 +5,41 @@ import os
 import sys
 from decouple import config
 
-
 try:
     from .px4.k8s_agent import K8sAgent
     from .px4.local_agent import LocalAgent
     from .px4.docker_agent import DockerAgent
-    from .px4.drone_test import (
+    from .px4.aerialist_test import (
         AssertionConfig,
-        DroneConfig,
-        DroneTest,
+        RobotConfig,
+        AerialistTest,
         SimulationConfig,
-        TestConfig,
+        MissionConfig,
         AgentConfig,
-        DroneTestResult,
+        AerialistTestResult,
     )
+    from .px4.plot import Plot
+
+    # extension_hint: import usecase specific trajectory class
+    # extension_hint: import usecase specific agent class
+
 except:
     from px4.k8s_agent import K8sAgent
     from px4.local_agent import LocalAgent
     from px4.docker_agent import DockerAgent
-    from px4.drone_test import (
+    from px4.aerialist_test import (
         AssertionConfig,
-        DroneConfig,
-        DroneTest,
+        RobotConfig,
+        AerialistTest,
         SimulationConfig,
-        TestConfig,
+        MissionConfig,
         AgentConfig,
-        DroneTestResult,
+        AerialistTestResult,
     )
+    from px4.plot import Plot
+
+    # extension_hint: import usecase specific trajectory class
+    # extension_hint: import usecase specific agent class
 
 
 logger = logging.getLogger(__name__)
@@ -45,12 +53,12 @@ def arg_parse():
     parser = subparsers.add_parser(name="exec", description="executes a UAV test")
     parser.add_argument("--test", default=None, help="test description yaml file")
 
-    # drone configs
+    # robot configs
     parser.add_argument(
-        "--drone",
-        default=config("DRONE", default="sitl"),
+        "--robot",
+        default=config("ROBOT", default="px4_sitl"),
         # choices=["sitl", "cf", "ros"],
-        help="type of the drone to conect to",
+        help="type of the robot to conect to",
     )
     parser.add_argument(
         "--mission",
@@ -116,7 +124,7 @@ def arg_parse():
         "--home",
         nargs=3,
         type=float,
-        help="home position to place the drone: [lat,lon,alt] in order",
+        help="home position to place the robot: [lat,lon,alt] in order",
         default=None,
     )
 
@@ -179,7 +187,7 @@ def arg_parse():
 
 def run_experiment(args):
     if args.test is not None:
-        test = DroneTest.from_yaml(args.test)
+        test = AerialistTest.from_yaml(args.test)
         if test.agent is None:
             test.agent = AgentConfig(
                 engine=args.agent,
@@ -189,8 +197,8 @@ def run_experiment(args):
             )
 
     else:
-        drone_config = DroneConfig(
-            port=args.drone,
+        robot_config = RobotConfig(
+            port=args.robot,
             params_file=args.params,
             mission_file=args.mission,
         )
@@ -202,7 +210,7 @@ def run_experiment(args):
             obstacles=args.obstacle + args.obstacle2 + args.obstacle3 + args.obstacle4,
             home_position=args.home,
         )
-        test_config = TestConfig(
+        test_config = MissionConfig(
             commands_file=args.commands,
             speed=args.speed,
         )
@@ -215,22 +223,22 @@ def run_experiment(args):
             path=args.path,
             id=args.id,
         )
-        test = DroneTest(
-            drone=drone_config,
+        test = AerialistTest(
+            robot=robot_config,
             simulation=simulation_config,
-            test=test_config,
+            mission=test_config,
             assertion=assertion_config,
             agent=agent_config,
         )
     test_results = execute_test(test)
     logger.info(f"LOG:{test_results[0].log_file}")
-    DroneTest.plot(test, test_results)
+    Plot.plot_test(test, test_results)
     # if args.cloud:
     #         exp.log = ulog_helper.upload(exp.log, args.output)
     #     print(f"LOG:{exp.log}")
 
 
-def execute_test(test: DroneTest):
+def execute_test(test: AerialistTest):
     logger.info("setting up the test environment...")
     if test.agent.engine == AgentConfig.LOCAL:
         agent = LocalAgent(test)
@@ -238,6 +246,7 @@ def execute_test(test: DroneTest):
         agent = DockerAgent(test)
     if test.agent.engine == AgentConfig.K8S:
         agent = K8sAgent(test)
+    # extension_hint: use usecase specific agent here
 
     logger.info("running the test...")
     test_results = agent.run()
@@ -248,16 +257,16 @@ def execute_test(test: DroneTest):
 
 def plot_test(args):
     if args.test is not None:
-        test = DroneTest.from_yaml(args.test)
+        test = AerialistTest.from_yaml(args.test)
     else:
-        test = DroneTest()
+        test = AerialistTest()
     if args.log is not None:
-        if args.log.endswith(".ulg"):
-            test_results = [DroneTestResult(args.log)]
+        if args.log.endswith(".ulg") or args.log.endswith(".bag"):
+            test_results = [AerialistTestResult(args.log)]
         else:
-            test_results = DroneTestResult.load_folder(args.log)
+            test_results = AerialistTestResult.load_folder(args.log)
 
-    DroneTest.plot(test, test_results)
+    Plot.plot_test(test, test_results)
 
 
 def config_loggers():
@@ -290,6 +299,9 @@ def config_loggers():
 
 def main():
     try:
+        # extension_hint: should refer to usecase specific trajectory class
+        # todo: move this to a better place
+        # AssertionConfig.TRAJECTORY = Trajectory
         config_loggers()
         args = arg_parse()
         logger.info(f"preparing the test ...{args}")

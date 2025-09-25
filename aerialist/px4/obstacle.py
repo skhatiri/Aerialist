@@ -1,18 +1,23 @@
 from __future__ import annotations
+from decouple import config
 from typing import List, NamedTuple
 from shapely.geometry import box, LineString, Point
 from shapely import affinity
 import matplotlib.patches as mpatches
 import logging
+import math
 
 logger = logging.getLogger(__name__)
 
 
 class Obstacle(object):
+    USE_RADIANS = config("USE_RADIANS", cast=bool, default=False)
+
     class Size(NamedTuple):
         l: float
         w: float
         h: float
+        r: float = 0
 
     class Position(NamedTuple):
         x: float
@@ -22,6 +27,7 @@ class Obstacle(object):
 
     BOX = "box"
     CENTER_POSITION = True
+    CYLINDER = "cylinder"
 
     def __init__(
         self,
@@ -31,16 +37,26 @@ class Obstacle(object):
     ) -> None:
         super().__init__()
 
+        if shape is None:
+            shape = self.BOX
+        self.size = size
+        self.position = position
+        self.shape = shape
+
         if shape == self.BOX:
             if self.CENTER_POSITION:
                 rect = box(-size.l / 2, -size.w / 2, size.l / 2, size.w / 2)
             else:
                 rect = box(0, 0, size.l, size.w)
-            self.geometry = affinity.rotate(rect, position.r, "centroid")
+            self.geometry = affinity.rotate(
+                rect, position.r, "centroid", use_radians=self.USE_RADIANS
+            )
             self.geometry = affinity.translate(self.geometry, position.x, position.y)
             self.unrotated_geometry = affinity.translate(rect, position.x, position.y)
-            self.size = size
-            self.position = position
+        if shape == self.CYLINDER:
+            center = Point(position.x, position.y)
+            self.geometry = center.buffer(self.size.r)
+            self.unrotated_geometry = self.geometry
 
     def center(self):
         return Obstacle.Position(
@@ -74,22 +90,50 @@ class Obstacle(object):
             self.position.r,
         ]
 
+    def get_radians(self):
+        if self.USE_RADIANS:
+            return self.position.r
+        else:
+            return math.radians(self.position.r)
+
+    def get_degrees(self):
+        if self.USE_RADIANS:
+            return math.degrees(self.position.r)
+        else:
+            return self.position.r
+
     def plt_patch(self):
-        obst_patch = mpatches.Rectangle(
-            (
-                self.anchor_point().x,
-                self.anchor_point().y,
-            ),
-            self.size.l,
-            self.size.w,
-            self.position.r,
-            rotation_point="center",
-            edgecolor="gray",
-            facecolor="gray",
-            fill=True,
-            alpha=0.5,
-        )
-        return obst_patch
+        if self.shape == self.BOX:
+            obst_patch = mpatches.Rectangle(
+                (
+                    self.anchor_point().x,
+                    self.anchor_point().y,
+                ),
+                self.size.l,
+                self.size.w,
+                self.get_degrees(),
+                rotation_point="center",
+                edgecolor="gray",
+                facecolor="gray",
+                fill=True,
+                alpha=0.5,
+            )
+            return obst_patch
+        elif self.shape == self.CYLINDER:
+            obst_patch = mpatches.Circle(
+                (
+                    self.position.x,
+                    self.position.y,
+                ),
+                self.size.r,
+                edgecolor="gray",
+                facecolor="gray",
+                fill=True,
+                alpha=0.5,
+            )
+            return obst_patch
+        else:
+            return None
 
     def intersects(self, other: Obstacle):
         return self.geometry.intersects(other.geometry)
@@ -119,20 +163,32 @@ class Obstacle(object):
 
     def to_dict(self):
         return {
-            "size": {"l": self.size.l, "w": self.size.w, "h": self.size.h},
-            "position": {
-                "x": self.position.x,
-                "y": self.position.y,
-                "z": self.position.z,
-                "r": self.position.r,
-            },
+            "shape": self.shape,
+            "size": self.size._asdict(),
+            "position": self.position._asdict(),
         }
 
     @classmethod
-    def distance_to_many(cls, obstacles: List[Obstacle], line: LineString):
+    def distance_to_many(
+        cls, obstacles: List[Obstacle], line: LineString, buffer_width: float
+    ):
         boxes = [o.geometry for o in obstacles]
-        dist = min([sum([b.distance(Point(*p)) for b in boxes]) for p in line.coords])
+        dist = min(
+            [
+                sum([b.distance(Point(*p).buffer(buffer_width)) for b in boxes])
+                for p in line.coords
+            ]
+        )
         return dist
+
+    @classmethod
+    def minimum_gap(cls, obstacles: List[Obstacle]):
+        boxes = [o.geometry for o in obstacles]
+        gaps = []
+        for i in range(len(boxes) - 1):
+            for j in range(i + 1, len(boxes)):
+                gaps.append(boxes[i].distance(boxes[j]))
+        return min(gaps)
 
     @classmethod
     def from_coordinates(cls, coordinates: List[float]):
@@ -151,14 +207,9 @@ class Obstacle(object):
 
     @classmethod
     def from_dict(cls, obstacle: dict):
-        size = Obstacle.Size(obstacle.size.l, obstacle.size.w, obstacle.size.h)
-        position = Obstacle.Position(
-            obstacle.position.x,
-            obstacle.position.y,
-            obstacle.position.z,
-            obstacle.position.r,
-        )
-        return Obstacle(size, position)
+        size = Obstacle.Size(**obstacle.size)
+        position = Obstacle.Position(**obstacle.position)
+        return Obstacle(size, position, obstacle.get("shape"))
 
     @classmethod
     def from_dict_multiple(cls, obstacles: List[dict]):

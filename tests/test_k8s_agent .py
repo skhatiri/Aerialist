@@ -1,13 +1,13 @@
 import unittest
 import os
 import logging
-from aerialist.px4.drone_test import (
+from aerialist.px4.aerialist_test import (
     AssertionConfig,
-    DroneConfig,
-    DroneTest,
+    RobotConfig,
+    AerialistTest,
     AgentConfig,
     SimulationConfig,
-    TestConfig,
+    MissionConfig,
 )
 from aerialist.px4.k8s_agent import K8sAgent
 from aerialist.px4.local_agent import LocalAgent
@@ -27,12 +27,12 @@ class TestK8sAgent(unittest.TestCase):
         simulation_config = SimulationConfig(
             headless=True, simulator=SimulationConfig.GAZEBO
         )
-        drone_config = DroneConfig(
-            port=DroneConfig.SITL_PORT,
+        robot_config = RobotConfig(
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
-        test_config = TestConfig("aerialist/resources/logs/t0.ulg")
+        test_config = MissionConfig("aerialist/resources/logs/t0.ulg")
         assertion_config = AssertionConfig(
             "aerialist/resources/logs/t0.ulg", variable=AssertionConfig.TRAJECTORY
         )
@@ -41,8 +41,8 @@ class TestK8sAgent(unittest.TestCase):
             count=2,
             path="https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/",
         )
-        test = DroneTest(
-            drone_config, simulation_config, test_config, assertion_config, runner
+        test = AerialistTest(
+            robot_config, simulation_config, test_config, assertion_config, runner
         )
         agent = K8sAgent(test)
         agent.run(test)
@@ -51,12 +51,12 @@ class TestK8sAgent(unittest.TestCase):
         simulation_config = SimulationConfig(
             headless=True, simulator=SimulationConfig.GAZEBO
         )
-        drone_config = DroneConfig(
-            port=DroneConfig.SITL_PORT,
+        robot_config = RobotConfig(
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
-        test_config = TestConfig(
+        test_config = MissionConfig(
             "https://filer.cloudlab.zhaw.ch/remote.php/webdav/resources/logs/t0.ulg"
         )
         assertion_config = AssertionConfig(
@@ -68,8 +68,8 @@ class TestK8sAgent(unittest.TestCase):
             count=1,
             path="https://filer.cloudlab.zhaw.ch/remote.php/webdav/tests/",
         )
-        test = DroneTest(
-            drone_config, simulation_config, test_config, assertion_config, runner
+        test = AerialistTest(
+            robot_config, simulation_config, test_config, assertion_config, runner
         )
         agent = LocalAgent(test)
         agent.run(test)

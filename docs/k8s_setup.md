@@ -21,9 +21,10 @@ Aerialist can connect both to a cloud Kubernetes cluster, or a local instance (m
 
 ## Using Local Kubernetes Instance (Experimental)
 
+<!-- Note: Make sure to use the latest branch (ie. refactor-docker-agent) to build the docker image -->
 This guide explains how to set up a local Kubernetes instance using Docker Desktop for the purpose of running a specific task.
 
-1. **Install Docker Desktop**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) on your Ubuntu 20.04 machine.
+1. **Install Docker Desktop**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/) on your Ubuntu machine.
 
 2. **Enable Local Kubernetes**: In Docker Desktop, enable local Kubernetes. You can find this option in the Docker Desktop settings.
 
@@ -35,7 +36,7 @@ This guide explains how to set up a local Kubernetes instance using Docker Deskt
 
 5. **Enable Use of Docker Volumes**: Edit your `.env` file and set the environment variable `KUBE_USE_VOLUME` to `True` in your environment. This will enable the use of docker volumes instead of cloud storage to share files with simulation containers.
 
-6. **Specify Volume Address**:  Edit your `.env` file and set the environment variable `KUBE_VOLUME_PATH` to a desired path to be shared as a volume with the simulation containers in K8S. Container inputs and outputs (simulation logs, etc. ) will be copied to this address.
+6. **Specify Path Address**:  Edit your test description file (eg. [`mission1-k8s.yaml`](../samples/tests/mission1-k8s.yaml)) file and set the variable `path` under the section `agent` to a desired path. Container inputs and outputs (simulation logs, etc. ) will be copied to this address.
 
 7. **Run the Task**: `python3 aerialist exec --test samples/tests/mission1-k8s.yaml`
 

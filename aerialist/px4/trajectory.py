@@ -6,9 +6,9 @@ from typing import List
 import numpy as np
 import pandas as pd
 import similaritymeasures
-import matplotlib.pyplot as plt
 import ruptures as rpt
 from shapely.geometry import LineString
+import shapely
 from decouple import config
 from tslearn.barycenters import softdtw_barycenter
 import warnings
@@ -16,15 +16,11 @@ from .obstacle import Obstacle
 from .position import Position
 from . import file_helper, timeserie_helper
 
-
+# extension_hint: implement a subclass for the specific usecase, handling the trajectory extraction from the log files and configurations for distance calculation and plotting
 class Trajectory(object):
-    DIR = config("RESULTS_DIR", default="results/")
-    WEBDAV_DIR = config("WEBDAV_UP_FLD", default=None)
     USE_GPS = config("USE_GPS", default=False, cast=bool)
     IGNORE_AUTO_MODES = False
     REMOVE_OFFSET = True
-    PLOT_TESTS_XYZ = config("PLOT_TESTS_XYZ", default=True, cast=bool)
-    PLOT_R = config("PLOT_R", default=False, cast=bool)
     TIME_RANGE = None
     DISTANCE_METHOD = config("DISTANCE_METHOD", default="dtw")
     AVERAGE_METHOD = config("AVERAGE_METHOD", default="dtw")
@@ -33,226 +29,23 @@ class Trajectory(object):
     SAMPLING_PERIOD = config("TRJ_SMPL_PRD", cast=float, default=500000)
     RESAMPLE = config("RESAMPLE", default=True, cast=bool)
     AVE_CUT_LAND = config("AVE_CUT_LAND", default=True, cast=bool)
-    HIGHLIGHT_COLOR = "red"
-    HIGHLIGHT_ALPHA = 0.25
-    HIGHLIGHT_SIZE = 25
-    TIME_SCALE = 1000000.0
+    TIME_SCALE = 1000000.0 # to convert timestamps to seconds (here from microseconds), depends on the log source
+    
+    # extension_hint: update the below vehicle width, shape and size according to the vehicle type in the child class
+    VEHICLE_WIDTH = 0.25  # meters (used for distance to obstacles and thickness of the trajctory plot)
+    CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE = False # whether to consider the vehicle shape and size for distance to obstacles, or just as a line with a width
+    VEHICLE_SHAPE = Obstacle.CYLINDER # approximate shape of the vehicle for distance calculation: Obstacle.CYLINDER or Obstacle.BOX
+    VEHICLE_SIZE = Obstacle.Size(r=0.125, h=0.25, l=0, w=0) # size of the vehicle for distance calculation according to the shape above
+    WAYPOINT_WIDTH = 0.40  # meters - used in the trajectory plots (possibly bigger than vechicle width to be visible)
 
     def __init__(self, positions: List[Position]) -> None:
         super().__init__()
         self.positions = positions
 
-    def plot(
-        self,
-        goal: Trajectory = None,
-        save: bool = True,
-        obstacles: List[Obstacle] = None,
-        file_prefix="",
-        highlights: List[float] = None,
-        filename=None,
-    ):
-        distance = True
-        if goal is not None:
-            distance = self.distance(goal)
-        return self.plot_multiple(
-            [self],
-            goal,
-            save,
-            distance,
-            highlights,
-            obstacles,
-            file_prefix,
-            None,
-            filename,
-        )
-
     def save_csv(self, address: str) -> None:
         """saves trajectory to file"""
         data_frame = pd.DataFrame.from_records([p.to_dict() for p in self.positions])
         data_frame.to_csv(address, index=False)
-
-    @classmethod
-    def plot_multiple(
-        cls,
-        trajectories: List[Trajectory],
-        goal: Trajectory = None,
-        save: bool = True,
-        distance: float | bool = None,
-        highlights: List[float] = None,
-        obstacles: List[Obstacle] = None,
-        file_prefix="",
-        ave_trajectory: Trajectory = None,
-        filename=None,
-    ):
-        fig = plt.figure(tight_layout=True)
-
-        if cls.PLOT_R:
-            gs = fig.add_gridspec(4, 4)
-            r_plt = fig.add_subplot(gs[3, :2])
-        else:
-            gs = fig.add_gridspec(3, 4)
-        x_plt = fig.add_subplot(gs[0, :2])
-        y_plt = fig.add_subplot(gs[1, :2])
-        z_plt = fig.add_subplot(gs[2, :2])
-        xy_plt = fig.add_subplot(gs[:, 2:])
-        # xyz_plt = fig.add_subplot(gs[:, 2:], projection="3d")
-
-        # annotations
-        fig.suptitle(" ")
-
-        x_plt.set_ylabel("X (m)")
-        y_plt.set_ylabel("Y (m)")
-        z_plt.set_ylabel("Z (m)")
-        if cls.PLOT_R:
-            r_plt.set_ylabel("Yaw (\u00b0)")
-            r_plt.set_xlabel("flight time (s)")
-        else:
-            z_plt.set_xlabel("flight time (s)")
-        xy_plt.set_ylabel("Y (m)", loc="bottom")
-        xy_plt.yaxis.set_label_position("right")
-        xy_plt.yaxis.tick_right()
-        xy_plt.set_xlabel("X (m)", loc="right")
-        xy_plt.set_aspect("equal", "datalim")
-
-        if obstacles is not None:
-            for obst in obstacles:
-                obst_patch = obst.plt_patch()
-                obst_patch.set_label("obstacle")
-                xy_plt.add_patch(obst_patch)
-
-        alpha = 1 if len(trajectories) <= 1 else 0.25
-        for i in range(len(trajectories)):
-            data_frame = trajectories[i].to_data_frame()
-
-            if len(trajectories) <= 1 or cls.PLOT_TESTS_XYZ:
-                x_plt.plot(data_frame[:, 0], data_frame[:, 1], alpha=alpha)
-                y_plt.plot(data_frame[:, 0], data_frame[:, 2], alpha=alpha)
-                z_plt.plot(data_frame[:, 0], data_frame[:, 3], alpha=alpha)
-                if cls.PLOT_R:
-                    r_plt.plot(data_frame[:, 0], data_frame[:, 4], alpha=alpha)
-
-            label = None
-            if i == 0:
-                label = "tests" if len(trajectories) > 1 else "test"
-
-            xy_plt.plot(
-                data_frame[:, 1],
-                data_frame[:, 2],
-                label=label,
-                alpha=alpha,
-            )
-            if highlights is not None:
-                for timestamp in highlights:
-                    point = data_frame[
-                        abs(data_frame[:, 0] - (timestamp / cls.TIME_SCALE)).argsort()[
-                            0
-                        ]
-                    ]
-                    xy_plt.scatter(
-                        [point[1]],
-                        [point[2]],
-                        color=cls.HIGHLIGHT_COLOR,
-                        alpha=cls.HIGHLIGHT_ALPHA,
-                        s=cls.HIGHLIGHT_SIZE,
-                        label="uncertainty",
-                    )
-            # xyz_plt.plot3D(
-            #     [p.x for p in trj.positions],
-            #     [p.y for p in trj.positions],
-            #     [p.z for p in trj.positions],
-            # )
-
-        if len(trajectories) > 1:
-            if ave_trajectory is None:
-                ave_trajectory = Trajectory.average(trajectories)
-            data_frame = ave_trajectory.to_data_frame()
-            x_plt.plot(
-                data_frame[:, 0], data_frame[:, 1], label="test ave.", color="red"
-            )
-            y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="red")
-            z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="red")
-            if cls.PLOT_R:
-                r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="red")
-            xy_plt.plot(data_frame[:, 1], data_frame[:, 2], color="red")
-        else:
-            ave_trajectory = trajectories[0]
-
-        if goal != None:
-            data_frame = goal.to_data_frame()
-            x_plt.plot(data_frame[:, 0], data_frame[:, 1], color="blue")
-            y_plt.plot(data_frame[:, 0], data_frame[:, 2], color="blue")
-            z_plt.plot(data_frame[:, 0], data_frame[:, 3], color="blue")
-            if cls.PLOT_R:
-                r_plt.plot(data_frame[:, 0], data_frame[:, 4], color="blue")
-
-            xy_plt.plot(
-                data_frame[:, 1], data_frame[:, 2], label="original", color="blue"
-            )
-
-            # xyz_plt.plot3D(
-            #     [p.x for p in goal.positions],
-            #     [p.y for p in goal.positions],
-            #     [p.z for p in goal.positions],
-            # )
-
-        if distance is True and obstacles is not None and len(obstacles) > 0:
-            distance = ave_trajectory.min_distance_to_obstacles(obstacles)
-        if distance is not None and type(distance) is not bool:
-            fig.text(
-                0.71,
-                0.03,
-                f"distance:{round(distance,2)}",
-                ha="center",
-                bbox=dict(facecolor="none", edgecolor="lightgray", boxstyle="round"),
-            )
-        if highlights is not None:
-            for timestamp in highlights:
-                x_plt.axvline(
-                    timestamp / cls.TIME_SCALE,
-                    color=cls.HIGHLIGHT_COLOR,
-                    alpha=cls.HIGHLIGHT_ALPHA,
-                    linewidth=1.75,
-                )
-                y_plt.axvline(
-                    timestamp / cls.TIME_SCALE,
-                    color=cls.HIGHLIGHT_COLOR,
-                    alpha=cls.HIGHLIGHT_ALPHA,
-                    linewidth=1.75,
-                )
-                z_plt.axvline(
-                    timestamp / cls.TIME_SCALE,
-                    color=cls.HIGHLIGHT_COLOR,
-                    alpha=cls.HIGHLIGHT_ALPHA,
-                    linewidth=1.75,
-                )
-                if cls.PLOT_R:
-                    r_plt.axvline(
-                        timestamp / cls.TIME_SCALE,
-                        color=cls.HIGHLIGHT_COLOR,
-                        alpha=cls.HIGHLIGHT_ALPHA,
-                        linewidth=1.75,
-                    )
-        handles, labels = plt.gca().get_legend_handles_labels()
-        by_label = dict(zip(labels, handles))
-        fig.legend(
-            by_label.values(),
-            by_label.keys(),
-            loc="upper center",
-            ncol=3 if obstacles is None else 4,
-        )
-        if save:
-            if filename is None:
-                filename = file_prefix + file_helper.time_filename(add_host=True)
-            os.makedirs(cls.DIR, exist_ok=True)
-            plot_file = f"{cls.DIR}{filename}.png"
-            fig.savefig(plot_file)
-            plt.close(fig)
-            if cls.WEBDAV_DIR is not None:
-                file_helper.upload(f"{cls.DIR}{filename}.png", cls.WEBDAV_DIR)
-            return plot_file
-        else:
-            plt.ion()
-            plt.show()
 
     def allign_origin(self):
         origin = copy.deepcopy(self.positions[0])
@@ -342,7 +135,7 @@ class Trajectory(object):
         for i in range(count):
             down_sampled.append(self.positions[math.ceil(i * scale)])
 
-        return Trajectory(down_sampled)
+        return type(self)(down_sampled)
 
     def downsample_time(self, period: float = SAMPLING_PERIOD) -> Trajectory:
         down_sampled: List[Position] = []
@@ -359,19 +152,53 @@ class Trajectory(object):
             if len(period_points) > 0:
                 down_sampled.append(Position.average(period_points))
             period_start += period
-        return Trajectory(down_sampled)
+        return type(self)(down_sampled)
 
     def min_distance_to_obstacles(self, obstacles: List[Obstacle]):
-        line = self.to_line()
-        return min(obst.distance(line) for obst in obstacles)
+        if not self.CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE:
+            line = self.to_thick_line()
+            return min(obst.distance(line) for obst in obstacles)
+        else:
+            coverage = self.get_covered_geometries()
+            coverage_union = shapely.union_all(coverage)
+            return min(obst.distance(coverage_union) for obst in obstacles)
 
     def distance_to_obstacles(self, obstacles: List[Obstacle]):
-        return Obstacle.distance_to_many(obstacles, self.to_line())
+        if not self.CONSIDER_VEHICLE_SHAPE_FOR_DISTANCE:
+            return Obstacle.distance_to_many(
+                obstacles, self.to_line(), (self.VEHICLE_WIDTH / 2)
+            )
+        else:
+            obstacles = [o.geometry for o in obstacles]
+            coverage = self.get_covered_geometries()
+            dist = min([sum([b.distance(c) for b in obstacles]) for c in coverage])
+            return dist
+
+    def to_thick_line(self):
+        line = self.to_line()
+        thick_line = line.buffer(self.VEHICLE_WIDTH / 2)
+        return thick_line
 
     def to_line(self) -> LineString:
         points = self.to_data_frame()[:, 1:4]
         line = LineString(points)
         return line
+
+    def get_covered_geometries(self):
+        """get the covered area of the trajectory considering vechile shape and size"""
+        points = self.to_data_frame()
+        shapes = [
+            Obstacle(
+                self.VEHICLE_SIZE,
+                Obstacle.Position(
+                    p[1], p[2], 0, p[4] if Obstacle.USE_RADIANS else math.degrees(p[4])
+                ),
+                self.VEHICLE_SHAPE,
+            )
+            for p in points
+        ]
+        geometries = [s.geometry for s in shapes]
+        return geometries
 
     @classmethod
     def extract(cls, address: str) -> Trajectory:
@@ -398,7 +225,7 @@ class Trajectory(object):
                     row.timestamp,
                 )
             )
-        trj = Trajectory(positions)
+        trj = cls(positions)
         return trj
 
     @classmethod
@@ -596,7 +423,7 @@ class Trajectory(object):
         segments: List[Trajectory] = []
         for i in range(len(change_idx) - 1):
             seg_pos = self.positions[change_idx[i] : change_idx[i + 1]]
-            segments.append(Trajectory(seg_pos))
+            segments.append(type(self)(seg_pos))
 
         return segments
 
@@ -617,7 +444,7 @@ class Trajectory(object):
                 Position.average([t.positions[i] for t in down_sampled])
             )
 
-        return Trajectory(ave_positions)
+        return cls(ave_positions)
 
     @classmethod
     def dtw_average(cls, trajectories: List[Trajectory]) -> Trajectory:
@@ -644,7 +471,7 @@ class Trajectory(object):
                         r=average_r[i, 0],
                     )
                 )
-        ave_trj = Trajectory(ave_positions)
+        ave_trj = cls(ave_positions)
         if cls.AVE_CUT_LAND:
             ave_trj = ave_trj.cut_landed()
         return ave_trj
@@ -657,10 +484,10 @@ class Trajectory(object):
         cut_ave = Position.average(cut_list)
         positions = self.positions[0:cut_idx]
         positions.append(cut_ave)
-        return Trajectory(positions)
+        return type(self)(positions)
 
     @classmethod
     def load_folder(cls, path, ignore_automodes=False):
         files = [path + f for f in os.listdir(path) if f.endswith(".ulg")]
-        trjs = [Trajectory.extract_from_log(f, ignore_automodes) for f in files]
+        trjs = [cls.extract_from_log(f, ignore_automodes) for f in files]
         return trjs

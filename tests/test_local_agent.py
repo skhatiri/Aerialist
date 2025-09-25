@@ -2,12 +2,12 @@ import unittest
 import os
 import logging
 from aerialist.px4.drone import Drone
-from aerialist.px4.drone_test import (
+from aerialist.px4.aerialist_test import (
     AssertionConfig,
-    DroneConfig,
-    DroneTest,
+    RobotConfig,
+    AerialistTest,
     SimulationConfig,
-    TestConfig,
+    MissionConfig,
 )
 from aerialist.px4.local_agent import LocalAgent
 from aerialist.px4.simulator import Simulator
@@ -32,13 +32,13 @@ class TestLocalAgent(unittest.TestCase):
 
     def test_drone(self):
         """needs the simulator to be already running"""
-        drone_config = DroneConfig(
-            port=DroneConfig.SITL_PORT,
+        robot_config = RobotConfig(
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
-        test_config = TestConfig(commands="aerialist/resources/logs/t0.ulg")
-        drone = Drone(drone_config)
+        test_config = MissionConfig(commands="aerialist/resources/logs/t0.ulg")
+        drone = Drone(robot_config)
         drone.schedule_test(test_config)
         drone.run_scheduled()
 
@@ -46,16 +46,18 @@ class TestLocalAgent(unittest.TestCase):
         simulation_config = SimulationConfig(
             headless=False, simulator=SimulationConfig.GAZEBO
         )
-        drone_config = DroneConfig(
-            port=DroneConfig.SITL_PORT,
+        robot_config = RobotConfig(
+            port=RobotConfig.PX4_SITL_PORT,
             params={},
             mission_file=None,
         )
-        test_config = TestConfig("aerialist/resources/logs/t0.ulg")
+        test_config = MissionConfig("aerialist/resources/logs/t0.ulg")
         assertion_config = AssertionConfig(
             "aerialist/resources/logs/t0.ulg", variable=AssertionConfig.TRAJECTORY
         )
-        test = DroneTest(drone_config, simulation_config, test_config, assertion_config)
+        test = AerialistTest(
+            robot_config, simulation_config, test_config, assertion_config
+        )
         agent = LocalAgent(test)
         agent.run(test)
 

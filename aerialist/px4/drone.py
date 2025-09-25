@@ -4,7 +4,7 @@ import sched
 from mavsdk import System, action, asyncio
 from decouple import config
 from .command import Command, FlightMode, DefaultCommands
-from .drone_test import DroneConfig, TestConfig
+from .aerialist_test import RobotConfig, MissionConfig
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class Drone(object):
     DEFAULT_PARAMS = config("PARAMS", default=None)
     TIME_SCALE = 1000000
 
-    def __init__(self, config: DroneConfig) -> None:
+    def __init__(self, config: RobotConfig) -> None:
         super().__init__()
         self.config = config
         self.address = f"udp://:{self.config.port}"
@@ -34,7 +34,7 @@ class Drone(object):
 
         self.scheduler = None
 
-    def schedule_test(self, test: TestConfig, offset_sync=False) -> None:
+    def schedule_test(self, test: MissionConfig, offset_sync=False) -> None:
         """sets an schedular object with input control commands to be replayed accurately"""
         self.scheduler = sched.scheduler(time.time, time.sleep)
         if test.commands is None:

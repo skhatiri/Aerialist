@@ -47,9 +47,12 @@ Hence, Aerialist models a UAV test case with the following set of *test properti
 
 - **Environment**: Simulation settings such as the used simulator, physics of the simulated UAV, simulation world (e.g., surface material, UAV’s initial position), surrounding objects (e.g., obstacles size, position), weather conditions (e.g., wind, lighting), etc.
 
+  Aerialist also supports simulating **wind conditions** in the test environment. Users can specify wind parameters such as mean and maximum velocity, as well as wind direction, directly in the YAML configuration. This enables more realistic UAV testing under environmental disturbances and allows researchers to evaluate system robustness against weather-related factors.
+
 - **Commands**: Timestamped external commands from the ground control station (GCS) or the remote controller (RC) to the UAV during the flight (e.g., change  flight mode, go in a specific direction, enter mission mode).
 
 - **Expectation (optional)**: a time series of certain sensor readings that the test flights are expected to follow closely.
+
 
 ### UAV Testing Competition
 
@@ -212,8 +215,8 @@ Using a predefined [test-description yaml file](samples/tests/template-test.yaml
 
 ```yaml
 # template-test.yaml
-drone:
-  port: sitl # type of the drone to connect to {sitl, ros, cf}
+robot:
+  port: px4_sitl # type of the drone to connect to {px4_sitl, px4_ros, px4_cf}
   #params: #PX4 parameters : https://docs.px4.io/main/en/advanced_config/parameter_reference.html
     # {parameter_name}: {parameter_value} #(keep datatype -> e.g, 1.0 for float, 1 for int)
     # CP_DIST: 1.0
@@ -235,8 +238,14 @@ simulation:
       y: 3
       z: 0
       r: 0
+
+  wind:
+    velocity_mean: 3       # mean wind velocity in m/s
+    velocity_max: 5.0      # maximum wind velocity in m/s
+    direction: [1, 0, 0]   # wind direction as a 3D vector [x,y,z]
+
   # home_position: # home position to place the drone [lat,lon,alt]  
-test:
+mission:
   commands_file: samples/flights/mission1-commands.csv # runtime commands file address
 
 assertion:
@@ -294,7 +303,7 @@ You can integrate Aerialist's Python package in your own code and directly defin
 This can be specifically useful when you are working on test generation approaches for UAVs. An example of such usage of Aerialist can be found in [Surrealist](https://github.com/skhatiri/Surrealist).
 
 1. `pip3 install git+https://github.com/skhatiri/Aerialist.git`
-2. Create an instance of [DroneTest](./aerialist/px4/drone_test.py) class and define your test case
+2. Create an instance of [AerialistTest](./aerialist/px4/aerialist_test .py) class and define your test case
 3. configure and execute the test case using your preferred test execution agent ([LocalAgent](./aerialist/px4/local_agent.py), [DockerAgent](./aerialist/px4/docker_agent.py), [K8sAgent](./aerialist/px4/k8s_agent.py))
 
 - Take a look at our [code snippets](./samples/snippets/) for more details and sample codes.
@@ -338,7 +347,7 @@ Feel free to use the [Discussions](https://github.com/skhatiri/Aerialist/discuss
 
 You can also contact us directly using email:
 
-- Sajad Khatiri (Zurich University of Applied Sciences) - <mazr@zhaw.ch>
+- Sajad Khatiri - <s.khatiri@gmail.com>
 
 <!-- ## Contributing
 

@@ -1,5 +1,5 @@
-drone:
-  port: sitl #{sitl, ros, cf}
+robot:
+  port: px4_sitl #{sitl, ros, cf}
   #params: #PX4 parameters : https://docs.px4.io/main/en/advanced_config/parameter_reference.html
     # {parameter_name}: {parameter_value} #(keep datatype -> e.g, 1.0 for float, 1 for int)
     # CP_DIST: 1.0
@@ -13,7 +13,7 @@ simulation:
   headless: true
   obstacles: [5,5,5,  10,5,0,  0] #propetries of box shaped obstacles, [l,w,h,x,y,z,r]
   # home_position: [lat,lon,alt]  
-test:
+mission:
   commands_file: samples/flights/mission1-commands.csv
 
 assertion:

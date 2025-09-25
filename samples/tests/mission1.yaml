@@ -1,5 +1,5 @@
-drone:
-  port: ros #{sitl, ros, cf}
+robot:
+  port: px4_ros #{sitl, ros, cf}
   params_file: samples/flights/mission1-params.csv 
   mission_file: samples/flights/mission1.plan
 
@@ -18,7 +18,12 @@ simulation:
       z: 0
       r: 0
 
-test:
+  # wind:
+  #   velocity_mean: 3.0
+  #   velocity_max: 5.0
+  #   direction: [1, 0, 0]
+
+mission:
   commands_file: samples/flights/mission1-commands.csv
 
 assertion:
