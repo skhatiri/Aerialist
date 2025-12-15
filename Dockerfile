@@ -12,7 +12,7 @@ RUN python3 -m pip install --upgrade pip
 COPY ./requirements.txt /src/aerialist/requirements.txt
 WORKDIR /src/aerialist/
 RUN pip3 install -r requirements.txt
-RUN pip3 install --upgrade anyio==3.5.0
+RUN pip3 install --upgrade anyio>4.0.0
 COPY . .
 RUN chmod +x ./aerialist/__main__.py
 COPY ./template.env ./.env
